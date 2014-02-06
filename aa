@@ -1,0 +1,157 @@
+153c153
+<   state_vars[0] = state_vars[4] = -1.0;
+---
+>   state_vars[0] = state_vars[4] = 0.;
+166c166
+<   prev_state_vars[0] = prev_state_vars[4]=0;
+---
+>   prev_state_vars[0] = prev_state_vars[4]=0.;
+1101c1101
+< 	ifsidewet[ineigh]=(state_vars[0]>GEOFLOW_TINY) ? 1 : 0;
+---
+> 	ifsidewet[ineigh]=(state_vars[0]>0.5/*GEOFLOW_TINY*/) ? 1 : 0;
+1105c1105
+< 	  if(*(EmTemp->get_state_vars())>GEOFLOW_TINY)
+---
+> 	  if(*(EmTemp->get_state_vars())>0.5/*GEOFLOW_TINY*/)
+1116c1116
+< 	      ifsidewet[ineigh]=(*(EmTemp->get_state_vars())>GEOFLOW_TINY)?1:0;
+---
+> 	      ifsidewet[ineigh]=(*(EmTemp->get_state_vars())>0.5/*GEOFLOW_TINY*/)?1:0;
+1127c1127
+<       if(state_vars[0]>GEOFLOW_TINY)
+---
+>       if(state_vars[0]>0.5/*GEOFLOW_TINY*/)
+1205c1205
+<     Awet=(state_vars[0]>GEOFLOW_TINY)?1.0:0.0;
+---
+>     Awet=(state_vars[0]>0.5/*GEOFLOW_TINY*/)?1.0:0.0;
+1542c1542
+<   if((iwetnode==8)||!(state_vars[0]>GEOFLOW_TINY)) return Awet;  //one or zero;
+---
+>   if((iwetnode==8)||!(state_vars[0]>0.5/*GEOFLOW_TINY*/)) return Awet;  //one or zero;
+1648c1648
+<   if((state_vars[0]<=GEOFLOW_TINY)&&(dt>0.0)) {
+---
+>   if((state_vars[0]<=0.5/*GEOFLOW_TINY*/)&&(dt>0.0)) {
+1745,1832d1744
+< 
+< void Element::calc_phi_slope(HashTable* El_Table, HashTable* NodeTable)
+< {
+<   //this function returns the array of positive and minus phi approximation that are required for reinitialization
+< 
+<   int j = 0, bc = 0;
+<   /* check to see if this is a boundary */
+<   while(j<4 && bc == 0) {
+<     if(neigh_proc[j] == INIT)
+<       bc = 1;
+<     j++;
+<   }
+<   if(bc == 1) {
+<     for(j=0;j<2*DIMENSION;j++)
+<       phi_slope[j] = 0.;
+<     return;
+<   }
+< 
+<   //x plus, x minus, y plus, y minus
+<   int xp = positive_x_side;
+<   int yp=(xp+1)%4, xm=(xp+2)%4, ym=(xp+3)%4;
+<   /* x direction */
+<   Element *ep = (Element*) (El_Table->lookup(&neighbor[xp][0]));
+<   assert(ep);  
+<   Element *em = (Element*) (El_Table->lookup(&neighbor[xm][0]));
+<   Element *ep2= NULL;
+<   Element *em2= NULL;
+<   //check if element has 2 neighbors on either side
+<   Node* ndtemp = (Node*) NodeTable->lookup(&node_key[xp+4][0]);
+<   if(ndtemp->info == S_C_CON) {
+<     ep2 = (Element*) (El_Table->lookup(&neighbor[xp+4][0]));
+<     assert(neigh_proc[xp+4] >= 0 && ep2);
+<   }
+<   ndtemp = (Node*) NodeTable->lookup(&node_key[xm+4][0]);
+<   if(ndtemp->info == S_C_CON) {
+<     em2 = (Element*) (El_Table->lookup(&neighbor[xm+4][0]));
+<     assert(neigh_proc[xm+4] >= 0 && em2); 
+<   }
+< 
+<   double dp, dm, dc, dxp, dxm;
+<   dxp = ep->coord[0] - coord[0];
+<   dxm = coord[0] - em->coord[0];
+<   
+<   dp = (ep->state_vars[0] - state_vars[0])/dxp;
+<   if(ep2 != NULL)
+<     dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
+<   dm = (state_vars[0] - em->state_vars[0])/dxm;
+<   if(em2 != NULL)
+<     dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
+<       
+<   phi_slope[0]=dm; phi_slope[1]=dp;
+< 
+<   /* y direction */
+<   ep = (Element*) (El_Table->lookup(&neighbor[yp][0]));
+<   em = (Element*) (El_Table->lookup(&neighbor[ym][0]));
+<   ep2= NULL;
+<   em2= NULL;
+<   //check if element has 2 neighbors on either side
+<   ndtemp = (Node*) NodeTable->lookup(&node_key[yp+4][0]);
+<   if(ndtemp->info == S_C_CON) {
+<     ep2 = (Element*) (El_Table->lookup(&neighbor[yp+4][0]));
+<     assert(neigh_proc[yp+4] >= 0 && ep2);
+<   }
+<   ndtemp = (Node*) NodeTable->lookup(&node_key[ym+4][0]);
+<   if(ndtemp->info == S_C_CON) 
+<     {
+<       em2 = (Element*) (El_Table->lookup(&neighbor[ym+4][0]));
+<       // if(!(neigh_proc[ym+4] >= 0 && em2)){
+<       // 	printf("ym=%d neigh_proc[ym+4]=%d em2=%d\n",
+<       // 	       ym,neigh_proc[ym+4],em2);
+<       // }
+<       assert(neigh_proc[ym+4] >= 0 && em2);
+<     }
+< 
+<   dxp = ep->coord[1] - coord[1];
+<   dxm = coord[1] - em->coord[1];  
+<   
+<   dp = (ep->state_vars[0] - state_vars[0])/dxp;
+<   if(ep2 != NULL)
+<     dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
+<   dm = (state_vars[0] - em->state_vars[0])/dxm;
+<   if(em2 != NULL)
+<     dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
+<   phi_slope[2]=dm; phi_slope[3]=dp;  
+<   return;
+< }
+< 
+< 
+1852c1764
+<   if((state_vars[1]<GEOFLOW_TINY))//&&(state_vars[1]==0))
+---
+>   if(state_vars[1]<GEOFLOW_TINY)//(state_vars[1]==0)//(state_vars[0]<.5)//(state_vars[1]<GEOFLOW_TINY)//&&(state_vars[1]==0))
+1940c1852
+<   if((state_vars[1]<GEOFLOW_TINY))//&&(state_vars[1]==0))
+---
+>   if(state_vars[1]<GEOFLOW_TINY) //(state_vars[1]==0)//(state_vars[0]<.5)//(state_vars[1]<GEOFLOW_TINY)//&&(state_vars[1]==0))
+1956,1957c1868,1869
+<       if ( hfv[0][0] > GEOFLOW_TINY )
+< 	volf = 0;//hfv[0][1]/hfv[0][0];
+---
+> //      if ( hfv[0][0] > GEOFLOW_TINY )
+> //	volf = 0;//hfv[0][1]/hfv[0][0];
+2637c2549
+<   if (temp_state_vars[0] > GEOFLOW_TINY)
+---
+>   if (temp_state_vars[0] > .5/*GEOFLOW_TINY*/)
+2686,2692d2597
+< void Element::level_set(HashTable* El_Table){
+< 
+<   if (if_pile_boundary(El_Table,GEOFLOW_TINY)>1) state_vars[5]=3;
+< 
+<   return;
+< }
+< 
+2764a2670
+>   // if (state_vars[0]>0)  printf("laplacian x:.....%f   dxm:%f....dp:%f....dxp:%f...dm:%f \n",lap_phi[0],dxm,dp,dxp,dm);
+2800c2706
+<   //    printf("I am laplacian in y:.....%f....then respectively  dxm:%f....dp:%f....dxp:%f...dm:%f \n",lap_phi[1],dxm,dp,dxp,dm);
+---
+> //  if (state_vars[0]>0) printf("laplacian y:.....%f   dxm:%f....dp:%f....dxp:%f...dm:%f \n",lap_phi[1],dxm,dp,dxp,dm);

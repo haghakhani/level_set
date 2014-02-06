@@ -1,0 +1,4 @@
+# use glob syntax. this is a comment line
+syntax: glob
+# I don't need to follow the changes in the bin directory
+bin/*
