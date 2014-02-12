@@ -30,8 +30,8 @@
 //#define STOPCRIT_CHANGE_SOURCE
 //#define DO_EROSION
 
-#include <petscksp.h>
-#include <petscdmda.h>
+//#include <petscksp.h>
+//#include <petscdmda.h>
 
 
 //define REFINE_LEVEL 3
@@ -102,13 +102,13 @@ void update_phi(HashTable *El_Table, double *update);
 int num_nonzero_elem(HashTable *El_Table);
 
 //! This function computes the Matrix-free Laplacian
-PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y); 
+//PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y); 
 
 //! This function is the implicit solver
-int implicit_solver(LaplacianData Laplacian);
+//int implicit_solver(LaplacianData Laplacian);
 
 //! This function is used in in implicit solver 
-PetscScalar *phase(HashTable *El_Table, int num_elem);
+//PetscScalar *phase(HashTable *El_Table, int num_elem);
 
 //! I (Hossein) added this function for displaying the data
 void printdata(HashTable* El_Table, HashTable* NodeTable,MatProps* matprops_ptr, FluxProps* fluxprops_ptr,TimeProps* timeprops_ptr);
