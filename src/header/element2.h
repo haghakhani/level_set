@@ -353,13 +353,14 @@ class Element{
   void      insert_coord(HashTable* NodeTable);
 
   //! this function, based on the dir flag, chooses between calling xdirflux and ydirflux, which respectively, calculate either the x or y direction analytical cell center fluxes (or the fluxes at the the boundary if 2nd order flux option is checked on the gui). Keith wrote this.
-  void      zdirflux(HashTable* El_Table, HashTable* NodeTable, MatProps* matprops_ptr, int order_flag, int dir, double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS], Element* EmNeigh, double dt);
+  void      zdirflux(HashTable* El_Table, HashTable* NodeTable, MatProps* matprops_ptr, int order_flag, int dir, double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS], Element* EmNeigh, double dt, 
+                     double *vel,double *phi,int *phi_flag);
 
   //! this function calculates the analytical cell center (or cell boundary if 2nd order flux flag is checked on the gui) x direction fluxes. Keith wrote this
-  void      xdirflux(MatProps* matprops_ptr, double dz, double thissideSwet, double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS]);
+  void      xdirflux(MatProps* matprops_ptr, double dz, double thissideSwet, double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS],double *vel,double *phi,int *phi_flag);
 
   //! this function calculates the analytical cell center (or cell boundary if 2nd order flux flag is checked on the gui) y direction fluxes. Keith wrote this
-  void      ydirflux(MatProps* matprops_ptr, double dz, double thissideSwet, double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS]);
+  void      ydirflux(MatProps* matprops_ptr, double dz, double thissideSwet, double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS],double *vel,double *phi,int *phi_flag);
 
   //! this function (indirectly) calculates the fluxes that will be used to perform the finite volume corrector step and stores them in element edge nodes, indirectly because it calls other functions to calculate the analytical fluxes and then calls another function to compute the riemann fluxes from the analytical fluxes. Talk to me (Keith) before you modify this, as I am fairly certain that it is now completely bug free and parts of it can be slightly confusing.
   void      calc_edge_states(HashTable* El_Table, HashTable* NodeTable,
@@ -768,9 +769,9 @@ inline int Element::get_opposite_brother_flag() {return opposite_brother_flag;};
 inline void Element::put_height_mom(double pile_height,double volf,double xmom,double ymom) 
 {
 if (pile_height>0) 
-prev_state_vars[0]=state_vars[0]=prev_state_vars[4]=state_vars[4]=1;
+prev_state_vars[0]=state_vars[0]=prev_state_vars[4]=state_vars[4]=-1;
 else
-prev_state_vars[0]=state_vars[0]=-1;  
+prev_state_vars[0]=state_vars[0]=1;  
 
   prev_state_vars[1]=state_vars[1]=pile_height; 
   prev_state_vars[2]=state_vars[2]=xmom; 

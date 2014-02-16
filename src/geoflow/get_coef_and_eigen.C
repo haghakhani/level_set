@@ -98,7 +98,7 @@ double get_coef_and_eigen(HashTable* El_Table, HashTable* NodeTable,
 			{
 				//if this element does not belong on this processor don't involve!!!
 
-				if(*(EmTemp->get_state_vars()) > GEOFLOW_TINY) 
+				if(*(EmTemp->get_state_vars()) <0/*> GEOFLOW_TINY*/) 
 				{
 					ifanynonzeroheight=1;
 

@@ -94,7 +94,7 @@ void correct(HashTable* NodeTable, HashTable* El_Table,
   double Vfluid[DIMENSION], Vsolid[DIMENSION];
   // double volf;
 
-  if ( state_vars[0] > 0 && state_vars[1]>0)
+  if ( state_vars[0] < 0 && state_vars[1]>0)
     {
       for (i=0; i<DIMENSION; i++)
 	kactxy[i]=*(EmTemp->get_effect_kactxy()+i);
@@ -125,8 +125,10 @@ void correct(HashTable* NodeTable, HashTable* El_Table,
   V_avg[1] = Vsolid[1];//*volf + Vfluid[1]*(1.-volf);
   EmTemp->convect_dryline(V_avg,dt); //this is necessary
 
-  if (state_vars[0] < GEOFLOW_SHORT && state_vars[1]!=0)
-    navslip_coef *= state_vars[1];
+//  if (state_vars[0] < GEOFLOW_SHORT && state_vars[1]!=0)
+//    navslip_coef *= state_vars[1];
+
+   navslip_coef=0;//lagecy 
 
   double dragforce[2] = {0., 0.};
   int iter=timeprops->iter;
@@ -219,8 +221,8 @@ void correct(HashTable* NodeTable, HashTable* El_Table,
   //     // exit(1);
   //   }
   double ratio=0;
-  if (state_vars[0]>5.5){
-    ratio = -1;//dabs((state_vars[0]-state_vars[1])/state_vars[1]);
+  if (isnan(state_vars[0])){
+    ratio = 1;//dabs((state_vars[0]-state_vars[1])/state_vars[1]);
     //printf("the ratio is %f\n",ratio);
   }
 

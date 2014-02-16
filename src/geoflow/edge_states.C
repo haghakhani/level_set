@@ -58,8 +58,8 @@ void calc_edge_states(HashTable* El_Table, HashTable* NodeTable,
 	    if(Curr_El->get_adapted_flag()>0){
 	      //if this element doesn't belong on this processor don't involve
 		double pheight = *(Curr_El->get_state_vars()+1);
-double keys1=*(Curr_El->pass_key());
-double keys2=*(Curr_El->pass_key()+1);	
+int keys1=*(Curr_El->pass_key());
+int keys2=*(Curr_El->pass_key()+1);	
 	Curr_El->calc_edge_states(El_Table, NodeTable, 
 					  matprops_ptr, myid,
 					  timeprops_ptr->dtime, order_flag,

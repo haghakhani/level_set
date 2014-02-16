@@ -72,15 +72,8 @@ int write_xdmf(HashTable *El_Table, HashTable *NodeTable,TimeProps *timeprops_pt
 	 if (!(EmTemp->get_refined_flag()))
 	 {
 	    state_vars=EmTemp->get_state_vars();
-//===================================================================
-	  if (state_vars[0] > GEOFLOW_TINY)
-    		phi=state_vars[0];
-  	  else
-    		phi=0;
 
-	    pheight.push_back(phi);
-//if(state_vars[0]>1 || state_vars[0]<0)
-//printf("this the pile_height that I want to write .............%f\n", state_vars[0]);
+	    pheight.push_back(state_vars[0]*matprops_ptr->LENGTH_SCALE);
 	    xmom.push_back(state_vars[2]*momentum_scale);
 	    ymom.push_back(state_vars[3]*momentum_scale);
 	    num_elm++;

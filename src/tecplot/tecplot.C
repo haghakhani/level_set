@@ -734,7 +734,7 @@ void viz_output(HashTable* El_Table, HashTable* NodeTable,
 	    {
 	      double* state_vars = EmTemp->get_state_vars();
 	      Node* NdTemp = (Node*) NodeTable->lookup(EmTemp->pass_key());
-	      if(state_vars[0] < GEOFLOW_TINY) {
+	      if(state_vars[0] >0/*< GEOFLOW_TINY*/) {
 		double zero = 0;
 		fprintf(fp, "%u %u %f %f %f %f %f %f %f %f %d %f \n",
 			*(EmTemp->pass_key()), 

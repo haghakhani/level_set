@@ -105,7 +105,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
 	    curr_time=(timeprops_ptr->time)*(timeprops_ptr->TIME_SCALE);
 
 	    //VxVy[2]; 
-	    if(*(Curr_El->get_state_vars())>GEOFLOW_TINY) {
+	    if(*(Curr_El->get_state_vars())<0/*GEOFLOW_TINY*/) {
 	      VxVy[0]=*(Curr_El->get_state_vars()+2)/ *(Curr_El->get_state_vars()+1);
 	      VxVy[1]=*(Curr_El->get_state_vars()+3)/ *(Curr_El->get_state_vars()+1);
 	    }
@@ -174,7 +174,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
 
   mapnames.assign(a, b, c,d, ce);
 
-  if (timeprops_ptr->iter%10==1){
+  if (/*timeprops_ptr->iter%50==4||*/timeprops_ptr->iter==1){
     int tt=timeprops_ptr->iter;
     //for(int ii=0;ii<1000;ii++){
 
@@ -286,17 +286,17 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
   //update the orientation of the "dryline" (divides partially wetted cells
   //into wet and dry parts solely based on which neighbors currently have 
   //pileheight greater than GEOFLOW_TINY
-  for(i=0; i<El_Table->get_no_of_buckets(); i++) 
-    {
-      HashEntryPtr currentPtr = *(buck+i);
-      while(currentPtr) 
-	{
-	  Element* Curr_El=(Element*)(currentPtr->value);
-	  currentPtr=currentPtr->next;      	    
-	  if(Curr_El->get_adapted_flag()>0) //if this is a refined element don't involve!!!
-	    Curr_El->calc_wet_dry_orient(El_Table);
-	}
-    }
+  //for(i=0; i<El_Table->get_no_of_buckets(); i++) 
+  // {
+  //     HashEntryPtr currentPtr = *(buck+i);
+  //    while(currentPtr) 
+//	{
+//	  Element* Curr_El=(Element*)(currentPtr->value);
+//	  currentPtr=currentPtr->next;      	    
+//	  if(Curr_El->get_adapted_flag()>0) //if this is a refined element don't involve!!!
+//	    Curr_El->calc_wet_dry_orient(El_Table);
+//	}
+  //  }
 
   /* finished corrector step */
   calc_stats(El_Table, NodeTable, myid, matprops_ptr, timeprops_ptr, 

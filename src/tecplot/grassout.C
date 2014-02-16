@@ -62,8 +62,8 @@ void grass_sites_proc_output(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr,
 	EmTemp->eval_velocity(0.0,0.0,VxVy);
 	//double vx=(pile_height>GEOFLOW_TINY)?x_mom/pile_height:0.0;
 	//double vy=(pile_height>GEOFLOW_TINY)?y_mom/pile_height:0.0;
-	double vx=(state_vars[0]>GEOFLOW_TINY)?VxVy[0]*velocity_scale:0.0;
-	double vy=(state_vars[0]>GEOFLOW_TINY)?VxVy[1]*velocity_scale:0.0;
+	double vx=(state_vars[0]<0/*GEOFLOW_TINY*/)?VxVy[0]*velocity_scale:0.0;
+	double vy=(state_vars[0]<0/*GEOFLOW_TINY*/)?VxVy[1]*velocity_scale:0.0;
 	
 	//print x,y,z,h,Vx,Vy,h*Vx,h*Vy
 	fprintf(fp,"%g|%g|%g|%%%g %%%g %%%g %%%g %%%g\n",
