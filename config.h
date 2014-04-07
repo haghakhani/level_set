@@ -23,10 +23,10 @@
 #define HAVE_LIBM 1
 
 /* Define to 1 if you have the `mpi' library (-lmpi). */
-#define HAVE_LIBMPI 1
+/* #undef HAVE_LIBMPI */
 
 /* Define to 1 if you have the `mpich' library (-lmpich). */
-/* #undef HAVE_LIBMPICH */
+#define HAVE_LIBMPICH 1
 
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 #define HAVE_LIBNSL 1
@@ -124,7 +124,7 @@
 #define VERSION "2.0.2"
 
 /* Number of bits in a file offset, on hosts where this is settable. */
-#define _FILE_OFFSET_BITS 64
+/* #undef _FILE_OFFSET_BITS */
 
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */

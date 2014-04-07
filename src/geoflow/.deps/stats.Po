@@ -1,291 +1,270 @@
 stats.o: stats.C ../../config.h ../header/hpfem.h \
- /usr/include/c++/4.6/iostream \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h \
- /usr/include/features.h /usr/include/i386-linux-gnu/bits/predefs.h \
- /usr/include/i386-linux-gnu/sys/cdefs.h \
- /usr/include/i386-linux-gnu/bits/wordsize.h \
- /usr/include/i386-linux-gnu/gnu/stubs.h \
- /usr/include/i386-linux-gnu/gnu/stubs-32.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/cpu_defines.h \
- /usr/include/c++/4.6/ostream /usr/include/c++/4.6/ios \
- /usr/include/c++/4.6/iosfwd /usr/include/c++/4.6/bits/stringfwd.h \
- /usr/include/c++/4.6/bits/postypes.h /usr/include/c++/4.6/cwchar \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iostream \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++config.h \
+ /usr/include/bits/wordsize.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/os_defines.h \
+ /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/cpu_defines.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ostream \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ios \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iosfwd \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stringfwd.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/postypes.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cwchar \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstddef \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stddef.h \
  /usr/include/wchar.h /usr/include/stdio.h \
- /usr/lib/gcc/i686-linux-gnu/4.6/include/stdarg.h \
- /usr/include/i386-linux-gnu/bits/wchar.h \
- /usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h /usr/include/xlocale.h \
- /usr/include/c++/4.6/exception /usr/include/c++/4.6/bits/char_traits.h \
- /usr/include/c++/4.6/bits/stl_algobase.h \
- /usr/include/c++/4.6/bits/functexcept.h \
- /usr/include/c++/4.6/bits/exception_defines.h \
- /usr/include/c++/4.6/bits/cpp_type_traits.h \
- /usr/include/c++/4.6/ext/type_traits.h \
- /usr/include/c++/4.6/ext/numeric_traits.h \
- /usr/include/c++/4.6/bits/stl_pair.h /usr/include/c++/4.6/bits/move.h \
- /usr/include/c++/4.6/bits/concept_check.h \
- /usr/include/c++/4.6/bits/stl_iterator_base_types.h \
- /usr/include/c++/4.6/bits/stl_iterator_base_funcs.h \
- /usr/include/c++/4.6/bits/stl_iterator.h \
- /usr/include/c++/4.6/debug/debug.h /usr/include/c++/4.6/bits/localefwd.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/c++locale.h \
- /usr/include/c++/4.6/clocale /usr/include/locale.h \
- /usr/include/i386-linux-gnu/bits/locale.h /usr/include/c++/4.6/cctype \
- /usr/include/ctype.h /usr/include/i386-linux-gnu/bits/types.h \
- /usr/include/i386-linux-gnu/bits/typesizes.h /usr/include/endian.h \
- /usr/include/i386-linux-gnu/bits/endian.h \
- /usr/include/i386-linux-gnu/bits/byteswap.h \
- /usr/include/c++/4.6/bits/ios_base.h \
- /usr/include/c++/4.6/ext/atomicity.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/gthr.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/gthr-default.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stdarg.h \
+ /usr/include/bits/wchar.h /usr/include/xlocale.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/exception \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/char_traits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_algobase.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/functexcept.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/exception_defines.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/cpp_type_traits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/type_traits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/numeric_traits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_pair.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/move.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/concept_check.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_iterator_base_types.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_iterator_base_funcs.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_iterator.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/debug/debug.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/localefwd.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++locale.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/clocale \
+ /usr/include/locale.h /usr/include/bits/locale.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cctype \
+ /usr/include/ctype.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/endian.h \
+ /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/ios_base.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/atomicity.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/gthr.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/gthr-default.h \
  /usr/include/pthread.h /usr/include/sched.h /usr/include/time.h \
- /usr/include/i386-linux-gnu/bits/sched.h \
- /usr/include/i386-linux-gnu/bits/time.h \
- /usr/include/i386-linux-gnu/bits/timex.h \
- /usr/include/i386-linux-gnu/bits/pthreadtypes.h \
- /usr/include/i386-linux-gnu/bits/setjmp.h /usr/include/unistd.h \
- /usr/include/i386-linux-gnu/bits/posix_opt.h \
- /usr/include/i386-linux-gnu/bits/environments.h \
- /usr/include/i386-linux-gnu/bits/confname.h /usr/include/getopt.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/atomic_word.h \
- /usr/include/c++/4.6/bits/locale_classes.h /usr/include/c++/4.6/string \
- /usr/include/c++/4.6/bits/allocator.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/c++allocator.h \
- /usr/include/c++/4.6/ext/new_allocator.h /usr/include/c++/4.6/new \
- /usr/include/c++/4.6/bits/ostream_insert.h \
- /usr/include/c++/4.6/bits/cxxabi_forced.h \
- /usr/include/c++/4.6/bits/stl_function.h \
- /usr/include/c++/4.6/backward/binders.h \
- /usr/include/c++/4.6/bits/range_access.h \
- /usr/include/c++/4.6/bits/basic_string.h \
- /usr/include/c++/4.6/initializer_list \
- /usr/include/c++/4.6/bits/basic_string.tcc \
- /usr/include/c++/4.6/bits/locale_classes.tcc \
- /usr/include/c++/4.6/streambuf /usr/include/c++/4.6/bits/streambuf.tcc \
- /usr/include/c++/4.6/bits/basic_ios.h \
- /usr/include/c++/4.6/bits/locale_facets.h /usr/include/c++/4.6/cwctype \
+ /usr/include/bits/sched.h /usr/include/bits/time.h \
+ /usr/include/bits/pthreadtypes.h /usr/include/bits/setjmp.h \
+ /usr/include/unistd.h /usr/include/bits/posix_opt.h \
+ /usr/include/bits/environments.h /usr/include/bits/confname.h \
+ /usr/include/getopt.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/atomic_word.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_classes.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/string \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/allocator.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++allocator.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/new_allocator.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/new \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/ostream_insert.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cxxabi-forced.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_function.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/backward/binders.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_string.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/initializer_list \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_string.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_classes.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/streambuf \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/streambuf.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_ios.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_facets.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cwctype \
  /usr/include/wctype.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_base.h \
- /usr/include/c++/4.6/bits/streambuf_iterator.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_inline.h \
- /usr/include/c++/4.6/bits/locale_facets.tcc \
- /usr/include/c++/4.6/bits/basic_ios.tcc \
- /usr/include/c++/4.6/bits/ostream.tcc /usr/include/c++/4.6/istream \
- /usr/include/c++/4.6/bits/istream.tcc /usr/include/c++/4.6/iomanip \
- /usr/include/c++/4.6/fstream /usr/include/c++/4.6/bits/codecvt.h \
- /usr/include/c++/4.6/cstdio /usr/include/libio.h \
- /usr/include/_G_config.h /usr/include/i386-linux-gnu/bits/stdio_lim.h \
- /usr/include/i386-linux-gnu/bits/sys_errlist.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/basic_file.h \
- /usr/include/c++/4.6/i686-linux-gnu/./bits/c++io.h \
- /usr/include/c++/4.6/bits/fstream.tcc /usr/include/stdlib.h \
- /usr/include/i386-linux-gnu/bits/waitflags.h \
- /usr/include/i386-linux-gnu/bits/waitstatus.h \
- /usr/include/i386-linux-gnu/sys/types.h \
- /usr/include/i386-linux-gnu/sys/select.h \
- /usr/include/i386-linux-gnu/bits/select.h \
- /usr/include/i386-linux-gnu/bits/sigset.h \
- /usr/include/i386-linux-gnu/sys/sysmacros.h /usr/include/alloca.h \
- /usr/include/math.h /usr/include/i386-linux-gnu/bits/huge_val.h \
- /usr/include/i386-linux-gnu/bits/huge_valf.h \
- /usr/include/i386-linux-gnu/bits/huge_vall.h \
- /usr/include/i386-linux-gnu/bits/inf.h \
- /usr/include/i386-linux-gnu/bits/nan.h \
- /usr/include/i386-linux-gnu/bits/mathdef.h \
- /usr/include/i386-linux-gnu/bits/mathcalls.h /usr/include/string.h \
- /usr/include/assert.h /usr/lib/openmpi/include/mpi.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/mpicxx.h \
- /usr/include/c++/4.6/map /usr/include/c++/4.6/bits/stl_tree.h \
- /usr/include/c++/4.6/bits/stl_map.h \
- /usr/include/c++/4.6/bits/stl_multimap.h /usr/include/c++/4.6/utility \
- /usr/include/c++/4.6/bits/stl_relops.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/constants.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/functions.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/datatype.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/exception.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/op.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/status.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/request.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/group.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/comm.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/win.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/file.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/errhandler.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intracomm.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/topology.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intercomm.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/info.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/datatype_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/functions_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/request_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/comm_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intracomm_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/topology_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intercomm_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/group_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/op_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/errhandler_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/status_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/info_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/win_inln.h \
- /usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/file_inln.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/ctype_base.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/streambuf_iterator.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/ctype_inline.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_facets.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_ios.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/ostream.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/istream \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/istream.tcc \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iomanip \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/fstream \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/codecvt.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstdio \
+ /usr/include/libio.h /usr/include/_G_config.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/fstream.tcc \
+ /usr/include/stdlib.h /usr/include/bits/waitflags.h \
+ /usr/include/bits/waitstatus.h /usr/include/sys/types.h \
+ /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/sigset.h /usr/include/sys/sysmacros.h \
+ /usr/include/alloca.h /usr/include/math.h /usr/include/bits/huge_val.h \
+ /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
+ /usr/include/bits/inf.h /usr/include/bits/nan.h \
+ /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
+ /usr/include/string.h /usr/include/assert.h \
+ /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h \
+ /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpio.h \
+ /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h \
+ /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpicxx.h \
  ../header/properties.h ../header/../useful/useful_lib.h \
  ../header/../gisapi/GisApi.h ../header/node.h ../header/constant.h \
  ../header/hashtab.h ../header/struct.h \
- /home/hossein/petsc/include/petscksp.h \
- /home/hossein/petsc/include/petscpc.h \
- /home/hossein/petsc/include/petscdm.h \
- /home/hossein/petsc/include/petscmat.h \
- /home/hossein/petsc/include/petscvec.h \
- /home/hossein/petsc/include/petscis.h \
- /home/hossein/petsc/include/petscsys.h \
- /home/hossein/petsc/arch-linux2-c/include/petscconf.h \
- /home/hossein/petsc/arch-linux2-c/include/petscfix.h \
- /home/hossein/petsc/include/petscversion.h \
- /home/hossein/petsc/include/petscmath.h \
- /home/hossein/petsc/include/petscviewer.h \
- /home/hossein/petsc/include/petscoptions.h \
- /home/hossein/petsc/include/petscerror.h \
- /home/hossein/petsc/include/petscshell.h \
- /home/hossein/petsc/include/petscdraw.h \
- /home/hossein/petsc/include/petsc-private/petscimpl.h \
- /home/hossein/petsc/include/petscsys.h \
- /home/hossein/petsc/include/petsclog.h \
- /home/hossein/petsc/include/petsclog.hh /usr/include/memory.h \
- /usr/include/strings.h /usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h \
- /usr/include/stdint.h /home/hossein/petsc/include/petscmatlab.h \
- /usr/lib/gcc/i686-linux-gnu/4.6/include-fixed/limits.h \
- /usr/lib/gcc/i686-linux-gnu/4.6/include-fixed/syslimits.h \
- /usr/include/limits.h /usr/include/i386-linux-gnu/bits/posix1_lim.h \
- /usr/include/i386-linux-gnu/bits/local_lim.h /usr/include/linux/limits.h \
- /usr/include/i386-linux-gnu/bits/posix2_lim.h \
- /usr/include/i386-linux-gnu/bits/xopen_lim.h \
- /usr/include/i386-linux-gnu/sys/param.h /usr/include/linux/param.h \
- /usr/include/i386-linux-gnu/asm/param.h /usr/include/asm-generic/param.h \
- /home/hossein/petsc/include/petscsys.hh /usr/include/c++/4.6/sstream \
- /usr/include/c++/4.6/bits/sstream.tcc \
- /home/hossein/petsc/include/petscctable.h \
- /home/hossein/petsc/include/petscsf.h \
- /home/hossein/petsc/include/petsc-private/vecimpl.h \
- /home/hossein/petsc/include/petscvec.h \
- /home/hossein/petsc/include/petscbag.h \
- /home/hossein/petsc/include/petscdmda.h \
- /home/hossein/petsc/include/petscpf.h \
- /home/hossein/petsc/include/petscao.h ../header/element2.h \
+ /usr/local/petc/petsc-3.4.3/include/petscksp.h \
+ /usr/local/petc/petsc-3.4.3/include/petscpc.h \
+ /usr/local/petc/petsc-3.4.3/include/petscmat.h \
+ /usr/local/petc/petsc-3.4.3/include/petscvec.h \
+ /usr/local/petc/petsc-3.4.3/include/petscis.h \
+ /usr/local/petc/petsc-3.4.3/include/petscsys.h \
+ /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscconf.h \
+ /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscfix.h \
+ /usr/local/petc/petsc-3.4.3/include/petscversion.h \
+ /usr/local/petc/petsc-3.4.3/include/petscmath.h \
+ /usr/local/petc/petsc-3.4.3/include/petscerror.h \
+ /usr/local/petc/petsc-3.4.3/include/petscviewertypes.h \
+ /usr/local/petc/petsc-3.4.3/include/petscoptions.h \
+ /usr/include/valgrind/valgrind.h \
+ /usr/local/petc/petsc-3.4.3/include/petsclog.h \
+ /usr/local/petc/petsc-3.4.3/include/petscsys.h \
+ /usr/local/petc/petsc-3.4.3/include/petsclog.hh \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/map \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_tree.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_map.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_multimap.h \
+ /usr/include/memory.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/xmmintrin.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mmintrin.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mm_malloc.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/emmintrin.h \
+ /usr/include/stdint.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/limits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
+ /usr/include/sys/param.h /usr/include/linux/param.h \
+ /usr/include/asm/param.h /usr/include/asm-generic/param.h \
+ /usr/local/petc/petsc-3.4.3/include/petscsys.hh \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/sstream \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/sstream.tcc \
+ /usr/local/petc/petsc-3.4.3/include/petscsftypes.h \
+ /usr/local/petc/petsc-3.4.3/include/petscviewer.h \
+ /usr/local/petc/petsc-3.4.3/include/petscdmtypes.h \
+ /usr/local/petc/petsc-3.4.3/include/petscdrawtypes.h \
+ /usr/local/petc/petsc-3.4.3/include/petscdmda.h \
+ /usr/local/petc/petsc-3.4.3/include/petscdm.h \
+ /usr/local/petc/petsc-3.4.3/include/petscdmdatypes.h \
+ /usr/local/petc/petsc-3.4.3/include/petscpf.h \
+ /usr/local/petc/petsc-3.4.3/include/petscao.h ../header/element2.h \
  ../header/boundary.h ../header/recv.h ../header/extfun.h \
  ../header/geoflow.h ../header/scale.h ../header/FileFormat.h \
- ../header/flux_srcs.h /usr/include/c++/4.6/cmath
+ ../header/flux_srcs.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cmath \
+ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/cmath.tcc
 
 ../../config.h:
 
 ../header/hpfem.h:
 
-/usr/include/c++/4.6/iostream:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iostream:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/c++config.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++config.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/os_defines.h:
+/usr/include/bits/wordsize.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/os_defines.h:
 
 /usr/include/features.h:
 
-/usr/include/i386-linux-gnu/bits/predefs.h:
+/usr/include/sys/cdefs.h:
 
-/usr/include/i386-linux-gnu/sys/cdefs.h:
+/usr/include/gnu/stubs.h:
 
-/usr/include/i386-linux-gnu/bits/wordsize.h:
+/usr/include/gnu/stubs-64.h:
 
-/usr/include/i386-linux-gnu/gnu/stubs.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/cpu_defines.h:
 
-/usr/include/i386-linux-gnu/gnu/stubs-32.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ostream:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/cpu_defines.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ios:
 
-/usr/include/c++/4.6/ostream:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iosfwd:
 
-/usr/include/c++/4.6/ios:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stringfwd.h:
 
-/usr/include/c++/4.6/iosfwd:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/postypes.h:
 
-/usr/include/c++/4.6/bits/stringfwd.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cwchar:
 
-/usr/include/c++/4.6/bits/postypes.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstddef:
 
-/usr/include/c++/4.6/cwchar:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stddef.h:
 
 /usr/include/wchar.h:
 
 /usr/include/stdio.h:
 
-/usr/lib/gcc/i686-linux-gnu/4.6/include/stdarg.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stdarg.h:
 
-/usr/include/i386-linux-gnu/bits/wchar.h:
-
-/usr/lib/gcc/i686-linux-gnu/4.6/include/stddef.h:
+/usr/include/bits/wchar.h:
 
 /usr/include/xlocale.h:
 
-/usr/include/c++/4.6/exception:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/exception:
 
-/usr/include/c++/4.6/bits/char_traits.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/char_traits.h:
 
-/usr/include/c++/4.6/bits/stl_algobase.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_algobase.h:
 
-/usr/include/c++/4.6/bits/functexcept.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/functexcept.h:
 
-/usr/include/c++/4.6/bits/exception_defines.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/exception_defines.h:
 
-/usr/include/c++/4.6/bits/cpp_type_traits.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/cpp_type_traits.h:
 
-/usr/include/c++/4.6/ext/type_traits.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/type_traits.h:
 
-/usr/include/c++/4.6/ext/numeric_traits.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/numeric_traits.h:
 
-/usr/include/c++/4.6/bits/stl_pair.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_pair.h:
 
-/usr/include/c++/4.6/bits/move.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/move.h:
 
-/usr/include/c++/4.6/bits/concept_check.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/concept_check.h:
 
-/usr/include/c++/4.6/bits/stl_iterator_base_types.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_iterator_base_types.h:
 
-/usr/include/c++/4.6/bits/stl_iterator_base_funcs.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_iterator_base_funcs.h:
 
-/usr/include/c++/4.6/bits/stl_iterator.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_iterator.h:
 
-/usr/include/c++/4.6/debug/debug.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/debug/debug.h:
 
-/usr/include/c++/4.6/bits/localefwd.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/localefwd.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/c++locale.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++locale.h:
 
-/usr/include/c++/4.6/clocale:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/clocale:
 
 /usr/include/locale.h:
 
-/usr/include/i386-linux-gnu/bits/locale.h:
+/usr/include/bits/locale.h:
 
-/usr/include/c++/4.6/cctype:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cctype:
 
 /usr/include/ctype.h:
 
-/usr/include/i386-linux-gnu/bits/types.h:
+/usr/include/bits/types.h:
 
-/usr/include/i386-linux-gnu/bits/typesizes.h:
+/usr/include/bits/typesizes.h:
 
 /usr/include/endian.h:
 
-/usr/include/i386-linux-gnu/bits/endian.h:
+/usr/include/bits/endian.h:
 
-/usr/include/i386-linux-gnu/bits/byteswap.h:
+/usr/include/bits/byteswap.h:
 
-/usr/include/c++/4.6/bits/ios_base.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/ios_base.h:
 
-/usr/include/c++/4.6/ext/atomicity.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/atomicity.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/gthr.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/gthr.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/gthr-default.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/gthr-default.h:
 
 /usr/include/pthread.h:
 
@@ -293,221 +272,149 @@ stats.o: stats.C ../../config.h ../header/hpfem.h \
 
 /usr/include/time.h:
 
-/usr/include/i386-linux-gnu/bits/sched.h:
+/usr/include/bits/sched.h:
 
-/usr/include/i386-linux-gnu/bits/time.h:
+/usr/include/bits/time.h:
 
-/usr/include/i386-linux-gnu/bits/timex.h:
+/usr/include/bits/pthreadtypes.h:
 
-/usr/include/i386-linux-gnu/bits/pthreadtypes.h:
-
-/usr/include/i386-linux-gnu/bits/setjmp.h:
+/usr/include/bits/setjmp.h:
 
 /usr/include/unistd.h:
 
-/usr/include/i386-linux-gnu/bits/posix_opt.h:
+/usr/include/bits/posix_opt.h:
 
-/usr/include/i386-linux-gnu/bits/environments.h:
+/usr/include/bits/environments.h:
 
-/usr/include/i386-linux-gnu/bits/confname.h:
+/usr/include/bits/confname.h:
 
 /usr/include/getopt.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/atomic_word.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/atomic_word.h:
 
-/usr/include/c++/4.6/bits/locale_classes.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_classes.h:
 
-/usr/include/c++/4.6/string:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/string:
 
-/usr/include/c++/4.6/bits/allocator.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/allocator.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/c++allocator.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++allocator.h:
 
-/usr/include/c++/4.6/ext/new_allocator.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/ext/new_allocator.h:
 
-/usr/include/c++/4.6/new:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/new:
 
-/usr/include/c++/4.6/bits/ostream_insert.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/ostream_insert.h:
 
-/usr/include/c++/4.6/bits/cxxabi_forced.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cxxabi-forced.h:
 
-/usr/include/c++/4.6/bits/stl_function.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_function.h:
 
-/usr/include/c++/4.6/backward/binders.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/backward/binders.h:
 
-/usr/include/c++/4.6/bits/range_access.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_string.h:
 
-/usr/include/c++/4.6/bits/basic_string.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/initializer_list:
 
-/usr/include/c++/4.6/initializer_list:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_string.tcc:
 
-/usr/include/c++/4.6/bits/basic_string.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_classes.tcc:
 
-/usr/include/c++/4.6/bits/locale_classes.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/streambuf:
 
-/usr/include/c++/4.6/streambuf:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/streambuf.tcc:
 
-/usr/include/c++/4.6/bits/streambuf.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_ios.h:
 
-/usr/include/c++/4.6/bits/basic_ios.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_facets.h:
 
-/usr/include/c++/4.6/bits/locale_facets.h:
-
-/usr/include/c++/4.6/cwctype:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cwctype:
 
 /usr/include/wctype.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_base.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/ctype_base.h:
 
-/usr/include/c++/4.6/bits/streambuf_iterator.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/streambuf_iterator.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/ctype_inline.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/ctype_inline.h:
 
-/usr/include/c++/4.6/bits/locale_facets.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/locale_facets.tcc:
 
-/usr/include/c++/4.6/bits/basic_ios.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/basic_ios.tcc:
 
-/usr/include/c++/4.6/bits/ostream.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/ostream.tcc:
 
-/usr/include/c++/4.6/istream:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/istream:
 
-/usr/include/c++/4.6/bits/istream.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/istream.tcc:
 
-/usr/include/c++/4.6/iomanip:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iomanip:
 
-/usr/include/c++/4.6/fstream:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/fstream:
 
-/usr/include/c++/4.6/bits/codecvt.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/codecvt.h:
 
-/usr/include/c++/4.6/cstdio:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstdio:
 
 /usr/include/libio.h:
 
 /usr/include/_G_config.h:
 
-/usr/include/i386-linux-gnu/bits/stdio_lim.h:
+/usr/include/bits/stdio_lim.h:
 
-/usr/include/i386-linux-gnu/bits/sys_errlist.h:
+/usr/include/bits/sys_errlist.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/basic_file.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h:
 
-/usr/include/c++/4.6/i686-linux-gnu/./bits/c++io.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h:
 
-/usr/include/c++/4.6/bits/fstream.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/fstream.tcc:
 
 /usr/include/stdlib.h:
 
-/usr/include/i386-linux-gnu/bits/waitflags.h:
+/usr/include/bits/waitflags.h:
 
-/usr/include/i386-linux-gnu/bits/waitstatus.h:
+/usr/include/bits/waitstatus.h:
 
-/usr/include/i386-linux-gnu/sys/types.h:
+/usr/include/sys/types.h:
 
-/usr/include/i386-linux-gnu/sys/select.h:
+/usr/include/sys/select.h:
 
-/usr/include/i386-linux-gnu/bits/select.h:
+/usr/include/bits/select.h:
 
-/usr/include/i386-linux-gnu/bits/sigset.h:
+/usr/include/bits/sigset.h:
 
-/usr/include/i386-linux-gnu/sys/sysmacros.h:
+/usr/include/sys/sysmacros.h:
 
 /usr/include/alloca.h:
 
 /usr/include/math.h:
 
-/usr/include/i386-linux-gnu/bits/huge_val.h:
+/usr/include/bits/huge_val.h:
 
-/usr/include/i386-linux-gnu/bits/huge_valf.h:
+/usr/include/bits/huge_valf.h:
 
-/usr/include/i386-linux-gnu/bits/huge_vall.h:
+/usr/include/bits/huge_vall.h:
 
-/usr/include/i386-linux-gnu/bits/inf.h:
+/usr/include/bits/inf.h:
 
-/usr/include/i386-linux-gnu/bits/nan.h:
+/usr/include/bits/nan.h:
 
-/usr/include/i386-linux-gnu/bits/mathdef.h:
+/usr/include/bits/mathdef.h:
 
-/usr/include/i386-linux-gnu/bits/mathcalls.h:
+/usr/include/bits/mathcalls.h:
 
 /usr/include/string.h:
 
 /usr/include/assert.h:
 
-/usr/lib/openmpi/include/mpi.h:
+/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h:
 
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/mpicxx.h:
+/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpio.h:
 
-/usr/include/c++/4.6/map:
+/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h:
 
-/usr/include/c++/4.6/bits/stl_tree.h:
-
-/usr/include/c++/4.6/bits/stl_map.h:
-
-/usr/include/c++/4.6/bits/stl_multimap.h:
-
-/usr/include/c++/4.6/utility:
-
-/usr/include/c++/4.6/bits/stl_relops.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/constants.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/functions.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/datatype.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/exception.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/op.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/status.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/request.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/group.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/comm.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/win.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/file.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/errhandler.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intracomm.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/topology.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intercomm.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/info.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/datatype_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/functions_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/request_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/comm_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intracomm_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/topology_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/intercomm_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/group_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/op_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/errhandler_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/status_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/info_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/win_inln.h:
-
-/usr/lib/openmpi/include/openmpi/ompi/mpi/cxx/file_inln.h:
+/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpicxx.h:
 
 ../header/properties.h:
 
@@ -523,101 +430,107 @@ stats.o: stats.C ../../config.h ../header/hpfem.h \
 
 ../header/struct.h:
 
-/home/hossein/petsc/include/petscksp.h:
+/usr/local/petc/petsc-3.4.3/include/petscksp.h:
 
-/home/hossein/petsc/include/petscpc.h:
+/usr/local/petc/petsc-3.4.3/include/petscpc.h:
 
-/home/hossein/petsc/include/petscdm.h:
+/usr/local/petc/petsc-3.4.3/include/petscmat.h:
 
-/home/hossein/petsc/include/petscmat.h:
+/usr/local/petc/petsc-3.4.3/include/petscvec.h:
 
-/home/hossein/petsc/include/petscvec.h:
+/usr/local/petc/petsc-3.4.3/include/petscis.h:
 
-/home/hossein/petsc/include/petscis.h:
+/usr/local/petc/petsc-3.4.3/include/petscsys.h:
 
-/home/hossein/petsc/include/petscsys.h:
+/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscconf.h:
 
-/home/hossein/petsc/arch-linux2-c/include/petscconf.h:
+/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscfix.h:
 
-/home/hossein/petsc/arch-linux2-c/include/petscfix.h:
+/usr/local/petc/petsc-3.4.3/include/petscversion.h:
 
-/home/hossein/petsc/include/petscversion.h:
+/usr/local/petc/petsc-3.4.3/include/petscmath.h:
 
-/home/hossein/petsc/include/petscmath.h:
+/usr/local/petc/petsc-3.4.3/include/petscerror.h:
 
-/home/hossein/petsc/include/petscviewer.h:
+/usr/local/petc/petsc-3.4.3/include/petscviewertypes.h:
 
-/home/hossein/petsc/include/petscoptions.h:
+/usr/local/petc/petsc-3.4.3/include/petscoptions.h:
 
-/home/hossein/petsc/include/petscerror.h:
+/usr/include/valgrind/valgrind.h:
 
-/home/hossein/petsc/include/petscshell.h:
+/usr/local/petc/petsc-3.4.3/include/petsclog.h:
 
-/home/hossein/petsc/include/petscdraw.h:
+/usr/local/petc/petsc-3.4.3/include/petscsys.h:
 
-/home/hossein/petsc/include/petsc-private/petscimpl.h:
+/usr/local/petc/petsc-3.4.3/include/petsclog.hh:
 
-/home/hossein/petsc/include/petscsys.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/map:
 
-/home/hossein/petsc/include/petsclog.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_tree.h:
 
-/home/hossein/petsc/include/petsclog.hh:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_map.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_multimap.h:
 
 /usr/include/memory.h:
 
-/usr/include/strings.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/xmmintrin.h:
 
-/usr/lib/gcc/i686-linux-gnu/4.6/include/stdint.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mmintrin.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mm_malloc.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/emmintrin.h:
 
 /usr/include/stdint.h:
 
-/home/hossein/petsc/include/petscmatlab.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/limits.h:
 
-/usr/lib/gcc/i686-linux-gnu/4.6/include-fixed/limits.h:
-
-/usr/lib/gcc/i686-linux-gnu/4.6/include-fixed/syslimits.h:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/syslimits.h:
 
 /usr/include/limits.h:
 
-/usr/include/i386-linux-gnu/bits/posix1_lim.h:
+/usr/include/bits/posix1_lim.h:
 
-/usr/include/i386-linux-gnu/bits/local_lim.h:
+/usr/include/bits/local_lim.h:
 
 /usr/include/linux/limits.h:
 
-/usr/include/i386-linux-gnu/bits/posix2_lim.h:
+/usr/include/bits/posix2_lim.h:
 
-/usr/include/i386-linux-gnu/bits/xopen_lim.h:
+/usr/include/bits/xopen_lim.h:
 
-/usr/include/i386-linux-gnu/sys/param.h:
+/usr/include/sys/param.h:
 
 /usr/include/linux/param.h:
 
-/usr/include/i386-linux-gnu/asm/param.h:
+/usr/include/asm/param.h:
 
 /usr/include/asm-generic/param.h:
 
-/home/hossein/petsc/include/petscsys.hh:
+/usr/local/petc/petsc-3.4.3/include/petscsys.hh:
 
-/usr/include/c++/4.6/sstream:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/sstream:
 
-/usr/include/c++/4.6/bits/sstream.tcc:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/sstream.tcc:
 
-/home/hossein/petsc/include/petscctable.h:
+/usr/local/petc/petsc-3.4.3/include/petscsftypes.h:
 
-/home/hossein/petsc/include/petscsf.h:
+/usr/local/petc/petsc-3.4.3/include/petscviewer.h:
 
-/home/hossein/petsc/include/petsc-private/vecimpl.h:
+/usr/local/petc/petsc-3.4.3/include/petscdmtypes.h:
 
-/home/hossein/petsc/include/petscvec.h:
+/usr/local/petc/petsc-3.4.3/include/petscdrawtypes.h:
 
-/home/hossein/petsc/include/petscbag.h:
+/usr/local/petc/petsc-3.4.3/include/petscdmda.h:
 
-/home/hossein/petsc/include/petscdmda.h:
+/usr/local/petc/petsc-3.4.3/include/petscdm.h:
 
-/home/hossein/petsc/include/petscpf.h:
+/usr/local/petc/petsc-3.4.3/include/petscdmdatypes.h:
 
-/home/hossein/petsc/include/petscao.h:
+/usr/local/petc/petsc-3.4.3/include/petscpf.h:
+
+/usr/local/petc/petsc-3.4.3/include/petscao.h:
 
 ../header/element2.h:
 
@@ -635,4 +548,6 @@ stats.o: stats.C ../../config.h ../header/hpfem.h \
 
 ../header/flux_srcs.h:
 
-/usr/include/c++/4.6/cmath:
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cmath:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/cmath.tcc:
