@@ -174,11 +174,11 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
 
   mapnames.assign(a, b, c,d, ce);
 
-  if (timeprops_ptr->iter%10==1){
+  if (timeprops_ptr->iter%5==4||timeprops_ptr->iter==1){
     int tt=timeprops_ptr->iter;
-    //for(int ii=0;ii<1000;ii++){
+      initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr);
 
-      initialization( NodeTable, El_Table, dt, matprops_ptr,fluxprops, timeprops_ptr);
+      //initialization( NodeTable, El_Table, dt, matprops_ptr,fluxprops, timeprops_ptr);
       meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
       //timeprops_ptr->iter++;
       //}

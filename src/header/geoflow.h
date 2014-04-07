@@ -179,7 +179,10 @@ inline double dabs(double dd) {
 }
  
 
-void initialization(HashTable* , HashTable* , double , MatProps* , FluxProps* , TimeProps*);
+//void initialization(HashTable* , HashTable* , double , MatProps* , FluxProps* , TimeProps*);
+
+void initialization(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* matprops_ptr, FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr);
+
 
  
 /* fortran calls */

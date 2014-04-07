@@ -19,9 +19,9 @@
 # include <config.h>
 #endif
 
-#define REFINE_THRESHOLD1 /*-.2*GEOFLOW_TINY*/ .2*dabs(GEOFLOW_TINY)
-#define REFINE_THRESHOLD2 /*-.05*GEOFLOW_TINY*/ .05*dabs(GEOFLOW_TINY)
-#define REFINE_THRESHOLD /*-.025*GEOFLOW_TINY*/.025*dabs(GEOFLOW_TINY)
+#define REFINE_THRESHOLD1 .2*GEOFLOW_TINY
+#define REFINE_THRESHOLD2 .05*GEOFLOW_TINY
+#define REFINE_THRESHOLD .025*GEOFLOW_TINY
 
 #include "../header/hpfem.h"
 #include "../header/geoflow.h"
@@ -30,140 +30,164 @@ double signed_d_f(double p,double eps);
 double mini(double a,double b);
 double maxi(double a,double b);
 double absol (double a);
-void initialize_phi(Element *EmTemp, double* norm, double dt,double min);
+void initialize_phi(HashTable* El_Table,Element *EmTemp, double* norm, double dt,double min,int* elem);
 void record_of_phi(HashTable* NodeTable, HashTable* El_Table);
+int num_nonzero_elem(HashTable *El_Table);
+double minidxdy(double x,double y, int* falg);
+
 void initialization(HashTable* NodeTable, HashTable* El_Table,
-		    double dt, MatProps* matprops_ptr,
-		    FluxProps *fluxprops, TimeProps *timeprops)
+    double dt, MatProps* matprops_ptr,
+    FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr)
 {
   double norm;
   int i,n,elem=0;
   HashEntryPtr* buck = El_Table->getbucketptr();
   HashEntryPtr currentPtr;
   Element* Em_Temp;
-  double *dx,min,min_dx,max,max_delta,*phi_slope,thresh=.1;
- 
- 
-  //printf("time is equal to ...%f\n",dt);
+  double *dx,min,min_dx,max,max_delta,*phi_slope,thresh=.0001;
+
+  //cout<<"attention xmin: "<<outline_ptr->xminmax[0]<<" xmax: "<<outline_ptr->xminmax[1]<<" ymin: "<<outline_ptr->yminmax[0]<<" ymax: "<<outline_ptr->yminmax[1]<<endl;
+
+  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0]);
+  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0]);
 
   record_of_phi(NodeTable, El_Table);
-  min=1;  
+  min=10000;  
+  int flagxy=2,flagxymin=2;
   for(i=0; i<El_Table->get_no_of_buckets(); i++) 
+  {
+    currentPtr = *(buck+i);
+    while(currentPtr) 
+    {
+      Em_Temp=(Element*)(currentPtr->value);
+
+      if(Em_Temp->get_adapted_flag()>0) {
+        dx=Em_Temp->get_dx();
+        min_dx = minidxdy(dx[0],dx[1],&flagxy);
+        if(min_dx<min) {min=min_dx; flagxymin=flagxy;}
+      }
+      currentPtr=currentPtr->next; 
+    }
+  }
+  int count=0;
+
+  if (flagxymin==0)
+    min/=xrange;
+  else if (flagxymin==1)
+    min/=yrange;
+  else{
+  printf("there is an error in levelset.C min computation\n");
+    return;
+}
+
+  double time_inc=.5*min;
+  thresh=time_inc;//*min*min;
+  int flagi=0;
+  do{
+    norm=0;
+
+    for(i=0; i<El_Table->get_no_of_buckets(); i++) 
     {
       currentPtr = *(buck+i);
       while(currentPtr) 
-	{
-	  Em_Temp=(Element*)(currentPtr->value);
-	       	    
-	  if(Em_Temp->get_adapted_flag()>0) {
-	    dx=Em_Temp->get_dx();
-	    min_dx = mini(dx[0],dx[1]);
-	    if(min_dx<min) min=min_dx;
-	    //Em_Temp->get_slopes(El_Table, NodeTable, matprops_ptr->gamma);
-	  }
-	  currentPtr=currentPtr->next; 
-	}
+      {
+        Em_Temp=(Element*)(currentPtr->value);
+        if(Em_Temp->get_adapted_flag()>0) {
+          Em_Temp->calc_phi_slope(El_Table, NodeTable);
+        }
+        currentPtr=currentPtr->next; 
+      }
     }
-  int count=0;
- 
-  do{
-    norm=0;
-    elem++;
-    max=0;
-    for(i=0; i<El_Table->get_no_of_buckets(); i++) 
-      {
-  	currentPtr = *(buck+i);
-  	while(currentPtr) 
-  	  {
-  	    Em_Temp=(Element*)(currentPtr->value);
-	       	    
-  	    if(Em_Temp->get_adapted_flag()>0) {
-	      Em_Temp->calc_phi_slope(El_Table, NodeTable);
-	      //	      phi_slope=Em_Temp->get_phi_slope();
-	      //	      max_delta=maxi(maxi(phi_slope[2],phi_slope[3]),maxi(phi_slope[0],phi_slope[1]));
-	      //	      if (max_delta>max) max=max_delta;
-
-  	      //Em_Temp->get_slopes(El_Table, NodeTable, matprops_ptr->gamma);
-  	    }
-	    currentPtr=currentPtr->next; 
-  	  }
-      }
-    // printf("the max is ...... %f  & min is ......%f\n",max,min);
-    double time=.5*min;//absol(min/(5*max));
 
     for(i=0; i<El_Table->get_no_of_buckets(); i++) 
+    {
+      currentPtr = *(buck+i);
+      while(currentPtr) 
       {
-	currentPtr = *(buck+i);
-	while(currentPtr) 
-	  {
-	    Em_Temp=(Element*)(currentPtr->value);
-            if(/*(timeprops->iter<100 &&*/ Em_Temp->get_adapted_flag()>0) /*|| 
-               ((abs(Em_Temp->get_adapted_flag())==BUFFER)  ||
-               (Em_Temp->if_first_buffer_boundary(El_Table,GEOFLOW_TINY     )>0)||
-               (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD1)>0)||
-               (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD2)>0)||
-               (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD) >0)||
-	       (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD)>0) ||
-	       (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD1)>0)||
-	       (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD2)>0)||
-               (Em_Temp->if_pile_boundary(El_Table,GEOFLOW_TINY)>0)||
-               (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD1)>0)||
-               (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD2)>0)||
-               (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD)>0) ))*/
-	      {
+        Em_Temp=(Element*)(currentPtr->value);
+        if(Em_Temp->get_adapted_flag()>0)
+          //	       (timeprops->iter==1 && Em_Temp->get_adapted_flag()>0 )|| dabs(*(Em_Temp->get_state_vars()+4))<=.2)
+          /*(timeprops->iter<100 &&*/ /*Em_Temp->get_adapted_flag()>0)*/ /*|| 
+                                                                           ((abs(Em_Temp->get_adapted_flag())==BUFFER)  ||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,GEOFLOW_TINY     )>0)||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD1)>0)||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD2)>0)||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD) >0)||
+                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD)>0) ||
+                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD1)>0)||
+                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD2)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,GEOFLOW_TINY)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD1)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD2)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD)>0) ))*/
+        {
 
-		initialize_phi( Em_Temp,&norm,time,min);
-		*(Em_Temp->get_state_vars()+5)=5;
+          initialize_phi( El_Table,Em_Temp,&norm,time_inc,min,&elem);
+          //	*(Em_Temp->get_state_vars()+5)=5;
 
-		//		printf("norm =%f    \n", norm);
-	      }
-	    currentPtr=currentPtr->next;      	    
-	  }
+          //		printf("norm =%f    \n", norm);
+        }
+        currentPtr=currentPtr->next;      	    
       }
-    printf("norm of calculation is .... %e for .....dt=%e  & count .........%d \n", sqrt(norm),time,count);
+    }
+
+    if (timeprops->iter>1) norm/=elem;
+    else norm/=num_nonzero_elem(El_Table);
+    
+    printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", norm,time_inc,count,thresh,min);
     count++;
+    if((timeprops->iter>1) && (count > 100) ) 
+      flagi=1;
 
-    //if(timeprops->iter<2) 
-    //thresh=1;
-    //else
-    //thresh=.5;
+  }while((norm>thresh) );//&& flagi < 1 );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
 
-  }while(sqrt(norm)>thresh );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
- 
   return;
 }
 
-void initialize_phi( Element *EmTemp, double *norm, double dt,double min){
-  
+void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double dt,double min,int* elem){
+
   double *phi_slope=EmTemp->get_phi_slope();
   double *state_vars=EmTemp->get_state_vars();
   double *prev_state_vars=EmTemp->get_prev_state_vars();
   //double *d_state_vars=EmTemp->get_d_state_vars();
   double delta_p,delta_m;
-  
-  //  *norm=0;
+  double flux_phi,a_p,a_m,b_p,b_m,c_p,c_m,d_p,d_m; 
+  Element  *rev_elem;
+
   prev_state_vars[0]=state_vars[0];
 
-  delta_p = sqrt( pow( maxi( phi_slope[0] ,0.) , 2) + pow( mini( phi_slope[1] ,0.) , 2)+
-		  pow( maxi( phi_slope[2] ,0.) , 2) + pow( mini( phi_slope[3] ,0.) , 2));
+  if (dabs(state_vars[0])<.5) *elem +=1;
+
+  a_p=maxi( phi_slope[0] ,0.);
+  a_m=mini( phi_slope[0] ,0.);
+  b_p=maxi( phi_slope[1] ,0.);
+  b_m=mini( phi_slope[1] ,0.);
+  c_p=maxi( phi_slope[2] ,0.);
+  c_m=mini( phi_slope[2] ,0.);
+  d_p=maxi( phi_slope[3] ,0.);
+  d_m=mini( phi_slope[3] ,0.);
+
+  if (state_vars[4]>0)
+    flux_phi=sqrt(maxi(a_p*a_p , b_m*b_m) + maxi(c_p*c_p , d_m*d_m))-1;
+  else if (state_vars[4]<0)
+    flux_phi=sqrt(maxi(a_m*a_m , b_p*b_p) + maxi(c_m*c_m , d_p*d_p))-1;
+  else
+    flux_phi=0;
+
+  state_vars[0]=prev_state_vars[0] - dt*signed_d_f(state_vars[4],min)*flux_phi;
 
 
-  delta_m = sqrt( pow( maxi( phi_slope[1] ,0.) , 2) + pow( mini( phi_slope[0] ,0.) , 2)+
-		  pow( maxi( phi_slope[3] ,0.) , 2) + pow( mini( phi_slope[2] ,0.) , 2));
-
-
-  state_vars[0]=prev_state_vars[0] - dt* (maxi(signed_d_f(state_vars[4],min/100),0.) * delta_p + 
-					  mini(signed_d_f(state_vars[4],min/100),0.) * delta_m ) + dt * signed_d_f(state_vars[4],min/100);
-
-  // state_vars[0]=prev_state_vars[0] + dt*( c_sgn(state_vars[4]) -
-  // 					  (maxi(c_sgn(state_vars[4]),0.)*delta_p + mini(c_sgn(state_vars[4]),0.)*delta_m ));
-
-  //if((d_state_vars[0]!=0||d_state_vars[6]!=0) && state_vars[4]!=0)
-  //printf("this is the place dx=%f dy=%f \n",d_state_vars[0],d_state_vars[6]);
-  //  state_vars[0]=prev_state_vars[0] + dt*c_sgn(state_vars[4])*(1-sqrt(pow(d_state_vars[0],2)+pow(d_state_vars[6],2)));
-
- 
-  *norm += pow((state_vars[0]-prev_state_vars[0]),2);
+//  int flag=1;
+//  for(int j=0;j<4;j++)
+//    if(*(EmTemp->get_neigh_proc()+j) == INIT) {  // this is a boundary!
+      //     int rev_side=(j+2)%4;
+      //     rev_elem = (Element*)(El_Table->lookup(EmTemp->get_neighbors()+rev_side*KEYLENGTH));//      EmTemp->get_neighbors();
+      //     state_vars[0]=*(rev_elem->get_state_vars());//1;//prev_state_vars[0];
+//      flag=0;
+//    }
+//  if (flag)
+    *norm += dabs(state_vars[0]-prev_state_vars[0]);
+  state_vars[5]=dabs(state_vars[0]-prev_state_vars[0]);
   //  if ((state_vars[0]-prev_state_vars[0])>0) printf("this is the difference .........%e\n", (state_vars[0]-prev_state_vars[0]));
   return;
 }
@@ -177,12 +201,12 @@ void record_of_phi(HashTable* NodeTable, HashTable* El_Table){
     if(*(buck+i)){
       HashEntryPtr currentPtr = *(buck+i);
       while(currentPtr){
-	Element* Curr_El=(Element*)(currentPtr->value);
-	if(Curr_El->get_adapted_flag()>0){
-	  *(Curr_El->get_state_vars()+4)= *(Curr_El->get_state_vars());
-	  //if (*(Curr_El->get_state_vars()+4)!=*(Curr_El->get_state_vars())) exit(1);
-	}
-	currentPtr=currentPtr->next;
+        Element* Curr_El=(Element*)(currentPtr->value);
+        if(Curr_El->get_adapted_flag()>0){
+          *(Curr_El->get_state_vars()+4)= *(Curr_El->get_state_vars());
+          //if (*(Curr_El->get_state_vars()+4)!=*(Curr_El->get_state_vars())) exit(1);
+        }
+        currentPtr=currentPtr->next;
       }
     }
   return;
@@ -193,6 +217,16 @@ double mini(double a,double b){
   else
     return(b);
 }
+
+double minidxdy(double x,double y, int* flag){
+  if (x<y){
+    *flag=0;
+    return(x);}
+  else{
+    *flag=1;
+    return(y);}
+}
+
 
 double maxi(double a,double b){
   if (a>b)
@@ -211,4 +245,25 @@ double signed_d_f(double p,double eps){
   return (p/sqrt(p*p+eps*eps));
   //return (.5*(tanh(p/(2*eps))+1));
   //return (tanh(p/(2*eps)));
+}
+
+//(*(EmTemp->get_dx()+0)<*(EmTemp->get_dx()+1))?*(EmTemp->get_dx()+0):*(EmTemp->get_dx()+1))
+int num_nonzero_elem(HashTable *El_Table){
+  int               num=0,myid,i;
+  HashEntryPtr      currentPtr;
+  Element           *Curr_El;
+  HashEntryPtr      *buck = El_Table->getbucketptr();
+  for(i=0;i<El_Table->get_no_of_buckets();i++)
+    if(*(buck+i)){
+      currentPtr = *(buck+i);
+      while(currentPtr){
+        Curr_El=(Element*)(currentPtr->value);
+        if(Curr_El->get_adapted_flag()>0){
+          num++;
+        }
+        currentPtr=currentPtr->next;
+      }
+    }
+
+  return (num);
 }
