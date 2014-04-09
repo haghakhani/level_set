@@ -1742,90 +1742,125 @@ double Element::convect_dryline(double VxVy[2], double dt) {
   return Awet;
 }
 
-
 void Element::calc_phi_slope(HashTable* El_Table, HashTable* NodeTable)
 {
   //this function returns the array of positive and minus phi approximation that are required for reinitialization
 
-  int j = 0, bc = 0;
-  /* check to see if this is a boundary */
-  while(j<4 && bc == 0) {
-    if(neigh_proc[j] == INIT)
-      bc = 1;
-    j++;
-  }
-  if(bc == 1) {
-    for(j=0;j<2*DIMENSION;j++)
-      phi_slope[j] = 0.;
-    return;
-  }
+  int j; 
+    //bc = 0;
+  // /* check to see if this is a boundary */
+  // while(j<4 && bc == 0) {
+  //   if(neigh_proc[j] == INIT)
+  //     bc = 1;
+  //   j++;
+  // }
+  // if(bc == 1) {
+  //   for(j=0;j<2*DIMENSION;j++)
+  //     phi_slope[j] = 0.;
+  //   return;
+  // }
+
 
   //x plus, x minus, y plus, y minus
   int xp = positive_x_side;
   int yp=(xp+1)%4, xm=(xp+2)%4, ym=(xp+3)%4;
+  int xpflag=0,xmflag=0,ypflag=0,ymflag=0;
+  
+  for (j=0;j<4;j++)
+    if(neigh_proc[j] == INIT)
+      switch(abs(xp-j)%2){
+      case 0:                    //boundary is in x direction
+	if ((xp-j)==0){           //boundary is in xp direction
+	  phi_slope[1]=0;
+	  xpflag=1;
+	}
+	else{                     //boundary is in xm direction
+	  phi_slope[0]=0;
+	  xmflag=1;
+	}
+      case 1:                    //boundary is in y direction
+	if ((xp-j)>0){            //boundary is in ym direction
+	  phi_slope[2]=0;
+	  ymflag=1;
+	}
+	else{                     //boundary is in yp direction
+	  phi_slope[3]=0;
+	  ypflag=1;
+	}
+      }
+ 
+
   /* x direction */
-  Element *ep = (Element*) (El_Table->lookup(&neighbor[xp][0]));
-  assert(ep);  
-  Element *em = (Element*) (El_Table->lookup(&neighbor[xm][0]));
-  Element *ep2= NULL;
-  Element *em2= NULL;
-  //check if element has 2 neighbors on either side
-  Node* ndtemp = (Node*) NodeTable->lookup(&node_key[xp+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    ep2 = (Element*) (El_Table->lookup(&neighbor[xp+4][0]));
-    assert(neigh_proc[xp+4] >= 0 && ep2);
-  }
-  ndtemp = (Node*) NodeTable->lookup(&node_key[xm+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    em2 = (Element*) (El_Table->lookup(&neighbor[xm+4][0]));
-    assert(neigh_proc[xm+4] >= 0 && em2); 
+  double dp, dm, dc, dxp, dxm;
+  Node* ndtemp;
+  Element *em,*ep;
+  Element *em2=NULL,*ep2=NULL;
+
+  if (!xpflag){
+    ep = (Element*) (El_Table->lookup(&neighbor[xp][0]));
+    ep2= NULL;
+    //check if element has 2 neighbors on either side
+    ndtemp = (Node*) NodeTable->lookup(&node_key[xp+4][0]);
+    if(ndtemp->info == S_C_CON) {
+      ep2 = (Element*) (El_Table->lookup(&neighbor[xp+4][0]));
+      assert(neigh_proc[xp+4] >= 0 && ep2);
+    }
+    dxp = ep->coord[0] - coord[0];
+    dp = (ep->state_vars[0] - state_vars[0])/dxp;
+    if(ep2 != NULL)
+      dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
+    phi_slope[1]=dp;
   }
 
-  double dp, dm, dc, dxp, dxm;
-  dxp = ep->coord[0] - coord[0];
-  dxm = coord[0] - em->coord[0];
-  
-  dp = (ep->state_vars[0] - state_vars[0])/dxp;
-  if(ep2 != NULL)
-    dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
-  dm = (state_vars[0] - em->state_vars[0])/dxm;
-  if(em2 != NULL)
-    dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
-      
-  phi_slope[0]=dm; phi_slope[1]=dp;
+  if(!xmflag){
+    em = (Element*) (El_Table->lookup(&neighbor[xm][0]));
+    em2= NULL;
+    //check if element has 2 neighbors on either side
+    ndtemp = (Node*) NodeTable->lookup(&node_key[xm+4][0]);
+    if(ndtemp->info == S_C_CON) {
+      em2 = (Element*) (El_Table->lookup(&neighbor[xm+4][0]));
+      assert(neigh_proc[xm+4] >= 0 && em2); 
+    }
+    dxm = coord[0] - em->coord[0];
+    dm = (state_vars[0] - em->state_vars[0])/dxm;
+    if(em2 != NULL)
+      dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
+    phi_slope[0]=dm;
+  }
+
 
   /* y direction */
-  ep = (Element*) (El_Table->lookup(&neighbor[yp][0]));
-  em = (Element*) (El_Table->lookup(&neighbor[ym][0]));
-  ep2= NULL;
-  em2= NULL;
-  //check if element has 2 neighbors on either side
-  ndtemp = (Node*) NodeTable->lookup(&node_key[yp+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    ep2 = (Element*) (El_Table->lookup(&neighbor[yp+4][0]));
-    assert(neigh_proc[yp+4] >= 0 && ep2);
+  if(!ypflag){
+    ep = (Element*) (El_Table->lookup(&neighbor[yp][0]));
+    ep2= NULL;
+    //check if element has 2 neighbors on either side
+    ndtemp = (Node*) NodeTable->lookup(&node_key[yp+4][0]);
+    if(ndtemp->info == S_C_CON) {
+      ep2 = (Element*) (El_Table->lookup(&neighbor[yp+4][0]));
+      assert(neigh_proc[yp+4] >= 0 && ep2);
+    }
+    dxp = ep->coord[1] - coord[1];
+    dp = (ep->state_vars[0] - state_vars[0])/dxp;
+    if(ep2 != NULL)
+      dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
+    phi_slope[3]=dp;
   }
-  ndtemp = (Node*) NodeTable->lookup(&node_key[ym+4][0]);
-  if(ndtemp->info == S_C_CON) 
-    {
+
+  if(!ymflag){
+    em = (Element*) (El_Table->lookup(&neighbor[ym][0]));
+    em2= NULL;
+    ndtemp = (Node*) NodeTable->lookup(&node_key[ym+4][0]);
+    if(ndtemp->info == S_C_CON) {
       em2 = (Element*) (El_Table->lookup(&neighbor[ym+4][0]));
-      // if(!(neigh_proc[ym+4] >= 0 && em2)){
-      // 	printf("ym=%d neigh_proc[ym+4]=%d em2=%d\n",
-      // 	       ym,neigh_proc[ym+4],em2);
-      // }
       assert(neigh_proc[ym+4] >= 0 && em2);
     }
+    dxm = coord[1] - em->coord[1];  
+    dm = (state_vars[0] - em->state_vars[0])/dxm;
+    if(em2 != NULL)
+      dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
+    phi_slope[2]=dm;
+  }
 
-  dxp = ep->coord[1] - coord[1];
-  dxm = coord[1] - em->coord[1];  
-  
-  dp = (ep->state_vars[0] - state_vars[0])/dxp;
-  if(ep2 != NULL)
-    dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
-  dm = (state_vars[0] - em->state_vars[0])/dxm;
-  if(em2 != NULL)
-    dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
-  phi_slope[2]=dm; phi_slope[3]=dp;  
   return;
 }
 
