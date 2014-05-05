@@ -80,7 +80,7 @@ c      ustore(1) = max(ustore(1),0.)
       ustore(5) = uvec(5)
       ustore(6) = 1.d0 
 
-      if(uvec(2).gt.tiny) then
+      if(uvec(1).gt.tiny) then
 c     Source terms ...
 c     here speed is speed squared
          speed=v_solid(1)**2+v_solid(2)**2

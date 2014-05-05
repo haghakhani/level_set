@@ -179,7 +179,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
       initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr);
 
       //initialization( NodeTable, El_Table, dt, matprops_ptr,fluxprops, timeprops_ptr);
-      meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
+      //meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
       //timeprops_ptr->iter++;
       //}
       //timeprops_ptr->iter=tt;

@@ -81,7 +81,7 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
 }
 
   double time_inc=.5*min;
-  thresh=time_inc;//*min*min;
+  thresh=time_inc*min;//*min;
   int flagi=0;
   do{
     norm=0;

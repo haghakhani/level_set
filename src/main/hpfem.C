@@ -315,8 +315,8 @@ int main(int argc, char *argv[])
       /*
        * output results to file 
        */
-      //       if(timeprops.ifoutput()) 
-      if (timeprops.iter%10==0){//(timeprops.iter<1000 && timeprops.iter%60==58)
+        if(timeprops.ifoutput()) {
+      //if (timeprops.iter%10==0){//(timeprops.iter<1000 && timeprops.iter%60==58)
 	//output_flag=1;
 	//else if ( timeprops.iter%200==198)
 	//output_flag=1;
