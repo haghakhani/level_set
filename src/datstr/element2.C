@@ -1906,7 +1906,7 @@ void Element::xdirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
     
       Vel[1] = Vel[3] = 0.; // not really, but don't need it here
 
-      if (hfv[0][1]>0)
+      if (hfv[0][1]>GEOFLOW_TINY)
 	// Solid-phase velocity in x-dir
 	Vel[0] = hfv[0][2]/hfv[0][1];
       else
@@ -1999,7 +1999,7 @@ void Element::ydirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
       // velocities
       Vel[0]= Vel[2] = 0. ; // don't need them here
 
-      if (hfv[0][1]>0)
+      if (hfv[0][1]>GEOFLOW_TINY)
 	// Solid-phase velocity in y-dir
 	Vel[1]=hfv[0][3]/hfv[0][1];
       else
@@ -3316,7 +3316,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
   // }
 
   //  assert(state_vars[0]>=0.0);
-  if(state_vars[0]>=contour_height)
+  if(state_vars[0]>=dabs(contour_height))
     {
       for(ineigh=0;ineigh<8;ineigh++)
 	if(neigh_proc[ineigh]>=0) //don't check outside map boundary or duplicate neighbor
@@ -3330,7 +3330,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
 	      fflush(stdout);
 	    }
 	    assert(ElemNeigh);
-	    if(*(ElemNeigh->get_state_vars())<contour_height)
+	    if(*(ElemNeigh->get_state_vars())<dabs(contour_height))
 	      return(2); //inside of pileheight contour line
 	  }
     }
@@ -3348,7 +3348,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
 	      fflush(stdout);
 	    }
 	    assert(ElemNeigh);
-	    if(*(ElemNeigh->get_state_vars())>=contour_height)
+	    if(*(ElemNeigh->get_state_vars())>=dabs(contour_height))
 	      return(1); //outside of pileheight contour line
 	  }
     } 
@@ -3455,13 +3455,13 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
 
   //assert(state_vars[0]>=0.0);
   assert(Influx[1]>=0.0);
-  if((state_vars[0]<contour_height)&&
+  if((state_vars[0]<dabs(contour_height))&&
      (Influx[1]==0.0)){
     for(ineigh=0;ineigh<8;ineigh++)
       if(neigh_proc[ineigh]>=0){ //don't check outside map boundary or duplicate neighbor
 	ElemNeigh=(Element*) ElemTable->lookup(neighbor[ineigh]);
 	assert(ElemNeigh);
-	if((*(ElemNeigh->get_state_vars())>=contour_height)||
+	if((*(ElemNeigh->get_state_vars())>=dabs(contour_height))||
 	   (*(ElemNeigh->get_influx()+1)>0.0))
 	  {
 	    iffirstbuffer=1;
@@ -3476,7 +3476,7 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
 	  {
 	    ElemNeigh=(Element*) ElemTable->lookup(neighbor[ineigh]);
 	    assert(ElemNeigh);
-	    if((*(ElemNeigh->get_state_vars())<contour_height)&&
+	    if((*(ElemNeigh->get_state_vars())<dabs(contour_height))&&
 	       (*(ElemNeigh->get_influx()+1)==0.0))
 	      {
 		iffirstbuffer=1;
@@ -3521,7 +3521,7 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable,
 	    }
 
 	  if((abs(ElemNeigh->get_adapted_flag())==BUFFER)&&
-	     (state_vars[0]<=*(ElemNeigh->get_state_vars())))
+	     (state_vars[0]>=*(ElemNeigh->get_state_vars())))//for levelset >=
 	    { //this element is next to a member of the old buffer layer
 	      ifnextbuffer=1; //which means this element is a member of the next outer boundary of the buffer layer
 	      break;

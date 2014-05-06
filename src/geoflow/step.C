@@ -177,9 +177,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
   if (timeprops_ptr->iter%5==4||timeprops_ptr->iter==1){
     int tt=timeprops_ptr->iter;
       initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr);
-
-      //initialization( NodeTable, El_Table, dt, matprops_ptr,fluxprops, timeprops_ptr);
-      //meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
+      if (timeprops_ptr->iter%300==4) meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
       //timeprops_ptr->iter++;
       //}
       //timeprops_ptr->iter=tt;
@@ -227,6 +225,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
 	      for(int kk=0;kk<6;kk++) 
 		if (isnan(*(Curr_El->get_state_vars()+kk)))
 		  printf("Hello this is the NAN");
+
 	      forceint+=fabs(elemforceint);
 	      forcebed+=fabs(elemforcebed);
 	      realvolume+=dxy[0]*dxy[1]**(Curr_El->get_state_vars()+1);
@@ -235,7 +234,8 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
 
 	      double *coord=Curr_El->get_coord();	      
 	      //update the record of maximum pileheight in the area covered by this element
-	      double hheight=*(Curr_El->get_state_vars()+1);
+	      double hheight=0; 
+	      if (*(Curr_El->get_state_vars())<0 ) hheight=*(Curr_El->get_state_vars()+1);
 	      if(hheight>0 && hheight<0);
 
 

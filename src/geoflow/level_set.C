@@ -48,8 +48,8 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
 
   //cout<<"attention xmin: "<<outline_ptr->xminmax[0]<<" xmax: "<<outline_ptr->xminmax[1]<<" ymin: "<<outline_ptr->yminmax[0]<<" ymax: "<<outline_ptr->yminmax[1]<<endl;
 
-  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0]);
-  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0]);
+  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
+  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
 
   record_of_phi(NodeTable, El_Table);
   min=10000;  
@@ -81,7 +81,7 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
 }
 
   double time_inc=.5*min;
-  thresh=time_inc*min;//*min;
+  thresh=time_inc*min*min;
   int flagi=0;
   do{
     norm=0;
@@ -122,7 +122,7 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
                                                                            (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD)>0) ))*/
         {
 
-          initialize_phi( El_Table,Em_Temp,&norm,time_inc,min,&elem);
+          initialize_phi( El_Table,Em_Temp,&norm,time_inc,time_inc/*min*/,&elem);
           //	*(Em_Temp->get_state_vars()+5)=5;
 
           //		printf("norm =%f    \n", norm);
@@ -136,10 +136,10 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
     
     printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", norm,time_inc,count,thresh,min);
     count++;
-    if((timeprops->iter>1) && (count > 100) ) 
+    if((timeprops->iter>1 && count > 10) || (timeprops->iter==1 && count > 1000) ) 
       flagi=1;
 
-  }while((norm>thresh) );//&& flagi < 1 );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
+  }while((norm>thresh) && flagi < 1 );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
 
   return;
 }

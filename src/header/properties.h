@@ -398,8 +398,8 @@ implicit=0;
   //! checks if the output files should be written now
   int  ifoutput() 
   {
-    // if(time>=ndnextoutput)
-    if(iter%20==19) 
+     if(time>=ndnextoutput)
+    //if(iter%20==19) 
       {
         ioutput++; //using ioutput eliminates roundoff
         ndnextoutput=((ioutput+1)*timeoutput)/TIME_SCALE;

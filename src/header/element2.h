@@ -768,9 +768,9 @@ inline int Element::get_opposite_brother_flag() {return opposite_brother_flag;};
 inline void Element::put_height_mom(double pile_height,double volf,double xmom,double ymom) 
 {
 if (pile_height>0) 
-prev_state_vars[0]=state_vars[0]=prev_state_vars[4]=state_vars[4]=1;
+prev_state_vars[0]=state_vars[0]=prev_state_vars[4]=state_vars[4]=-1;
 else
-prev_state_vars[0]=state_vars[0]=-1;  
+prev_state_vars[0]=state_vars[0]=1;  
 
   prev_state_vars[1]=state_vars[1]=pile_height; 
   prev_state_vars[2]=state_vars[2]=xmom; 
