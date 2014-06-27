@@ -23,7 +23,7 @@
 
 //! ElemPack is a smaller (memory spacewise) version of Element that can be sent from one processor to another via MPI calls
 struct ElemPack{
-  //see ../repartition/new_datatype.C blockcounts[3]={58,25*KEYLENGTH,102}
+  //see ../repartition/new_datatype.C blockcounts[3]={58,25*KEYLENGTH,104}
   int        myprocess;                                              //  1
   int        generation;                                             //  2
   int        material;/*flag added by andrew*/                       //  3
@@ -76,8 +76,8 @@ struct ElemPack{
   double Awet;                                        // 97
   double Swet;                                        // 98
   double drypoint[DIMENSION];                         // 100
-  double lap_phi[DIMENSION];                          // 102
-
+  //double lap_phi[DIMENSION];                          // 102
+  double phi_slope[4];                                 //104
   /*BC DEF*/
 
 

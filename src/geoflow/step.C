@@ -173,16 +173,17 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
   int ce=0;
 
   mapnames.assign(a, b, c,d, ce);
+  move_data(nump, myid, El_Table, NodeTable,timeprops_ptr);
 
   if (timeprops_ptr->iter%5==4||timeprops_ptr->iter==1){
     int tt=timeprops_ptr->iter;
-      initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr);
+      initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr,nump,myid);
       if (timeprops_ptr->iter%300==4) meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
       //timeprops_ptr->iter++;
       //}
       //timeprops_ptr->iter=tt;
   }
-
+  //move_data(nump, myid, El_Table, NodeTable,timeprops_ptr);
 
   /*
    * corrector step and b.c.s

@@ -12,59 +12,59 @@ void Pack_element(void *sendel_in, ElemPack* elem, HashTable* HT_Node_Ptr, int d
 
 
   Node* node;
-  
+
   elem->myprocess = destination_proc;
   elem->generation = sendel->generation;
   elem->opposite_brother_flag = sendel->opposite_brother_flag;
   elem->material=sendel->material;
-  
+
   for(i=0; i<8; i++)
-    {
-      elem->neigh_proc[i]=sendel->neigh_proc[i];
-      elem->neigh_gen[i]=sendel->neigh_gen[i];
-    }
+  {
+    elem->neigh_proc[i]=sendel->neigh_proc[i];
+    elem->neigh_gen[i]=sendel->neigh_gen[i];
+  }
   for(i=0; i<5; i++)
     elem->order[i] = sendel->order[i];
-  
+
   elem->ndof = sendel->ndof;
   elem->no_of_eqns = sendel->no_of_eqns;
   elem->refined = sendel->refined;
   elem->adapted = sendel->adapted;
   elem->which_son = sendel->which_son;
   elem->new_old = sendel->new_old;
-  
+
   for(i=0; i<KEYLENGTH; i++)
     elem->key[i] = sendel->key[i];
-      
+
   for(i=0;i<4;i++)
     for(j=0;j<KEYLENGTH;j++)
       elem->brothers[i][j] = sendel->brothers[i][j];
-  
+
   for(i=0; i<8; i++)
     for(j=0; j<KEYLENGTH; j++)
-      {
-	elem->node_key[i][j] = sendel->node_key[i][j];
-	elem->neighbor[i][j] = sendel->neighbor[i][j];
-	if(i<4)elem->son[i][j] = sendel->son[i][j];
-      }
-  for(i=0; i<EQUATIONS; i++)
     {
-      elem->el_error[i] = sendel->el_error[i];
-      elem->el_solution[i] = sendel->el_solution[i];
+      elem->node_key[i][j] = sendel->node_key[i][j];
+      elem->neighbor[i][j] = sendel->neighbor[i][j];
+      if(i<4)elem->son[i][j] = sendel->son[i][j];
     }
-  
+  for(i=0; i<EQUATIONS; i++)
+  {
+    elem->el_error[i] = sendel->el_error[i];
+    elem->el_solution[i] = sendel->el_solution[i];
+  }
+
   //and the node info:
   for(i=0; i<8; i++)
-    {
-      node = (Node*) HT_Node_Ptr->lookup(elem->node_key[i]);
-      assert(node);
-      elem->n_order[i] = node->order;
-      elem->n_info[i] = node->info;
-      for(j=0; j<2; j++)
-	elem->n_coord[i][j] = node->coord[j];
-      elem->node_elevation[i] = node->elevation;
-    }
-  
+  {
+    node = (Node*) HT_Node_Ptr->lookup(elem->node_key[i]);
+    assert(node);
+    elem->n_order[i] = node->order;
+    elem->n_info[i] = node->info;
+    for(j=0; j<2; j++)
+      elem->n_coord[i][j] = node->coord[j];
+    elem->node_elevation[i] = node->elevation;
+  }
+
   node = (Node*) HT_Node_Ptr->lookup(elem->key);
   assert(node);
   elem->n_order[8] = node->order;
@@ -72,22 +72,22 @@ void Pack_element(void *sendel_in, ElemPack* elem, HashTable* HT_Node_Ptr, int d
   for(j=0; j<2; j++)
     elem->n_coord[8][j] = node->coord[j];
   elem->node_elevation[8] = node->elevation;
-  
+
   if((sendel->bcptr)!=0)
+  {
+    elem->bc = 1;
+    for(i=0; i<4; i++)
     {
-      elem->bc = 1;
-      for(i=0; i<4; i++)
-	{
-	  elem->bc_type[i]=(sendel->bcptr)->type[i];
-	  for(j=0; j<2; j++)
-	    for(int k=0; k<2; k++)
-	      elem->bc_value[i][j][k] = (sendel->bcptr)->value[i][j][k];
-	  
-	}
+      elem->bc_type[i]=(sendel->bcptr)->type[i];
+      for(j=0; j<2; j++)
+	for(int k=0; k<2; k++)
+	  elem->bc_value[i][j][k] = (sendel->bcptr)->value[i][j][k];
+
     }
-  
+  }
+
   else elem->bc = 0;
-  
+
   //geoflow stuff
   elem->positive_x_side = sendel->positive_x_side;
   elem->elevation = sendel->elevation;
@@ -120,6 +120,11 @@ void Pack_element(void *sendel_in, ElemPack* elem, HashTable* HT_Node_Ptr, int d
   elem->Swet       = sendel->Swet;
   elem->drypoint[0]= sendel->drypoint[0];
   elem->drypoint[1]= sendel->drypoint[1];
+  elem->phi_slope[0]= sendel->phi_slope[0];
+  elem->phi_slope[1]= sendel->phi_slope[1];
+  elem->phi_slope[2]= sendel->phi_slope[2];
+  elem->phi_slope[3]= sendel->phi_slope[3];
+
 }
 
 
@@ -129,43 +134,43 @@ void Pack_neighbor(int target_proc, ELinkPtr* EL_head, int* counter, NePtr* pack
   //creates a packing for the changed neighbor info
   *counter = 0;
   int counter2=0;
-  
+
   ELinkPtr EL_temp = *EL_head;
   NeighborPack* pack_try;
 
   if(*EL_head)
+  {
+    while(EL_temp)
     {
-      while(EL_temp)
-	{
-	  if(EL_temp->target_proc == target_proc) (*counter)++;
-	  EL_temp = EL_temp->next;
-	  
-	}
-      
-      if(*counter)
-	{
-	  pack_try =  new NeighborPack[*counter];
-	  EL_temp = *EL_head;
-	  
-	  
-	  while(counter2 < *counter && EL_temp)
-	    {
-	      
-	      if(EL_temp->target_proc == target_proc)
-		{	  
-		  pack_try[counter2].target_proc = target_proc;
-		  pack_try[counter2].new_proc = EL_temp-> new_proc;
-		  for(int i=0; i<KEYLENGTH; i++)
-		    {
-		      pack_try[counter2].elkey[i] = EL_temp->elkey[i];
-		      pack_try[counter2].targetkey[i] = EL_temp->targetkey[i];
-		    }
-		  counter2++;
-		}
-	      
-	      EL_temp = EL_temp->next;
-	    }
-	}
-      *packed_neighbor_info = pack_try;
+      if(EL_temp->target_proc == target_proc) (*counter)++;
+      EL_temp = EL_temp->next;
+
     }
+
+    if(*counter)
+    {
+      pack_try =  new NeighborPack[*counter];
+      EL_temp = *EL_head;
+
+
+      while(counter2 < *counter && EL_temp)
+      {
+
+	if(EL_temp->target_proc == target_proc)
+	{	  
+	  pack_try[counter2].target_proc = target_proc;
+	  pack_try[counter2].new_proc = EL_temp-> new_proc;
+	  for(int i=0; i<KEYLENGTH; i++)
+	  {
+	    pack_try[counter2].elkey[i] = EL_temp->elkey[i];
+	    pack_try[counter2].targetkey[i] = EL_temp->targetkey[i];
+	  }
+	  counter2++;
+	}
+
+	EL_temp = EL_temp->next;
+      }
+    }
+    *packed_neighbor_info = pack_try;
+  }
 }

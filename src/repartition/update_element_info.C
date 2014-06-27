@@ -18,14 +18,14 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
- 
+
 /*
-  destroy_element
-  create_element
-  same_proc
-  diff_proc
-  construct_el
-  check_neighbor_info
+   destroy_element
+   create_element
+   same_proc
+   diff_proc
+   construct_el
+   check_neighbor_info
 
  */
 
@@ -34,17 +34,17 @@
 
 
 void same_proc(Element *r_element, HashTable* HT_Elem_Ptr, 
-	       int target_proc, int side);
+    int target_proc, int side);
 void diff_proc(Element* r_element, HashTable* HT_Elem_Ptr, 
-	       int new_proc, int side,  ELinkPtr* EL_head);
+    int new_proc, int side,  ELinkPtr* EL_head);
 
 //! construct_el is a friend function of the Element class that fills an element with information it receives in a variable of the ElemPack class from an MPI call
 void construct_el(Element* newelement, ElemPack* elem2, 
-		  HashTable* HT_Node_Ptr, int myid, 
-		  double* e_error);
+    HashTable* HT_Node_Ptr, int myid, 
+    double* e_error);
 
 void check_neighbor_info(Element* newelement, HashTable* HT_Elem_Ptr, 
-			 int myid);
+    int myid);
 
 
 /*! destroy_element() is a friend function of the Element and Node classes that does the following
@@ -61,8 +61,8 @@ void check_neighbor_info(Element* newelement, HashTable* HT_Elem_Ptr,
  *  3.  Remove some nodes..........later not now
  */
 void destroy_element(void *r_element_in, 
-		     HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, 
-		     int target_proc, ELinkPtr* EL_head){
+    HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, 
+    int target_proc, ELinkPtr* EL_head){
 
   int myid, numprocs, i;
   MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
@@ -70,18 +70,18 @@ void destroy_element(void *r_element_in,
   Element *r_element = (Element *) r_element_in;
 
   if(!r_element->get_refined_flag())//if parent don't care about neighbor info
+  {
+    for(i=0; i<8; i++)
     {
-      for(i=0; i<8; i++)
-	{
-	  if(r_element->neigh_proc[i] == myid)
-	    same_proc(r_element, HT_Elem_Ptr,target_proc, i);
-	  
-	  else if(r_element->neigh_proc[i] != myid && 
-		  r_element->neigh_proc[i] != target_proc && r_element->neigh_proc[i] >= 0)
-	    diff_proc(r_element,HT_Elem_Ptr, 
-		      target_proc, i, EL_head);
-	}
+      if(r_element->neigh_proc[i] == myid)
+	same_proc(r_element, HT_Elem_Ptr,target_proc, i);
+
+      else if(r_element->neigh_proc[i] != myid && 
+	  r_element->neigh_proc[i] != target_proc && r_element->neigh_proc[i] >= 0)
+	diff_proc(r_element,HT_Elem_Ptr, 
+	    target_proc, i, EL_head);
     }
+  }
 
   HT_Elem_Ptr->remove(r_element->key,1,stdout,myid,26);
 
@@ -91,11 +91,11 @@ void destroy_element(void *r_element_in,
 
 //! create_element() is a friend function of the Element and Node classes. After receiving an ElemPack, create_element() instances a new element, calls construct_el() to transfer data from ElemPack to the new element, and inserts the new element into the Hashtable. Don't call this if s_flag is 0 (original repartitioning scheme)
 void create_element(ElemPack* elem2, HashTable* HT_Elem_Ptr, 
-		    HashTable* HT_Node_Ptr, int myid, double* e_error)
+    HashTable* HT_Node_Ptr, int myid, double* e_error)
 {
 
   Element* newelement = new Element();
-  
+
   construct_el(newelement, elem2, HT_Node_Ptr, myid, e_error);
 
   HT_Elem_Ptr->add(newelement->pass_key(), newelement);
@@ -107,12 +107,12 @@ void create_element(ElemPack* elem2, HashTable* HT_Elem_Ptr,
 
 // bsfc repartitioning scheme
 void create_element(ElemPack* elem2, HashTable* HT_Elem_Ptr, 
-		    HashTable* HT_Node_Ptr, int myid)
+    HashTable* HT_Node_Ptr, int myid)
 {
   Element* newelement = new Element();
   double e_error = 0;
   construct_el(newelement, elem2, HT_Node_Ptr, myid, &e_error);
-  
+
   Element* EmTemp = (Element*) HT_Elem_Ptr->lookup(newelement->pass_key());
   if(EmTemp != NULL) {// update this element
     // first check that it is the same element
@@ -128,7 +128,7 @@ void create_element(ElemPack* elem2, HashTable* HT_Elem_Ptr,
     delete EmTemp;
   }
   if(!((*(newelement->pass_key()+0)==0)&&
-       (*(newelement->pass_key()+1)==0)))
+	(*(newelement->pass_key()+1)==0)))
     HT_Elem_Ptr->add(newelement->pass_key(), newelement);
   else delete newelement;
   //printf("processor %d just added element %u %u\n",myid, elem2->key[0], elem2->key[1]);
@@ -140,7 +140,7 @@ void create_element(ElemPack* elem2, HashTable* HT_Elem_Ptr,
 
 
 void same_proc(Element* r_element, HashTable* HT_Elem_Ptr, 
-	       int target_proc, int side)
+    int target_proc, int side)
 {
   Element* Neighbor;
   Neighbor=(Element*)HT_Elem_Ptr->lookup(r_element->get_neighbors()+side*KEYLENGTH);
@@ -155,29 +155,29 @@ void same_proc(Element* r_element, HashTable* HT_Elem_Ptr,
 }
 
 void diff_proc(Element* r_element, HashTable* HT_Elem_Ptr, 
-	       int new_proc, int side,  ELinkPtr* EL_head)
+    int new_proc, int side,  ELinkPtr* EL_head)
 {
 
   //create a linked list
   ELinkPtr EL_new;
   ELinkPtr EL_temp;
-  
+
   EL_new = new ElementLink(r_element->pass_key(), 
-			   (r_element->get_neighbors()+side*KEYLENGTH),
-			   *(r_element->getassoc()+side), new_proc);
+      (r_element->get_neighbors()+side*KEYLENGTH),
+      *(r_element->getassoc()+side), new_proc);
 
   if(!(*EL_head)) *EL_head = EL_new;
 
   else
-    {
-      EL_new->next = *EL_head;
-      (*EL_head)->pre = EL_new;      
-      *EL_head = EL_new;
-    }
+  {
+    EL_new->next = *EL_head;
+    (*EL_head)->pre = EL_new;      
+    *EL_head = EL_new;
+  }
 }
 
 void construct_el(Element* newelement, ElemPack* elem2, 
-		  HashTable* HT_Node_Ptr, int myid, double* e_error)
+    HashTable* HT_Node_Ptr, int myid, double* e_error)
 { 
   Node* node;
   int i, j;
@@ -187,10 +187,10 @@ void construct_el(Element* newelement, ElemPack* elem2,
   newelement->material=elem2->material;
 
   for(i=0; i<8; i++)
-    {
-      newelement->neigh_proc[i]=elem2->neigh_proc[i];
-      newelement->neigh_gen[i]=elem2->neigh_gen[i];
-    }
+  {
+    newelement->neigh_proc[i]=elem2->neigh_proc[i];
+    newelement->neigh_gen[i]=elem2->neigh_gen[i];
+  }
   for(i=0; i<5; i++)
     newelement->order[i] = elem2->order[i];
 
@@ -206,20 +206,20 @@ void construct_el(Element* newelement, ElemPack* elem2,
 
   for(i=0; i<KEYLENGTH; i++)
     newelement->key[i] = elem2->key[i];
-    
+
   for(i=0; i<8; i++)
     for(int j=0; j<KEYLENGTH; j++)
-      {
-	newelement->node_key[i][j] = elem2->node_key[i][j];
-	newelement->neighbor[i][j] = elem2->neighbor[i][j];
-	if(i<4)newelement->son[i][j] = elem2->son[i][j];
-
-      }
-  for(i=0; i<EQUATIONS; i++)
     {
-      newelement->el_error[i] = elem2->el_error[i];
-      newelement->el_solution[i] = elem2->el_solution[i];
+      newelement->node_key[i][j] = elem2->node_key[i][j];
+      newelement->neighbor[i][j] = elem2->neighbor[i][j];
+      if(i<4)newelement->son[i][j] = elem2->son[i][j];
+
     }
+  for(i=0; i<EQUATIONS; i++)
+  {
+    newelement->el_error[i] = elem2->el_error[i];
+    newelement->el_solution[i] = elem2->el_solution[i];
+  }
 
   //and the node info -- ignore some info if this is just getting a parent from another processor...
   for(i=0; i<8; i++) {
@@ -227,52 +227,52 @@ void construct_el(Element* newelement, ElemPack* elem2,
       printf("myid=%d elem2->key={%u,%u} elem2->coord=(%20g,%20g) inode=%d node->key={%u,%u} node->coord=(%20g,%20g)\n",myid,elem2->key[0],elem2->key[1],elem2->n_coord[8][0],elem2->n_coord[8][1],i,elem2->node_key[i][0],elem2->node_key[i][1],elem2->n_coord[i][0],elem2->n_coord[i][1]);
     }
 
-      node = (Node*) HT_Node_Ptr->lookup(elem2->node_key[i]);
-      if(!node) {
-	  node = new Node(elem2->node_key[i], elem2->n_coord[i],
-			  elem2->n_info[i], elem2->n_order[i], elem2->node_elevation[i],i);
-	  
-	  HT_Node_Ptr->add(elem2->node_key[i], node);
-	}
-      else {
-	//because of storing all the node but not updating the 
-	//info and order if the node was not previously in the subdomain
-	//check if the sfc is screwed
-	if(*(node->get_coord())!=elem2->n_coord[i][0] ||
-	   *(node->get_coord()+1)!=elem2->n_coord[i][1])  {
-	  printf("myid=%d\n  pack  elem(x,y)=(%20g,%20g)\n exist elem(x,y)=(%20g,%20g)\n\n",myid,elem2->n_coord[i][0],elem2->n_coord[i][1],*(node->get_coord()),*(node->get_coord()+1)); fflush(stdout);
-	    int screwd=0;
-	    assert(screwd);
-	  }
-	if(newelement->refined == 0)  // only update if this is from an active element
-	  node->set_parameters(elem2->n_info[i], elem2->n_order[i]);
+    node = (Node*) HT_Node_Ptr->lookup(elem2->node_key[i]);
+    if(!node) {
+      node = new Node(elem2->node_key[i], elem2->n_coord[i],
+	  elem2->n_info[i], elem2->n_order[i], elem2->node_elevation[i],i);
+
+      HT_Node_Ptr->add(elem2->node_key[i], node);
+    }
+    else {
+      //because of storing all the node but not updating the 
+      //info and order if the node was not previously in the subdomain
+      //check if the sfc is screwed
+      if(*(node->get_coord())!=elem2->n_coord[i][0] ||
+	  *(node->get_coord()+1)!=elem2->n_coord[i][1])  {
+	printf("myid=%d\n  pack  elem(x,y)=(%20g,%20g)\n exist elem(x,y)=(%20g,%20g)\n\n",myid,elem2->n_coord[i][0],elem2->n_coord[i][1],*(node->get_coord()),*(node->get_coord()+1)); fflush(stdout);
+	int screwd=0;
+	assert(screwd);
       }
+      if(newelement->refined == 0)  // only update if this is from an active element
+	node->set_parameters(elem2->n_info[i], elem2->n_order[i]);
+    }
   }
-  
+
   node = (Node*) HT_Node_Ptr->lookup(elem2->key);
   if(!node) {
-      node = new Node(elem2->key, elem2->n_coord[8],
-		      elem2->n_info[8], elem2->n_order[8], elem2->node_elevation[8],8);
-      
-      HT_Node_Ptr->add(elem2->key, node);
-    }
+    node = new Node(elem2->key, elem2->n_coord[8],
+	elem2->n_info[8], elem2->n_order[8], elem2->node_elevation[8],8);
+
+    HT_Node_Ptr->add(elem2->key, node);
+  }
   else if(newelement->refined != 0) // only update if this is from an active element
     node->set_parameters(elem2->n_info[8], elem2->n_order[8]);
-    
+
   //The boundary conditions
 
   if((elem2->bc)!=0)
+  {
+    BC* newbc = new BC;
+    for(i=0; i<4; i++)
     {
-      BC* newbc = new BC;
-      for(i=0; i<4; i++)
-	{
-	  newbc->type[i]=elem2->bc_type[i];
-	  for(int j=0; j<2; j++)
-	   for(int k=0; k<2; k++)
-	    newbc->value[i][j][k] = elem2->bc_value[i][j][k];
-	}
-       newelement->bcptr = newbc;
+      newbc->type[i]=elem2->bc_type[i];
+      for(int j=0; j<2; j++)
+	for(int k=0; k<2; k++)
+	  newbc->value[i][j][k] = elem2->bc_value[i][j][k];
     }
+    newelement->bcptr = newbc;
+  }
 
   else newelement->bcptr = 0;
 
@@ -303,12 +303,17 @@ void construct_el(Element* newelement, ElemPack* elem2,
   newelement->lb_weight  = elem2->lb_weight;
   newelement->elm_loc[0] = elem2->elm_loc[0];
   newelement->elm_loc[1] = elem2->elm_loc[1];
-  
+
   newelement->iwetnode   = elem2->iwetnode;
   newelement->Awet       = elem2->Awet;
   newelement->Swet       = elem2->Swet;
   newelement->drypoint[0]= elem2->drypoint[0];
   newelement->drypoint[1]= elem2->drypoint[1];
+  newelement->phi_slope[0]= elem2->phi_slope[0];
+  newelement->phi_slope[1]= elem2->phi_slope[1];
+  newelement->phi_slope[2]= elem2->phi_slope[2];
+  newelement->phi_slope[3]= elem2->phi_slope[3];
+
 
   return;
 }
@@ -322,15 +327,15 @@ void check_neighbor_info(Element* newelement, HashTable* HT_Elem_Ptr, int myid)
   int which;
 
   for(int i=0; i<8; i++)
+  {
+    if(*(neigh_proc+i) == myid)
     {
-      if(*(neigh_proc+i) == myid)
-	{
-	  neighbor = (Element*)HT_Elem_Ptr->lookup(neigh_key+i*KEYLENGTH);
-	  which = neighbor->which_neighbor(newelement->pass_key());
-	  neighbor->change_neighbor_process(which, myid);
-	}
-
+      neighbor = (Element*)HT_Elem_Ptr->lookup(neigh_key+i*KEYLENGTH);
+      which = neighbor->which_neighbor(newelement->pass_key());
+      neighbor->change_neighbor_process(which, myid);
     }
+
+  }
 
 }
 
@@ -346,12 +351,12 @@ void diff_proc1_2(int counter, NeighborPack packed_neighbor_info[], HashTable* H
   Element* element;
   int which;
   for(int i=0; i<counter; i++)
-    {
-      element = (Element*)HT_Elem_Ptr->lookup(packed_neighbor_info[i].targetkey);
-      assert(element);
-      which = element->which_neighbor(packed_neighbor_info[i].elkey);
-      element->change_neighbor_process(which, packed_neighbor_info[i].new_proc);
+  {
+    element = (Element*)HT_Elem_Ptr->lookup(packed_neighbor_info[i].targetkey);
+    assert(element);
+    which = element->which_neighbor(packed_neighbor_info[i].elkey);
+    element->change_neighbor_process(which, packed_neighbor_info[i].new_proc);
 
-    }
+  }
 
 }
