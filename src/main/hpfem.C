@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
 
 	  move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
 
-	  unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
+	  //unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
 
 	  MPI_Barrier(MPI_COMM_WORLD);//for debug
 
