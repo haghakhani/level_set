@@ -487,7 +487,7 @@ class Element{
   //! this function calculates the extrusion (out of the ground) fluxes for this elements
   void calc_flux(HashTable *NodeTable,FluxProps *fluxprops, 
 		 TimeProps *timeprops);
-
+int if_pahse_baundary(HashTable *ElemTable);
   //! this function returns 2 if this element contains pileheight>=contour_height and has a neighbor who contains pileheight<contour_height.  It returns 1 if this element contains pileheight<contour_height and has a neighbor who contains pileheight>=contour_height.  It returns 0 otherwise. The intended use if if(EmTemp->if_pile_boundary(ElemTable,contour_height)) but I (Keith) added the distinction bewteen 1 and 2 to allow future developers to distinguish between the inside and outside of a pileheight contour line, as this functionality could be useful in the future.
   int if_pile_boundary(HashTable *ElemTable, double contour_height);
 

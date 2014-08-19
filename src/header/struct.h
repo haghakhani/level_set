@@ -18,9 +18,6 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-#include <petscksp.h>
-#include <petscdmda.h>
-
 //! ElemPack is a smaller (memory spacewise) version of Element that can be sent from one processor to another via MPI calls
 struct ElemPack{
   //see ../repartition/new_datatype.C blockcounts[3]={58,25*KEYLENGTH,104}
@@ -153,22 +150,6 @@ double   solu[2][121];
 double   Xnod[18];
 
 };
-
-class LaplacianData{
-	
-	protected:
-		HashTable *El_Table, *NodeTable;
-		double delta_t,LapCoef; 
-	public:
-		LaplacianData(HashTable* X, HashTable* Y, double dT, double Coef) :
-		El_Table (X) , NodeTable (Y) , delta_t (dT) , LapCoef (Coef) { }
-  		~LaplacianData(){}
-
-	friend int implicit_solver(LaplacianData* );
-	friend PetscErrorCode MatLaplacian2D_Mult(Mat, Vec, Vec);
-
-}/* Laplacian*/;
-
 typedef NeighborPack* NePtr;
 
 #endif

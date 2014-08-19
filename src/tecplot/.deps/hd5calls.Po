@@ -25,16 +25,18 @@ hd5calls.o: hd5calls.c /usr/include/hdf5.h /usr/include/H5public.h \
  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stdarg.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/H5Epubgen.h /usr/include/H5Fpublic.h \
- /usr/include/H5FDpublic.h /usr/include/H5Gpublic.h \
- /usr/include/H5MMpublic.h /usr/include/H5Ppublic.h \
- /usr/include/H5Zpublic.h /usr/include/H5Rpublic.h \
- /usr/include/H5Spublic.h /usr/include/H5FDcore.h \
- /usr/include/H5FDfamily.h /usr/include/H5FDlog.h /usr/include/H5FDmpi.h \
- /usr/include/H5FDmpio.h /usr/include/H5FDmpiposix.h \
- /usr/include/H5FDmulti.h /usr/include/H5FDsec2.h \
- /usr/include/H5FDstdio.h /usr/include/H5FDdirect.h /usr/include/string.h \
- /usr/include/xlocale.h GMFG_hdfconstants.h
+ /usr/include/bits/stdio.h /usr/include/H5Epubgen.h \
+ /usr/include/H5Fpublic.h /usr/include/H5FDpublic.h \
+ /usr/include/H5Gpublic.h /usr/include/H5MMpublic.h \
+ /usr/include/H5Ppublic.h /usr/include/H5Zpublic.h \
+ /usr/include/H5Rpublic.h /usr/include/H5Spublic.h \
+ /usr/include/H5FDcore.h /usr/include/H5FDfamily.h /usr/include/H5FDlog.h \
+ /usr/include/H5FDmpi.h /usr/include/H5FDmpio.h \
+ /usr/include/H5FDmpiposix.h /usr/include/H5FDmulti.h \
+ /usr/include/H5FDsec2.h /usr/include/H5FDstdio.h \
+ /usr/include/H5FDdirect.h /usr/include/string.h /usr/include/xlocale.h \
+ /usr/include/bits/string.h /usr/include/bits/string2.h \
+ /usr/include/stdlib.h GMFG_hdfconstants.h
 
 /usr/include/hdf5.h:
 
@@ -136,6 +138,8 @@ hd5calls.o: hd5calls.c /usr/include/hdf5.h /usr/include/H5public.h \
 
 /usr/include/bits/sys_errlist.h:
 
+/usr/include/bits/stdio.h:
+
 /usr/include/H5Epubgen.h:
 
 /usr/include/H5Fpublic.h:
@@ -177,5 +181,11 @@ hd5calls.o: hd5calls.c /usr/include/hdf5.h /usr/include/H5public.h \
 /usr/include/string.h:
 
 /usr/include/xlocale.h:
+
+/usr/include/bits/string.h:
+
+/usr/include/bits/string2.h:
+
+/usr/include/stdlib.h:
 
 GMFG_hdfconstants.h:

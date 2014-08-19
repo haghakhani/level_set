@@ -3291,7 +3291,24 @@ void Element::calc_stop_crit(MatProps *matprops_ptr)
   return;
 }
 
+int Element::if_pahse_baundary(HashTable *ElemTable){
+  int ineigh;
+  Element* ElemNeigh;
 
+  if(state_vars[0]>=0.)
+    {
+      for(ineigh=0;ineigh<8;ineigh++)
+	if(neigh_proc[ineigh]>=0) //don't check outside map boundary or duplicate neighbor
+	  {
+	    ElemNeigh=(Element*) ElemTable->lookup(neighbor[ineigh]);
+	    assert(ElemNeigh);
+	    if(*(ElemNeigh->get_state_vars())<0.)
+	      return(1); //inside of phase contour line
+	  }
+    }
+  return(0); //not on contour line
+
+}
 int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
 
   int ineigh;

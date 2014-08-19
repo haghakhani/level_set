@@ -84,6 +84,7 @@ xdfm_write.o: xdfm_write.C \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstdio \
  /usr/include/libio.h /usr/include/_G_config.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/fstream.tcc \
@@ -125,59 +126,16 @@ xdfm_write.o: xdfm_write.C \
  /usr/include/H5FDmpi.h /usr/include/H5FDmpio.h \
  /usr/include/H5FDmpiposix.h /usr/include/H5FDmulti.h \
  /usr/include/H5FDsec2.h /usr/include/H5FDstdio.h \
- /usr/include/H5FDdirect.h \
- /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h \
- /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpio.h \
- /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h \
- /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpicxx.h \
+ /usr/include/H5FDdirect.h /usr/include/mpich2-x86_64/mpi.h \
+ /usr/include/mpich2-x86_64/mpio.h /usr/include/mpich2-x86_64/mpi.h \
  ../header/hashtab.h ../header/constant.h ../header/element2.h \
  /usr/include/math.h /usr/include/bits/huge_val.h \
  /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
- ../header/boundary.h ../header/hashtab.h ../header/node.h \
- ../header/properties.h ../header/../useful/useful_lib.h \
- ../header/../gisapi/GisApi.h ../header/struct.h \
- /usr/local/petc/petsc-3.4.3/include/petscksp.h \
- /usr/local/petc/petsc-3.4.3/include/petscpc.h \
- /usr/local/petc/petsc-3.4.3/include/petscmat.h \
- /usr/local/petc/petsc-3.4.3/include/petscvec.h \
- /usr/local/petc/petsc-3.4.3/include/petscis.h \
- /usr/local/petc/petsc-3.4.3/include/petscsys.h \
- /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscconf.h \
- /usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscfix.h \
- /usr/local/petc/petsc-3.4.3/include/petscversion.h \
- /usr/local/petc/petsc-3.4.3/include/petscmath.h \
- /usr/local/petc/petsc-3.4.3/include/petscerror.h \
- /usr/local/petc/petsc-3.4.3/include/petscviewertypes.h \
- /usr/local/petc/petsc-3.4.3/include/petscoptions.h \
- /usr/include/valgrind/valgrind.h \
- /usr/local/petc/petsc-3.4.3/include/petsclog.h \
- /usr/local/petc/petsc-3.4.3/include/petscsys.h \
- /usr/local/petc/petsc-3.4.3/include/petsclog.hh \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/map \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_tree.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_map.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_multimap.h \
- /usr/include/memory.h /usr/include/string.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/xmmintrin.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mmintrin.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mm_malloc.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/emmintrin.h \
- /usr/include/sys/param.h /usr/include/linux/param.h \
- /usr/include/asm/param.h /usr/include/asm-generic/param.h \
- /usr/local/petc/petsc-3.4.3/include/petscsys.hh \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/sstream \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/sstream.tcc \
- /usr/local/petc/petsc-3.4.3/include/petscsftypes.h \
- /usr/local/petc/petsc-3.4.3/include/petscviewer.h \
- /usr/local/petc/petsc-3.4.3/include/petscdmtypes.h \
- /usr/local/petc/petsc-3.4.3/include/petscdrawtypes.h \
- /usr/local/petc/petsc-3.4.3/include/petscdmda.h \
- /usr/local/petc/petsc-3.4.3/include/petscdm.h \
- /usr/local/petc/petsc-3.4.3/include/petscdmdatypes.h \
- /usr/local/petc/petsc-3.4.3/include/petscpf.h \
- /usr/local/petc/petsc-3.4.3/include/petscao.h ../header/node.h \
+ /usr/include/bits/mathinline.h ../header/boundary.h ../header/hashtab.h \
+ ../header/node.h ../header/properties.h ../header/../useful/useful_lib.h \
+ ../header/../gisapi/GisApi.h ../header/struct.h ../header/node.h \
  ../header/GMFG_hdfapi.h ../../config.h
 
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iostream:
@@ -382,6 +340,8 @@ xdfm_write.o: xdfm_write.C \
 
 /usr/include/bits/sys_errlist.h:
 
+/usr/include/bits/stdio.h:
+
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h:
 
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h:
@@ -516,13 +476,11 @@ xdfm_write.o: xdfm_write.C \
 
 /usr/include/H5FDdirect.h:
 
-/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h:
+/usr/include/mpich2-x86_64/mpi.h:
 
-/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpio.h:
+/usr/include/mpich2-x86_64/mpio.h:
 
-/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpi.h:
-
-/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/mpicxx.h:
+/usr/include/mpich2-x86_64/mpi.h:
 
 ../header/hashtab.h:
 
@@ -546,6 +504,8 @@ xdfm_write.o: xdfm_write.C \
 
 /usr/include/bits/mathcalls.h:
 
+/usr/include/bits/mathinline.h:
+
 ../header/boundary.h:
 
 ../header/hashtab.h:
@@ -559,92 +519,6 @@ xdfm_write.o: xdfm_write.C \
 ../header/../gisapi/GisApi.h:
 
 ../header/struct.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscksp.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscpc.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscmat.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscvec.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscis.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscsys.h:
-
-/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscconf.h:
-
-/usr/local/petc/petsc-3.4.3/arch-linux2-c/include/petscfix.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscversion.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscmath.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscerror.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscviewertypes.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscoptions.h:
-
-/usr/include/valgrind/valgrind.h:
-
-/usr/local/petc/petsc-3.4.3/include/petsclog.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscsys.h:
-
-/usr/local/petc/petsc-3.4.3/include/petsclog.hh:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/map:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_tree.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_map.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/stl_multimap.h:
-
-/usr/include/memory.h:
-
-/usr/include/string.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/xmmintrin.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mmintrin.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/mm_malloc.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/emmintrin.h:
-
-/usr/include/sys/param.h:
-
-/usr/include/linux/param.h:
-
-/usr/include/asm/param.h:
-
-/usr/include/asm-generic/param.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscsys.hh:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/sstream:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/sstream.tcc:
-
-/usr/local/petc/petsc-3.4.3/include/petscsftypes.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscviewer.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscdmtypes.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscdrawtypes.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscdmda.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscdm.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscdmdatypes.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscpf.h:
-
-/usr/local/petc/petsc-3.4.3/include/petscao.h:
 
 ../header/node.h:
 

@@ -51,9 +51,6 @@ int main(int argc, char *argv[])
 
   MPI_Init(&argc,&argv);
 
-  //PetscInitializeNoArguments();
-  PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-
   MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
   MPI_Get_processor_name(processor_name, &namelen);
@@ -292,7 +289,7 @@ int main(int argc, char *argv[])
 
 	  move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
 
-	  //unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
+	  unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
 
 	  MPI_Barrier(MPI_COMM_WORLD);//for debug
 
@@ -457,7 +454,6 @@ int main(int argc, char *argv[])
   fprintf(fpperf,"%d Finished -- used %ld elements of %ld total in %e seconds, %e\n",myid,m,ii,end-start, ii/(end-start));
   fclose(fpperf);
 #endif
-  PetscFinalize();
   MPI_Finalize();  
   return(0);  
 
