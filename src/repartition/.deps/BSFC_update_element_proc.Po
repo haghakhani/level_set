@@ -86,7 +86,6 @@ BSFC_update_element_proc.o: BSFC_update_element_proc.C ../../config.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstdio \
  /usr/include/libio.h /usr/include/_G_config.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/fstream.tcc \
@@ -98,15 +97,15 @@ BSFC_update_element_proc.o: BSFC_update_element_proc.C ../../config.h \
  /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
- /usr/include/bits/mathinline.h /usr/include/string.h \
- /usr/include/assert.h /usr/include/mpich2-x86_64/mpi.h \
- /usr/include/mpich2-x86_64/mpio.h /usr/include/mpich2-x86_64/mpi.h \
- ../header/properties.h ../header/../useful/useful_lib.h \
- ../header/../gisapi/GisApi.h ../header/node.h ../header/constant.h \
- ../header/hashtab.h ../header/struct.h ../header/element2.h \
- ../header/boundary.h ../header/recv.h ../header/extfun.h \
- ../header/geoflow.h ../header/scale.h ../header/FileFormat.h \
- ../header/flux_srcs.h ../header/exvar.h repartition_BSFC.h
+ /usr/include/string.h /usr/include/assert.h \
+ /usr/include/mpich2-x86_64/mpi.h /usr/include/mpich2-x86_64/mpio.h \
+ /usr/include/mpich2-x86_64/mpi.h ../header/properties.h \
+ ../header/../useful/useful_lib.h ../header/../gisapi/GisApi.h \
+ ../header/node.h ../header/constant.h ../header/hashtab.h \
+ ../header/struct.h ../header/element2.h ../header/boundary.h \
+ ../header/recv.h ../header/extfun.h ../header/geoflow.h \
+ ../header/scale.h ../header/FileFormat.h ../header/flux_srcs.h \
+ ../header/exvar.h repartition_BSFC.h
 
 ../../config.h:
 
@@ -316,8 +315,6 @@ BSFC_update_element_proc.o: BSFC_update_element_proc.C ../../config.h \
 
 /usr/include/bits/sys_errlist.h:
 
-/usr/include/bits/stdio.h:
-
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h:
 
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h:
@@ -357,8 +354,6 @@ BSFC_update_element_proc.o: BSFC_update_element_proc.C ../../config.h \
 /usr/include/bits/mathdef.h:
 
 /usr/include/bits/mathcalls.h:
-
-/usr/include/bits/mathinline.h:
 
 /usr/include/string.h:
 

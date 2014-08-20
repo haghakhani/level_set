@@ -40,7 +40,91 @@ struct Min_rank {
   int rank;
 };
 
+//struct Boundry_Point{
+//  double xpos;
+//  double ypos;
+//};
+
 void initialization(HashTable* NodeTable, HashTable* El_Table,
+    double dt, MatProps* matprops_ptr,
+    FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,
+    int nump, int rank)
+{
+  HashEntryPtr* buck = El_Table->getbucketptr();
+  HashEntryPtr currentPtr;
+  //vector<Bounday_Point> boundary_point;
+  //Boundry_Point newBoundaryPoint;
+
+  double *coord;
+  int locNumBoundPoint=0;
+  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
+  {
+    currentPtr = *(buck+i);
+    while(currentPtr)
+    {
+      Element* Em_Temp=(Element*)(currentPtr->value);
+
+      if(Em_Temp->get_adapted_flag()>0  && *(Em_Temp->get_state_vars())==0. ) 
+        locNumBoundPoint++;
+
+      currentPtr=currentPtr->next;
+    }
+  }
+
+  double **boundaryPoints=CAllocD2(locNumBoundPoint,2);
+
+
+  int index=0;
+  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
+  {
+    currentPtr = *(buck+i);
+    while(currentPtr)
+    {
+      Element* Em_Temp=(Element*)(currentPtr->value);
+      if(Em_Temp->get_adapted_flag()>0  && *(Em_Temp->get_state_vars())==0. ) {
+        //coord=Em_Temp->get_coord();
+        boundaryPoints[index][0]=*(Em_Temp->get_coord());
+        boundaryPoints[index][1]=*(Em_Temp->get_coord()+1);
+        index++;
+      }
+      currentPtr=currentPtr->next;
+    }
+  }
+
+  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
+  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
+  double mindist=1000000;//sqrt(xrange*xrange+yrange*yrange);
+
+
+  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
+  {
+    currentPtr = *(buck+i);
+    while(currentPtr)
+    {
+      Element* Em_Temp=(Element*)(currentPtr->value);
+      if(Em_Temp->get_adapted_flag()>0 && *(Em_Temp->get_state_vars())!=0.) {
+
+        double coef = *(Em_Temp->get_state_vars())>0. ? 1.0: -1.0;//*(Em_Temp->get_state_vars());//*(Em_Temp->get_state_vars())>0. ? 1.0: -1.0;
+        double dist=mindist;
+
+        for (int idist=0; idist<locNumBoundPoint; idist++){
+          coord=Em_Temp->get_coord();
+          double tempdist=sqrt(pow(*(Em_Temp->get_coord())-boundaryPoints[idist][0],2)+pow(*(Em_Temp->get_coord()+1)-boundaryPoints[idist][1],2));
+          dist = tempdist < dist ? tempdist : dist;
+        }
+        dist*=coef;
+        *(Em_Temp->get_state_vars())=dist;
+
+      }
+
+
+      currentPtr=currentPtr->next;
+    }
+  }
+
+  return;
+}
+void reinitialization(HashTable* NodeTable, HashTable* El_Table,
     double dt, MatProps* matprops_ptr,
     FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,
     int nump, int rank)
@@ -67,9 +151,9 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
       Em_Temp=(Element*)(currentPtr->value);
 
       if(Em_Temp->get_adapted_flag()>0) {
-	dx=Em_Temp->get_dx();
-	min_dx = minidxdy(dx[0],dx[1],&flagxy);
-	if(min_dx<min) {min=min_dx; flagxymin=flagxy;}
+        dx=Em_Temp->get_dx();
+        min_dx = minidxdy(dx[0],dx[1],&flagxy);
+        if(min_dx<min) {min=min_dx; flagxymin=flagxy;}
       }
       currentPtr=currentPtr->next; 
     }
@@ -121,11 +205,11 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
       currentPtr = *(buck+i);
       while(currentPtr) 
       {
-	Em_Temp=(Element*)(currentPtr->value);
-	if(Em_Temp->get_adapted_flag()>0) {
-	  Em_Temp->calc_phi_slope(El_Table, NodeTable);
-	}
-	currentPtr=currentPtr->next; 
+        Em_Temp=(Element*)(currentPtr->value);
+        if(Em_Temp->get_adapted_flag()>0) {
+          Em_Temp->calc_phi_slope(El_Table, NodeTable);
+        }
+        currentPtr=currentPtr->next; 
       }
     }
     move_data(nump, rank, El_Table, NodeTable,timeprops); 
@@ -135,30 +219,30 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
       currentPtr = *(buck+i);
       while(currentPtr) 
       {
-	Em_Temp=(Element*)(currentPtr->value);
-	if(Em_Temp->get_adapted_flag()>0)
-	  //	       (timeprops->iter==1 && Em_Temp->get_adapted_flag()>0 )|| dabs(*(Em_Temp->get_state_vars()+4))<=.2)
-	  /*(timeprops->iter<100 &&*/ /*Em_Temp->get_adapted_flag()>0)*/ /*|| 
-									   ((abs(Em_Temp->get_adapted_flag())==BUFFER)  ||
-									   (Em_Temp->if_first_buffer_boundary(El_Table,GEOFLOW_TINY     )>0)||
-									   (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD1)>0)||
-									   (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD2)>0)||
-									   (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD) >0)||
-									   (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD)>0) ||
-									   (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD1)>0)||
-									   (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD2)>0)||
-									   (Em_Temp->if_pile_boundary(El_Table,GEOFLOW_TINY)>0)||
-									   (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD1)>0)||
-									   (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD2)>0)||
-									   (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD)>0) ))*/
-	{
+        Em_Temp=(Element*)(currentPtr->value);
+        if(Em_Temp->get_adapted_flag()>0)
+          //	       (timeprops->iter==1 && Em_Temp->get_adapted_flag()>0 )|| dabs(*(Em_Temp->get_state_vars()+4))<=.2)
+          /*(timeprops->iter<100 &&*/ /*Em_Temp->get_adapted_flag()>0)*/ /*|| 
+                                                                           ((abs(Em_Temp->get_adapted_flag())==BUFFER)  ||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,GEOFLOW_TINY     )>0)||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD1)>0)||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD2)>0)||
+                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD) >0)||
+                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD)>0) ||
+                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD1)>0)||
+                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD2)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,GEOFLOW_TINY)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD1)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD2)>0)||
+                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD)>0) ))*/
+        {
 
-	  initialize_phi( El_Table,Em_Temp,&norm,time_inc,time_inc/*min*/,&elem);
-	  //	*(Em_Temp->get_state_vars()+5)=5;
+          initialize_phi( El_Table,Em_Temp,&norm,time_inc,/*time_inc*/10*min,&elem);
+          //	*(Em_Temp->get_state_vars()+5)=5;
 
-	  //		printf("norm =%f    \n", norm);
-	}
-	currentPtr=currentPtr->next;      	    
+          //		printf("norm =%f    \n", norm);
+        }
+        currentPtr=currentPtr->next;      	    
       }
     }
 
@@ -246,12 +330,12 @@ void record_of_phi(HashTable* NodeTable, HashTable* El_Table){
     if(*(buck+i)){
       HashEntryPtr currentPtr = *(buck+i);
       while(currentPtr){
-	Element* Curr_El=(Element*)(currentPtr->value);
-	if(Curr_El->get_adapted_flag()>0){
-	  *(Curr_El->get_state_vars()+4)= *(Curr_El->get_state_vars());
-	  //if (*(Curr_El->get_state_vars()+4)!=*(Curr_El->get_state_vars())) exit(1);
-	}
-	currentPtr=currentPtr->next;
+        Element* Curr_El=(Element*)(currentPtr->value);
+        if(Curr_El->get_adapted_flag()>0){
+          *(Curr_El->get_state_vars()+4)= *(Curr_El->get_state_vars());
+          //if (*(Curr_El->get_state_vars()+4)!=*(Curr_El->get_state_vars())) exit(1);
+        }
+        currentPtr=currentPtr->next;
       }
     }
   return;
@@ -302,11 +386,11 @@ int num_nonzero_elem(HashTable *El_Table){
     if(*(buck+i)){
       currentPtr = *(buck+i);
       while(currentPtr){
-	Curr_El=(Element*)(currentPtr->value);
-	if(Curr_El->get_adapted_flag()>0){
-	  num++;
-	}
-	currentPtr=currentPtr->next;
+        Curr_El=(Element*)(currentPtr->value);
+        if(Curr_El->get_adapted_flag()>0){
+          num++;
+        }
+        currentPtr=currentPtr->next;
       }
     }
 

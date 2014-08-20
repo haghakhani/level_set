@@ -93,13 +93,13 @@ AUTOMAKE = ${SHELL} /keith1/data/users/haghakha/level_set/missing --run automake
 AWK = gawk
 CC = mpicc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -I/include
+CFLAGS = -I/include  -O0 -g
 CPP = mpicc -E
 CPPFLAGS = -DMPICH_IGNORE_CXX_SEEK  -DMPICH_SKIP_MPICXX  -DH5_USE_16_AP  -I/include -DH5_USE_16_API
 CXX = mpicxx
 CXXCPP = mpicxx -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -DMPICH_IGNORE_CXX_SEEK  -DMPICH_SKIP_MPICXX  -DH5_USE_16_AP  -I/include
+CXXFLAGS = -DMPICH_IGNORE_CXX_SEEK  -DMPICH_SKIP_MPICXX  -DH5_USE_16_AP  -I/include  -O0 -g
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps

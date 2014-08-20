@@ -84,7 +84,6 @@ xdfm_write.o: xdfm_write.C \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/cstdio \
  /usr/include/libio.h /usr/include/_G_config.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
- /usr/include/bits/stdio.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/fstream.tcc \
@@ -133,8 +132,8 @@ xdfm_write.o: xdfm_write.C \
  /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
- /usr/include/bits/mathinline.h ../header/boundary.h ../header/hashtab.h \
- ../header/node.h ../header/properties.h ../header/../useful/useful_lib.h \
+ ../header/boundary.h ../header/hashtab.h ../header/node.h \
+ ../header/properties.h ../header/../useful/useful_lib.h \
  ../header/../gisapi/GisApi.h ../header/struct.h ../header/node.h \
  ../header/GMFG_hdfapi.h ../../config.h
 
@@ -340,8 +339,6 @@ xdfm_write.o: xdfm_write.C \
 
 /usr/include/bits/sys_errlist.h:
 
-/usr/include/bits/stdio.h:
-
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/basic_file.h:
 
 /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/x86_64-redhat-linux/bits/c++io.h:
@@ -503,8 +500,6 @@ xdfm_write.o: xdfm_write.C \
 /usr/include/bits/mathdef.h:
 
 /usr/include/bits/mathcalls.h:
-
-/usr/include/bits/mathinline.h:
 
 ../header/boundary.h:
 
