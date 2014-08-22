@@ -178,7 +178,8 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
   if (timeprops_ptr->iter%5==4||timeprops_ptr->iter==1){
     int tt=timeprops_ptr->iter;
       if (timeprops_ptr->iter==1) 
-        initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr,nump,myid);
+        //initialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr,nump,myid);
+        test_narrow_bound( El_Table);
         else
           reinitialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr,nump,myid);
 

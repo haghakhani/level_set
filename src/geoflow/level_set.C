@@ -44,7 +44,81 @@ struct Min_rank {
 //  double xpos;
 //  double ypos;
 //};
+void narrow_bound_layers(HashTable *ElemTable, Element* elem, int num_layer){
 
+  while(num_layer>0){
+   // cout<<"num lyer: "<<num_layer<<endl;
+    for(int ineigh=0;ineigh<8;ineigh++){
+     // cout<<"neighbor:  "<<ineigh<<endl;
+      if(*(elem->get_neigh_proc()+ineigh)>=0) //don't check outside map boundary or duplicate neighbor
+      {
+        Element* ElemNeigh=(Element*) ElemTable->lookup(elem->get_neighbors()+ineigh*KEYLENGTH);
+        assert(ElemNeigh);
+        *(elem->get_state_vars()+5)=(double) num_layer;
+       // cout<<"elem keys are:   "<<*(ElemNeigh->pass_key())<<"  and  "<<*(ElemNeigh->pass_key()+1)<<endl;
+        narrow_bound_layers(ElemTable, ElemNeigh,num_layer-1);
+      }
+    }
+    return;
+  }
+  return;
+}
+
+void narrow_bound_maker(HashTable *ElemTable, Element* elem, int num_layer){
+  //*(elem->get_state_vars()+5)=0.;//we use here the state_vars[5] as a flag
+  if (elem->if_phase_baundary(ElemTable)){
+    *(elem->get_state_vars()+5)=(double)num_layer;
+    narrow_bound_layers(ElemTable,elem , num_layer-1);
+  }
+  return;
+}
+
+
+void test_narrow_bound(HashTable* El_Table){
+  HashEntryPtr* buck = El_Table->getbucketptr();
+  HashEntryPtr currentPtr;
+  int num_lay=7, num=0;
+
+  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
+  {
+    currentPtr = *(buck+i);
+    while(currentPtr)
+    {
+      Element* Em_Temp=(Element*)(currentPtr->value);
+
+      if(Em_Temp->get_adapted_flag()>0 /* && num<1*/ ){
+        //Em_Temp->narrow_bound_maker(El_Table,7);
+        *(Em_Temp->get_state_vars()+5)=(double) 0.;
+        num++; 
+      }
+
+      currentPtr=currentPtr->next;
+    }
+  }
+
+  cout<<"number of elements are:  "<<num<<endl;
+  num=0;
+
+  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
+  {
+    currentPtr = *(buck+i);
+    while(currentPtr)
+    {
+      Element* Em_Temp=(Element*)(currentPtr->value);
+
+      if(Em_Temp->get_adapted_flag()>0 /* && num<1*/ ){
+        narrow_bound_maker(El_Table,Em_Temp,5);
+        cout<<"now performing:  "<<num++<<endl; 
+
+      }
+
+      currentPtr=currentPtr->next;
+    }
+  }
+
+
+  return;
+}
 void initialization(HashTable* NodeTable, HashTable* El_Table,
     double dt, MatProps* matprops_ptr,
     FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,
@@ -206,7 +280,8 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
       while(currentPtr) 
       {
         Em_Temp=(Element*)(currentPtr->value);
-        if(Em_Temp->get_adapted_flag()>0) {
+        if(Em_Temp->get_adapted_flag()>0 && dabs(*(Em_Temp->get_state_vars()+4)<.2)) 
+        {
           Em_Temp->calc_phi_slope(El_Table, NodeTable);
         }
         currentPtr=currentPtr->next; 
@@ -220,27 +295,9 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
       while(currentPtr) 
       {
         Em_Temp=(Element*)(currentPtr->value);
-        if(Em_Temp->get_adapted_flag()>0)
-          //	       (timeprops->iter==1 && Em_Temp->get_adapted_flag()>0 )|| dabs(*(Em_Temp->get_state_vars()+4))<=.2)
-          /*(timeprops->iter<100 &&*/ /*Em_Temp->get_adapted_flag()>0)*/ /*|| 
-                                                                           ((abs(Em_Temp->get_adapted_flag())==BUFFER)  ||
-                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,GEOFLOW_TINY     )>0)||
-                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD1)>0)||
-                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD2)>0)||
-                                                                           (Em_Temp->if_first_buffer_boundary(El_Table,REFINE_THRESHOLD) >0)||
-                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD)>0) ||
-                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD1)>0)||
-                                                                           (Em_Temp->if_next_buffer_boundary(El_Table,NodeTable,REFINE_THRESHOLD2)>0)||
-                                                                           (Em_Temp->if_pile_boundary(El_Table,GEOFLOW_TINY)>0)||
-                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD1)>0)||
-                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD2)>0)||
-                                                                           (Em_Temp->if_pile_boundary(El_Table,REFINE_THRESHOLD)>0) ))*/
+        if(Em_Temp->get_adapted_flag()>0 && dabs(*(Em_Temp->get_state_vars()+4)<.2))
         {
-
-          initialize_phi( El_Table,Em_Temp,&norm,time_inc,/*time_inc*/10*min,&elem);
-          //	*(Em_Temp->get_state_vars()+5)=5;
-
-          //		printf("norm =%f    \n", norm);
+          initialize_phi( El_Table,Em_Temp,&norm,time_inc,/*time_inc*/min,&elem);
         }
         currentPtr=currentPtr->next;      	    
       }
@@ -250,20 +307,14 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
 
     int tot_elem=0;
 
-    if (timeprops->iter>1 )  MPI_Allreduce(&elem,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-
-    else {
-      int nonzelem=num_nonzero_elem(El_Table);
-
-      MPI_Allreduce(&nonzelem,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-    }
+    MPI_Allreduce(&elem,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
     total_norm/=tot_elem;
 
 
     if(rank==0) printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", total_norm,time_inc,count,thresh,tot_min.min);
     count++;
-    if((timeprops->iter>1 && count > 10) || (timeprops->iter==1 && count > 1000) ) 
+    if(count > 10)  
       flagi=1;
 
     move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
@@ -274,18 +325,16 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
 }
 
 void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double dt,double min,int* elem){
+  double *state_vars=EmTemp->get_state_vars();
 
   double *phi_slope=EmTemp->get_phi_slope();
-  double *state_vars=EmTemp->get_state_vars();
   double *prev_state_vars=EmTemp->get_prev_state_vars();
-  //double *d_state_vars=EmTemp->get_d_state_vars();
   double delta_p,delta_m;
   double flux_phi,a_p,a_m,b_p,b_m,c_p,c_m,d_p,d_m; 
   Element  *rev_elem;
 
   prev_state_vars[0]=state_vars[0];
-
-  if (dabs(state_vars[0])<.5) *elem +=1;
+  *elem +=1;
 
   a_p=maxi( phi_slope[0] ,0.);
   a_m=mini( phi_slope[0] ,0.);
@@ -317,9 +366,11 @@ void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double d
   //  if (flag)
   *norm += dabs(state_vars[0]-prev_state_vars[0]);
   state_vars[5]=dabs(state_vars[0]-prev_state_vars[0]);
+  //}
+
   //  if ((state_vars[0]-prev_state_vars[0])>0) printf("this is the difference .........%e\n", (state_vars[0]-prev_state_vars[0]));
   return;
-}
+  }
 
 void record_of_phi(HashTable* NodeTable, HashTable* El_Table){
 

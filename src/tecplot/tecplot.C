@@ -880,7 +880,7 @@ void meshplotter(HashTable* El_Table, HashTable* NodeTable,
                       NodeTemp->get_elevation()*(matprops->LENGTH_SCALE), 
                       state_vars[1]*(matprops)->HEIGHT_SCALE,
                       state_vars[2]*momentum_scale, state_vars[3]*momentum_scale,
-                      state_vars[4]/**momentum_scale*/, state_vars[5]*momentum_scale,
+                      state_vars[4]/**momentum_scale*/, state_vars[5]/*momentum_scale*/,
                       Vel[0], Vel[1], Vel[2], Vel[3], state_vars[0],
                       *(EmTemp->get_drag()), *(EmTemp->get_drag()+1));
 
