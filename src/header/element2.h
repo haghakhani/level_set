@@ -315,6 +315,8 @@ class Element{
 
   void      calc_phi_slope(HashTable* , HashTable*);
 
+  double     calc_levelset_flux(double dx);
+
   //! this function returns the vector of x and y derivatives of state variables, all the x derivatives come first as a group followed by the y derivatives as a group
   double*   get_d_state_vars();
 
@@ -573,6 +575,8 @@ void narrow_bound_maker(HashTable *ElemTable, int num_layer);
       drag[i]=df[i]; 
   }
 
+  int* get_nbflag() {return &narrow_bound_flag;};
+
  private:
   //! myprocess is id of the process(or) that owns this element
   int myprocess;
@@ -743,6 +747,8 @@ void narrow_bound_maker(HashTable *ElemTable, int num_layer);
 
   //! Drag-force 
   double drag[DIMENSION];
+
+  int narrow_bound_flag;
 };
 
 inline int Element::get_ithelem() {return ithelem;};

@@ -170,7 +170,7 @@ inline double dabs(double dd) {
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* matprops_ptr, FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,int numproc,int myid);
 void reinitialization(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* matprops_ptr, FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,int numproc,int myid);
-void test_narrow_bound(HashTable* El_Table);
+void create_narrow_bound(HashTable* El_Table);
 
 
  

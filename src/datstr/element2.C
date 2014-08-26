@@ -184,6 +184,7 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH],
   kactxy[0]=kactxy[1]=0.;
   effect_kactxy[0]=effect_kactxy[0]=0.;
   effect_bedfrict=effect_tanbedfrict=0.;
+  narrow_bound_flag=0;
 }
 
 //used for refinement
@@ -1862,6 +1863,22 @@ void Element::calc_phi_slope(HashTable* El_Table, HashTable* NodeTable)
   }
 
   return;
+}
+
+double Element::calc_levelset_flux(double dx){
+
+  double sqr_phi_x=.5*(phi_slope[0]+phi_slope[1])*.5*(phi_slope[0]+phi_slope[1]);
+  double sqr_phi_y=.5*(phi_slope[2]+phi_slope[3])*.5*(phi_slope[2]+phi_slope[3]);
+
+  if (state_vars[0]==0)
+    state_vars[4]=0.;
+  else
+    state_vars[4]=state_vars[0]/(sqrt(state_vars[0]*state_vars[0]+(sqr_phi_x+sqr_phi_y)*dx*dx));
+
+   if (  isnan(state_vars[4]))
+     cout<<"state_vars[4]=  "<<state_vars[4]<<"  state_vars[0]= "<<state_vars[0]<<"  sqr_phi_x= "<<sqr_phi_x<<"  sqr_phi_y=  "<<sqr_phi_y<<endl;
+
+  return state_vars[4];
 }
 
 

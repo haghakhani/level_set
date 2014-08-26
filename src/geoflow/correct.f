@@ -71,13 +71,13 @@ c     -------------------------------Hossein------------------------------------
      2        -dtdy*(fluxyp(i)-fluxym(i))
  10   continue
 
-      if (dabs(ustore(1)).lt.0.2) then      
+c      if (dabs(ustore(1)).lt.0.2) then      
 
       ustore(1)=uprev(1)+dt*fluxsrc(1)
      $     -dtdx*(fluxxp(1)+fluxxm(5))
      $     -dtdy*(fluxyp(1)+fluxym(5))
 
-      endif
+c      endif
 
       
       ustore(2) = max(ustore(2),0.)

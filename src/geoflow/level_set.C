@@ -30,7 +30,7 @@ double signed_d_f(double p,double eps);
 double mini(double a,double b);
 double maxi(double a,double b);
 double absol (double a);
-void initialize_phi(HashTable* El_Table,Element *EmTemp, double* norm, double dt,double min,int* elem);
+void initialize_phi(HashTable* El_Table,Element *EmTemp, double* norm, double dt,double min);
 void record_of_phi(HashTable* NodeTable, HashTable* El_Table);
 int num_nonzero_elem(HashTable *El_Table);
 double minidxdy(double x,double y, int* falg);
@@ -47,15 +47,15 @@ struct Min_rank {
 void narrow_bound_layers(HashTable *ElemTable, Element* elem, int num_layer){
 
   while(num_layer>0){
-   // cout<<"num lyer: "<<num_layer<<endl;
+    // cout<<"num lyer: "<<num_layer<<endl;
     for(int ineigh=0;ineigh<8;ineigh++){
-     // cout<<"neighbor:  "<<ineigh<<endl;
+      // cout<<"neighbor:  "<<ineigh<<endl;
       if(*(elem->get_neigh_proc()+ineigh)>=0) //don't check outside map boundary or duplicate neighbor
       {
         Element* ElemNeigh=(Element*) ElemTable->lookup(elem->get_neighbors()+ineigh*KEYLENGTH);
         assert(ElemNeigh);
         *(elem->get_state_vars()+5)=(double) num_layer;
-       // cout<<"elem keys are:   "<<*(ElemNeigh->pass_key())<<"  and  "<<*(ElemNeigh->pass_key()+1)<<endl;
+        // cout<<"elem keys are:   "<<*(ElemNeigh->pass_key())<<"  and  "<<*(ElemNeigh->pass_key()+1)<<endl;
         narrow_bound_layers(ElemTable, ElemNeigh,num_layer-1);
       }
     }
@@ -64,7 +64,7 @@ void narrow_bound_layers(HashTable *ElemTable, Element* elem, int num_layer){
   return;
 }
 
-void narrow_bound_maker(HashTable *ElemTable, Element* elem, int num_layer){
+void narrow_bound_marker(HashTable *ElemTable, Element* elem, int num_layer){
   //*(elem->get_state_vars()+5)=0.;//we use here the state_vars[5] as a flag
   if (elem->if_phase_baundary(ElemTable)){
     *(elem->get_state_vars()+5)=(double)num_layer;
@@ -74,10 +74,10 @@ void narrow_bound_maker(HashTable *ElemTable, Element* elem, int num_layer){
 }
 
 
-void test_narrow_bound(HashTable* El_Table){
+void create_narrow_bound(HashTable* El_Table){
   HashEntryPtr* buck = El_Table->getbucketptr();
   HashEntryPtr currentPtr;
-  int num_lay=7, num=0;
+  int num_layer=4, num=0;
 
   for(int i=0; i<El_Table->get_no_of_buckets(); i++)
   {
@@ -87,8 +87,7 @@ void test_narrow_bound(HashTable* El_Table){
       Element* Em_Temp=(Element*)(currentPtr->value);
 
       if(Em_Temp->get_adapted_flag()>0 /* && num<1*/ ){
-        //Em_Temp->narrow_bound_maker(El_Table,7);
-        *(Em_Temp->get_state_vars()+5)=(double) 0.;
+        *(Em_Temp->get_state_vars()+5)= 0.;
         num++; 
       }
 
@@ -107,8 +106,9 @@ void test_narrow_bound(HashTable* El_Table){
       Element* Em_Temp=(Element*)(currentPtr->value);
 
       if(Em_Temp->get_adapted_flag()>0 /* && num<1*/ ){
-        narrow_bound_maker(El_Table,Em_Temp,5);
-        cout<<"now performing:  "<<num++<<endl; 
+        narrow_bound_marker(El_Table,Em_Temp,num_layer);
+        //if (Em_Temp->if_phase_baundary(El_Table)) cout << "I am working"<<endl;
+        //cout<<"now performing:  "<<num++<<endl; 
 
       }
 
@@ -198,26 +198,25 @@ void initialization(HashTable* NodeTable, HashTable* El_Table,
 
   return;
 }
+
 void reinitialization(HashTable* NodeTable, HashTable* El_Table,
     double dt, MatProps* matprops_ptr,
     FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,
     int nump, int rank)
 {
-  double norm;
-  int i,n,elem=0;
+  double norm,thresh;
+  int num;
   HashEntryPtr* buck = El_Table->getbucketptr();
   HashEntryPtr currentPtr;
   Element* Em_Temp;
-  double *dx,min,min_dx,max,max_delta,*phi_slope,thresh=.0001;
+  double *dx,min,min_dx;
 
-  //cout<<"attention xmin: "<<outline_ptr->xminmax[0]<<" xmax: "<<outline_ptr->xminmax[1]<<" ymin: "<<outline_ptr->yminmax[0]<<" ymax: "<<outline_ptr->yminmax[1]<<endl;
-  record_of_phi(NodeTable, El_Table);
-  move_data(nump, rank, El_Table, NodeTable,timeprops);
+  create_narrow_bound(El_Table);
 
   min=10000;  
   int flagxy=2,flagxymin=2;
 
-  for(i=0; i<El_Table->get_no_of_buckets(); i++) 
+  for(int i=0; i<El_Table->get_no_of_buckets(); i++) 
   {
     currentPtr = *(buck+i);
     while(currentPtr) 
@@ -252,52 +251,67 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
 
   //if (rank==0){
 
-  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
-  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
+    double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
+    double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
+  
+    if (flagxymin==0)
+      min/=xrange;
+    else if (flagxymin==1)
+      min/=yrange;
+    else{
+      printf("there is an error in levelset.C min computation\n");
+      return;
+    }
 
-  if (flagxymin==0)
-    min/=xrange;
-  else if (flagxymin==1)
-    min/=yrange;
-  else{
-    printf("there is an error in levelset.C min computation\n");
-    return;
-  }
+    cout << "xrang=  "<<xrange<<"   yrange=  "<<yrange<<endl;
   //}
   //MPI_Bcast(&min, 1, MPI_DOUBLE,0,MPI_COMM_WORLD );
   //MPI_Barrier(MPI_COMM_WORLD);
 
-  double time_inc=.5*min;
-  thresh=time_inc*min*min;
+  //double time_inc=.5*min;
+  thresh=min*min;
   int flagi=0;
   double total_norm=0.0;
   do{
     norm=0;
+    num=0;
+    double maxflux=0.;
 
-    for(i=0; i<El_Table->get_no_of_buckets(); i++) 
+    move_data(nump, rank, El_Table, NodeTable,timeprops);
+
+    for(int i=0; i<El_Table->get_no_of_buckets(); i++) 
     {
       currentPtr = *(buck+i);
       while(currentPtr) 
       {
         Em_Temp=(Element*)(currentPtr->value);
-        if(Em_Temp->get_adapted_flag()>0 && dabs(*(Em_Temp->get_state_vars()+4)<.2)) 
+        if(Em_Temp->get_adapted_flag()>0 && (*(Em_Temp->get_state_vars()+5)>0 && *(Em_Temp->get_state_vars()+5)<5 )) 
         {
           Em_Temp->calc_phi_slope(El_Table, NodeTable);
+          double temp=Em_Temp->calc_levelset_flux(min);
+          maxflux = absol(temp) > maxflux ? absol(temp) : maxflux;
         }
         currentPtr=currentPtr->next; 
       }
     }
-    move_data(nump, rank, El_Table, NodeTable,timeprops); 
 
-    for(i=0; i<El_Table->get_no_of_buckets(); i++) 
+    double time_inc=.5*min/maxflux;//*timeprops->TIME_SCALE);
+
+    for(int i=0; i<El_Table->get_no_of_buckets(); i++) 
     {
       currentPtr = *(buck+i);
       while(currentPtr) 
       {
         Em_Temp=(Element*)(currentPtr->value);
-        if(Em_Temp->get_adapted_flag()>0 && dabs(*(Em_Temp->get_state_vars()+4)<.2))
-        {
-          initialize_phi( El_Table,Em_Temp,&norm,time_inc,/*time_inc*/min,&elem);
+        if(Em_Temp->get_adapted_flag()>0){
+          if (*(Em_Temp->get_state_vars()+5)>0 && *(Em_Temp->get_state_vars()+5)<5  )
+          {
+            initialize_phi( El_Table,Em_Temp,&norm,time_inc,/*time_inc*/min);
+            num++;
+          }else if(*(Em_Temp->get_state_vars()+5)!=0.){
+            cout<<"something weired is going to happen    narrow flag=  "<<*(Em_Temp->get_state_vars()+5)<<endl;
+
+          }
         }
         currentPtr=currentPtr->next;      	    
       }
@@ -307,34 +321,32 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
 
     int tot_elem=0;
 
-    MPI_Allreduce(&elem,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&num,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
     total_norm/=tot_elem;
 
 
-    if(rank==0) printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", total_norm,time_inc,count,thresh,tot_min.min);
+    if(rank==0) printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e maxflux=%f \n", total_norm,time_inc,count,thresh,tot_min.min,maxflux);
     count++;
-    if(count > 10)  
+    if(count > 100)  
       flagi=1;
 
-    move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
+    //move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
 
   }while((total_norm>thresh) && flagi < 1 );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
 
   return;
 }
 
-void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double dt,double min,int* elem){
-  double *state_vars=EmTemp->get_state_vars();
+void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double dt,double min){
 
+  double *state_vars=EmTemp->get_state_vars();
   double *phi_slope=EmTemp->get_phi_slope();
   double *prev_state_vars=EmTemp->get_prev_state_vars();
-  double delta_p,delta_m;
   double flux_phi,a_p,a_m,b_p,b_m,c_p,c_m,d_p,d_m; 
-  Element  *rev_elem;
+  double *coord=EmTemp->get_coord();
 
   prev_state_vars[0]=state_vars[0];
-  *elem +=1;
 
   a_p=maxi( phi_slope[0] ,0.);
   a_m=mini( phi_slope[0] ,0.);
@@ -345,32 +357,25 @@ void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double d
   d_p=maxi( phi_slope[3] ,0.);
   d_m=mini( phi_slope[3] ,0.);
 
-  if (state_vars[4]>0)
-    flux_phi=sqrt(maxi(a_p*a_p , b_m*b_m) + maxi(c_p*c_p , d_m*d_m))-1;
+  if (state_vars[4]>0)//we use state vars[4] to store the flux that we need
+    flux_phi=state_vars[4]*(sqrt(maxi(a_p*a_p , b_m*b_m) + mini(c_p*c_p , d_m*d_m))-1.);
   else if (state_vars[4]<0)
-    flux_phi=sqrt(maxi(a_m*a_m , b_p*b_p) + maxi(c_m*c_m , d_p*d_p))-1;
+    flux_phi=state_vars[4]*(sqrt(maxi(a_m*a_m , b_p*b_p) + mini(c_m*c_m , d_p*d_p))-1.);
   else
     flux_phi=0;
 
-  state_vars[0]=prev_state_vars[0] - dt*signed_d_f(state_vars[4],min)*flux_phi;
+  state_vars[0]=prev_state_vars[0] - dt*flux_phi/min;
 
-
-  //  int flag=1;
-  //  for(int j=0;j<4;j++)
-  //    if(*(EmTemp->get_neigh_proc()+j) == INIT) {  // this is a boundary!
-  //     int rev_side=(j+2)%4;
-  //     rev_elem = (Element*)(El_Table->lookup(EmTemp->get_neighbors()+rev_side*KEYLENGTH));//      EmTemp->get_neighbors();
-  //     state_vars[0]=*(rev_elem->get_state_vars());//1;//prev_state_vars[0];
-  //      flag=0;
-  //    }
-  //  if (flag)
   *norm += dabs(state_vars[0]-prev_state_vars[0]);
-  state_vars[5]=dabs(state_vars[0]-prev_state_vars[0]);
-  //}
 
-  //  if ((state_vars[0]-prev_state_vars[0])>0) printf("this is the difference .........%e\n", (state_vars[0]-prev_state_vars[0]));
+  //if(isnan(*norm)) {
+  // cout<<"state_vars[0]=  "<<state_vars[0]<<"  prev_state_vars[0]= "<<prev_state_vars[0]<<"  dt= "<<dt<< "  flux_phi=  "<<flux_phi<<"   state_vars[4]=  "<<state_vars[4]<<endl; 
+  //exit(1);
+  //}
+  //state_vars[5]=dabs(state_vars[0]-prev_state_vars[0]);
+
   return;
-  }
+}
 
 void record_of_phi(HashTable* NodeTable, HashTable* El_Table){
 
@@ -392,10 +397,13 @@ void record_of_phi(HashTable* NodeTable, HashTable* El_Table){
   return;
 }
 double mini(double a,double b){
-  if (a<b)
-    return(a);
-  else
-    return(b);
+  return( a>b ? b:a);
+
+  
+//  if (a<b)
+//    return(a);
+//  else
+//    return(b);
 }
 
 double minidxdy(double x,double y, int* flag){
@@ -409,10 +417,11 @@ double minidxdy(double x,double y, int* flag){
 
 
 double maxi(double a,double b){
-  if (a>b)
-    return(a);
-  else
-    return(b);
+  return( a>b ? a:b);
+//  if (a>b)
+//    return(a);
+//  else
+//    return(b);
 }
 
 
@@ -421,13 +430,13 @@ double absol (double a){
   else  return (a);
 }
 
-double signed_d_f(double p,double eps){
+double signed_d_f(double p,double eps,double phi_x,double phi_y){
+
   return (p/sqrt(p*p+eps*eps));
   //return (.5*(tanh(p/(2*eps))+1));
   //return (tanh(p/(2*eps)));
 }
 
-//(*(EmTemp->get_dx()+0)<*(EmTemp->get_dx()+1))?*(EmTemp->get_dx()+0):*(EmTemp->get_dx()+1))
 int num_nonzero_elem(HashTable *El_Table){
   int               num=0,myid,i;
   HashEntryPtr      currentPtr;

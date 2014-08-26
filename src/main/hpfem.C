@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 
   StatProps statprops;
   MatProps matprops(material_count, matnames, 
-		    intfrictang, bedfrictang, porosity, mu, 
-		    rho, rhof, epsilon, gamma, frict_tiny,  1.0, 1.0, 1.0);
+      intfrictang, bedfrictang, porosity, mu, 
+      rho, rhof, epsilon, gamma, frict_tiny,  1.0, 1.0, 1.0);
   TimeProps timeprops;
   timeprops.starttime=time(NULL);
 
@@ -102,56 +102,56 @@ int main(int argc, char *argv[])
 
    order_flag == 1 means use first order method
    order_flag == 2 means use second order method
-  */
+   */
   int viz_flag = 0, order_flag, savefileflag=1; //savefileflag will be flipped so first savefile will end in 0
   int Init_Node_Num, Init_Elem_Num, srctype;
   double v_star; // v/v_slump
   double nz_star; /* temporary... used for negligible velocity as stopping 
-		     criteria paper... plan to include in v_star implicitly 
-		     later */
+                     criteria paper... plan to include in v_star implicitly 
+                     later */
 
   Read_data(myid, &matprops, &pileprops, &statprops, &timeprops, 
-	    &fluxprops, &adaptflag, &viz_flag, &order_flag,
-	    &mapnames, &discharge, &outline, &srctype );
+      &fluxprops, &adaptflag, &viz_flag, &order_flag,
+      &mapnames, &discharge, &outline, &srctype );
 
   if(!loadrun(myid, numprocs, &BT_Node_Ptr, &BT_Elem_Ptr, 
-	      &matprops,  &timeprops, &mapnames, 
-	      &adaptflag, &order_flag, &statprops, &discharge, &outline)) 
-    {
-      Read_grid(myid, numprocs, &BT_Node_Ptr, &BT_Elem_Ptr, 
-		&matprops, &outline);
+        &matprops,  &timeprops, &mapnames, 
+        &adaptflag, &order_flag, &statprops, &discharge, &outline)) 
+  {
+    Read_grid(myid, numprocs, &BT_Node_Ptr, &BT_Elem_Ptr, 
+        &matprops, &outline);
 
-      setup_geoflow(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops,&timeprops);
+    setup_geoflow(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops,&timeprops);
 
-      move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
+    move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
 
-      AssertMeshErrorFree(BT_Elem_Ptr,BT_Node_Ptr,numprocs,myid,-1.0);
+    AssertMeshErrorFree(BT_Elem_Ptr,BT_Node_Ptr,numprocs,myid,-1.0);
 
 
-      //initialize pile height and if appropriate perform initial adaptation
-      init_piles(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, adaptflag,
-		 &matprops, &timeprops, &mapnames, &pileprops, &fluxprops,
-		 &statprops);
-    }
+    //initialize pile height and if appropriate perform initial adaptation
+    init_piles(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, adaptflag,
+        &matprops, &timeprops, &mapnames, &pileprops, &fluxprops,
+        &statprops);
+  }
 
 
   if (myid==0)
-    {
-      for(int imat=1; imat<=matprops.material_count; imat++)
-	printf("bed friction angle for \"%s\" is %g\n",matprops.matnames[imat],
-	       matprops.bedfrict[imat]*180.0/PI);
+  {
+    for(int imat=1; imat<=matprops.material_count; imat++)
+      printf("bed friction angle for \"%s\" is %g\n",matprops.matnames[imat],
+          matprops.bedfrict[imat]*180.0/PI);
 
-      printf("internal friction angle is %g, epsilon is %g \n method order = %i\n",
-	     matprops.intfrict*180.0/PI, matprops.epsilon, order_flag );
-      printf("REFINE_LEVEL=%d\n",REFINE_LEVEL);
-    }
+    printf("internal friction angle is %g, epsilon is %g \n method order = %i\n",
+        matprops.intfrict*180.0/PI, matprops.epsilon, order_flag );
+    printf("REFINE_LEVEL=%d\n",REFINE_LEVEL);
+  }
 
   //printdate(BT_Elem_Ptr, BT_Node_Ptr,&matprops, &fluxprops,&timeprops);
 
 
   MPI_Barrier(MPI_COMM_WORLD);
   calc_stats(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, 
-	     &timeprops, &statprops, &discharge, 0.0);
+      &timeprops, &statprops, &discharge, 0.0);
   output_discharge(&matprops, &timeprops, &discharge, myid);
 
   move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 
   if(viz_flag&1)
     tecplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames, 
-	       statprops.vstar );
+        statprops.vstar );
 
   if(viz_flag&2)
     meshplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames, statprops.vstar);
@@ -234,30 +234,30 @@ int main(int argc, char *argv[])
   if(viz_flag&16){
     if(myid==0) grass_sites_header_output(&timeprops);
     grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, 
-			    &timeprops);}
+        &timeprops);}
 
-  /*
-    cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    /*
+       cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+       cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-    Time Stepping Loop
+       Time Stepping Loop
 
-    cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-    cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  */
-  long element_counter=0; // for performance count elements/timestep/proc 
-  int ifstop=0;
-  double max_momentum=100;  //nondimensional
+       cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+       cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+       */
+    long element_counter=0; // for performance count elements/timestep/proc 
+    int ifstop=0;
+    double max_momentum=100;  //nondimensional
 
-  /* ifend(0.5*statprops.vmean) is a hack, the original intent (when we were 
-     intending to use vstar as a stopping criteria) whas to have the 
-     calculation when vstar dropped back down below 1, instead we're 
-     using the ifend() function to stop the simulation when the volume 
-     averaged velocity falls back down below 2 meters... this hack is only
-     for the colima hazard map runs, otherwise pass ifend() a constant 
-     valued */
+    /* ifend(0.5*statprops.vmean) is a hack, the original intent (when we were 
+       intending to use vstar as a stopping criteria) whas to have the 
+       calculation when vstar dropped back down below 1, instead we're 
+       using the ifend() function to stop the simulation when the volume 
+       averaged velocity falls back down below 2 meters... this hack is only
+       for the colima hazard map runs, otherwise pass ifend() a constant 
+       valued */
 
-  while(!(timeprops.ifend(0)) && !ifstop)//(timeprops.ifend(0.5*statprops.vmean)) && !ifstop)
+    while(!(timeprops.ifend(0)) && !ifstop)//(timeprops.ifend(0.5*statprops.vmean)) && !ifstop)
     {
 
       /*  
@@ -268,82 +268,82 @@ int main(int argc, char *argv[])
       double UNREFINE_TARGET = .01;
       int h_count = 0;
       if (timeprops.iter < 50)
-	matprops.frict_tiny=0.1;
+        matprops.frict_tiny=0.1;
       else 
-	matprops.frict_tiny=0.000000001;
+        matprops.frict_tiny=0.000000001;
 
 
       //check for changes in topography and update if necessary
       //may want to put an "if(timeprops.iter %20==0)" (20 is arbitrary) here
       if(timeprops.iter==200){
-	update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, 
-		    &timeprops,&mapnames);
+        update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, 
+            &timeprops,&mapnames);
       }
 
       if((adaptflag!=0)&&(timeprops.iter%5==4))
-	{
-	  AssertMeshErrorFree(BT_Elem_Ptr,BT_Node_Ptr,numprocs,myid,-2.0);
+      {
+        AssertMeshErrorFree(BT_Elem_Ptr,BT_Node_Ptr,numprocs,myid,-2.0);
 
-	  H_adapt(BT_Elem_Ptr, BT_Node_Ptr, h_count, TARGET, &matprops, 
-		  &fluxprops, &timeprops, 5);
+        H_adapt(BT_Elem_Ptr, BT_Node_Ptr, h_count, TARGET, &matprops, 
+            &fluxprops, &timeprops, 5);
 
-	  move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
+        move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
 
-	  unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
+        unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
 
-	  MPI_Barrier(MPI_COMM_WORLD);//for debug
+        MPI_Barrier(MPI_COMM_WORLD);//for debug
 
-	  move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops); //this move_data() here for debug... to make AssertMeshErrorFree() Work
+        move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops); //this move_data() here for debug... to make AssertMeshErrorFree() Work
 
-	  if((numprocs>1)&&(timeprops.iter%10==9)) 
-	    {
+        if((numprocs>1)&&(timeprops.iter%10==9)) 
+        {
 
-	      repartition2(BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
+          repartition2(BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 
-	      move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops); //this move_data() here for debug... to make AssertMeshErrorFree() Work
-	    }
-	  move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
-	}
+          move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops); //this move_data() here for debug... to make AssertMeshErrorFree() Work
+        }
+        move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
+      }
 
       step(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, 
-	   &pileprops, &fluxprops, &statprops, &order_flag, &outline, 
-	   &discharge,adaptflag);
+          &pileprops, &fluxprops, &statprops, &order_flag, &outline, 
+          &discharge,adaptflag);
 
       /*
        * output results to file 
        */
-        if(timeprops.ifoutput()) {
-      //if (timeprops.iter%10==0){//(timeprops.iter<1000 && timeprops.iter%60==58)
-	//output_flag=1;
-	//else if ( timeprops.iter%200==198)
-	//output_flag=1;
-	//    if(output_flag) 
-	//	{
-	move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
+      if(timeprops.ifoutput()) {
+        //if (timeprops.iter%10==0){//(timeprops.iter<1000 && timeprops.iter%60==58)
+        //output_flag=1;
+        //else if ( timeprops.iter%200==198)
+        //output_flag=1;
+        //    if(output_flag) 
+        //	{
+        move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
 
-	output_discharge(&matprops, &timeprops, &discharge, myid);
-	//output_flag=0;
+        output_discharge(&matprops, &timeprops, &discharge, myid);
+        //output_flag=0;
 
-	if(myid==0){ 
-	  output_summary(&timeprops, &statprops, savefileflag);
-	}
+        if(myid==0){ 
+          output_summary(&timeprops, &statprops, savefileflag);
+        }
 
-	if(viz_flag&1)
-	  tecplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames,statprops.vstar);
+        if(viz_flag&1)
+          tecplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames,statprops.vstar);
 
-	if(viz_flag&2)
-	  meshplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames,statprops.vstar);
+        if(viz_flag&2)
+          meshplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames,statprops.vstar);
 
 #ifdef HAVE_HDF5
-	if(viz_flag&8)
-	  xdmerr=write_xdmf(BT_Elem_Ptr,BT_Node_Ptr,&timeprops,&matprops,&mapnames,XDMF_OLD);
+        if(viz_flag&8)
+          xdmerr=write_xdmf(BT_Elem_Ptr,BT_Node_Ptr,&timeprops,&matprops,&mapnames,XDMF_OLD);
 #endif
 
-	if(viz_flag&16){
-	  if(myid==0) grass_sites_header_output(&timeprops);
-	  grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, 
-				  &timeprops);
-	}
+        if(viz_flag&16){
+          if(myid==0) grass_sites_header_output(&timeprops);
+          grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, 
+              &timeprops);
+        }
       }
 
 #ifdef PERFTEST
@@ -351,110 +351,110 @@ int main(int argc, char *argv[])
       int e_buckets=BT_Elem_Ptr->get_no_of_buckets();
       HashEntry* entryp;
       for(i=0; i<e_buckets; i++)
-	{
-	  entryp = *(BT_Elem_Ptr->getbucketptr() + i);
-	  while(entryp)
-	    {	
-	      Element *  EmTemp = (Element*)entryp->value;
-	      assert(EmTemp);
-	      assert(EmTemp->get_counted()!=countedvalue);
+      {
+        entryp = *(BT_Elem_Ptr->getbucketptr() + i);
+        while(entryp)
+        {	
+          Element *  EmTemp = (Element*)entryp->value;
+          assert(EmTemp);
+          assert(EmTemp->get_counted()!=countedvalue);
 
-	      if((EmTemp->get_adapted_flag()>=NOTRECADAPTED)&&
-		 (EmTemp->get_adapted_flag()<=BUFFER)
-		 ) {
-		//if this element doesn't belong on this processor don't involve
-		element_counter++;
-		EmTemp->put_counted(countedvalue);
-	      }
-	      entryp = entryp->next;
-	    }
-	}
+          if((EmTemp->get_adapted_flag()>=NOTRECADAPTED)&&
+              (EmTemp->get_adapted_flag()<=BUFFER)
+            ) {
+            //if this element doesn't belong on this processor don't involve
+            element_counter++;
+            EmTemp->put_counted(countedvalue);
+          }
+          entryp = entryp->next;
+        }
+      }
 
       MPI_Barrier(MPI_COMM_WORLD);      
 #endif
-    }
+      }
 
-  MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
 
 
-  move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
-  MPI_Barrier(MPI_COMM_WORLD);
+      move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
+      MPI_Barrier(MPI_COMM_WORLD);
 
-  output_discharge(&matprops, &timeprops, &discharge, myid);
-  MPI_Barrier(MPI_COMM_WORLD);
+      output_discharge(&matprops, &timeprops, &discharge, myid);
+      MPI_Barrier(MPI_COMM_WORLD);
 
-  if(myid==0) output_summary(&timeprops, &statprops, savefileflag);
+      if(myid==0) output_summary(&timeprops, &statprops, savefileflag);
 
-  //printf("hpfem.C 1: xcen=%g\n",statprops.xcen);
+      //printf("hpfem.C 1: xcen=%g\n",statprops.xcen);
 
-  if(viz_flag&1)
-    tecplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames, 
-	       statprops.vstar);
-  //printf("hpfem.C 2: xcen=%g\n",statprops.xcen);
-  MPI_Barrier(MPI_COMM_WORLD);
+      if(viz_flag&1)
+        tecplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames, 
+            statprops.vstar);
+      //printf("hpfem.C 2: xcen=%g\n",statprops.xcen);
+      MPI_Barrier(MPI_COMM_WORLD);
 
-  if(viz_flag&2)
-    meshplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames,
-		statprops.vstar);
-  MPI_Barrier(MPI_COMM_WORLD);
+      if(viz_flag&2)
+        meshplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames,
+            statprops.vstar);
+      MPI_Barrier(MPI_COMM_WORLD);
 
 #ifdef HAVE_HDF5
-  if(viz_flag&8)
-    xdmerr=write_xdmf(BT_Elem_Ptr,BT_Node_Ptr,&timeprops,&matprops,&mapnames,XDMF_CLOSE);
-  MPI_Barrier(MPI_COMM_WORLD);
+      if(viz_flag&8)
+        xdmerr=write_xdmf(BT_Elem_Ptr,BT_Node_Ptr,&timeprops,&matprops,&mapnames,XDMF_CLOSE);
+      MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-  if(viz_flag&16){
-    if(myid==0) grass_sites_header_output(&timeprops);
-    grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, 
-			    &timeprops);}
-  MPI_Barrier(MPI_COMM_WORLD);
+      if(viz_flag&16){
+        if(myid==0) grass_sites_header_output(&timeprops);
+        grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, 
+            &timeprops);}
+        MPI_Barrier(MPI_COMM_WORLD);
 
-  // write out ending warning, maybe flow hasn't finished moving
-  sim_end_warning(BT_Elem_Ptr, &matprops, &timeprops, statprops.vstar);
-  MPI_Barrier(MPI_COMM_WORLD);
+        // write out ending warning, maybe flow hasn't finished moving
+        sim_end_warning(BT_Elem_Ptr, &matprops, &timeprops, statprops.vstar);
+        MPI_Barrier(MPI_COMM_WORLD);
 
-  //write out the final pile statistics (and run time)
-  if(myid==0) out_final_stats(&timeprops, &statprops);
+        //write out the final pile statistics (and run time)
+        if(myid==0) out_final_stats(&timeprops, &statprops);
 
-  MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 
-  //write out stochastic simulation statistics
-  //if(statprops.lhs.runid>=0)
-  if(myid==0) output_stoch_stats(&matprops, &statprops);
-  MPI_Barrier(MPI_COMM_WORLD);
+        //write out stochastic simulation statistics
+        //if(statprops.lhs.runid>=0)
+        if(myid==0) output_stoch_stats(&matprops, &statprops);
+        MPI_Barrier(MPI_COMM_WORLD);
 
-  //saverun(&BT_Node_Ptr, myid, numprocs, &BT_Elem_Ptr, &matprops, &timeprops, &mapnames, 
-  //      adaptflag, order_flag, &statprops, &discharge, &outline, &savefileflag); Was not possible because the saverun function doesn't write the information for laplacian, moreover element constructor requires some modifications
-  
-  MPI_Barrier(MPI_COMM_WORLD);
- 
+        //saverun(&BT_Node_Ptr, myid, numprocs, &BT_Elem_Ptr, &matprops, &timeprops, &mapnames, 
+        //      adaptflag, order_flag, &statprops, &discharge, &outline, &savefileflag); Was not possible because the saverun function doesn't write the information for laplacian, moreover element constructor requires some modifications
 
-  //output maximum flow depth a.k.a. flow outline
-  OutLine outline2;
-  double dxy[2];
-  dxy[0]=outline.dx;
-  dxy[1]=outline.dy;
-  outline2.init2(dxy,outline.xminmax,outline.yminmax);
-  int NxNyout=outline.Nx*outline.Ny;
-  MPI_Reduce(*(outline.pileheight),*(outline2.pileheight),NxNyout, 
-	     MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(myid==0) outline2.output(&matprops,&statprops);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+
+        //output maximum flow depth a.k.a. flow outline
+        OutLine outline2;
+        double dxy[2];
+        dxy[0]=outline.dx;
+        dxy[1]=outline.dy;
+        outline2.init2(dxy,outline.xminmax,outline.yminmax);
+        int NxNyout=outline.Nx*outline.Ny;
+        MPI_Reduce(*(outline.pileheight),*(outline2.pileheight),NxNyout, 
+            MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+        if(myid==0) outline2.output(&matprops,&statprops);
 
 #ifdef PERFTEST  
-  long  m = element_counter, ii;
+        long  m = element_counter, ii;
 
-  MPI_Allreduce ( &element_counter, &ii, 1, 
-		  MPI_LONG, MPI_SUM, MPI_COMM_WORLD );
+        MPI_Allreduce ( &element_counter, &ii, 1, 
+            MPI_LONG, MPI_SUM, MPI_COMM_WORLD );
 
-  end=MPI_Wtime();
-  char perffilename[256];
-  sprintf(perffilename,"perform%04d.%04d",numprocs,myid);
-  FILE *fpperf=fopen(perffilename,"w");
-  fprintf(fpperf,"%d Finished -- used %ld elements of %ld total in %e seconds, %e\n",myid,m,ii,end-start, ii/(end-start));
-  fclose(fpperf);
+        end=MPI_Wtime();
+        char perffilename[256];
+        sprintf(perffilename,"perform%04d.%04d",numprocs,myid);
+        FILE *fpperf=fopen(perffilename,"w");
+        fprintf(fpperf,"%d Finished -- used %ld elements of %ld total in %e seconds, %e\n",myid,m,ii,end-start, ii/(end-start));
+        fclose(fpperf);
 #endif
-  MPI_Finalize();  
-  return(0);  
+        MPI_Finalize();  
+        return(0);  
 
-}
+      }
