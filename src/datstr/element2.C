@@ -1923,7 +1923,7 @@ void Element::xdirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 
     Vel[1] = Vel[3] = 0.; // not really, but don't need it here
 
-    if (hfv[0][1]>GEOFLOW_TINY)
+    if (hfv[0][1]>=GEOFLOW_TINY)
       // Solid-phase velocity in x-dir
       Vel[0] = hfv[0][2]/hfv[0][1];
     else
@@ -2686,7 +2686,7 @@ void Element::eval_velocity(double xoffset, double yoffset, double Vel[])
   for (i=0; i<4; i++)
     Vel[i]=0;
 
-  if (temp_state_vars[0] > GEOFLOW_TINY)
+  if (temp_state_vars[1] > GEOFLOW_TINY)
   {
     Vel[0]=temp_state_vars[2]/temp_state_vars[1];
     Vel[1]=temp_state_vars[3]/temp_state_vars[1];
@@ -3359,7 +3359,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
   // }
 
   //  assert(state_vars[0]>=0.0);
-  if(state_vars[0]>=dabs(contour_height))
+  if(state_vars[1]>=contour_height)
   {
     for(ineigh=0;ineigh<8;ineigh++)
       if(neigh_proc[ineigh]>=0) //don't check outside map boundary or duplicate neighbor
@@ -3373,7 +3373,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
           fflush(stdout);
         }
         assert(ElemNeigh);
-        if(*(ElemNeigh->get_state_vars())<dabs(contour_height))
+        if(*(ElemNeigh->get_state_vars()+1)<contour_height)
           return(2); //inside of pileheight contour line
       }
   }
@@ -3391,7 +3391,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
           fflush(stdout);
         }
         assert(ElemNeigh);
-        if(*(ElemNeigh->get_state_vars())>=dabs(contour_height))
+        if(*(ElemNeigh->get_state_vars()+1)>=contour_height)
           return(1); //outside of pileheight contour line
       }
   } 
@@ -3504,7 +3504,7 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
       if(neigh_proc[ineigh]>=0){ //don't check outside map boundary or duplicate neighbor
         ElemNeigh=(Element*) ElemTable->lookup(neighbor[ineigh]);
         assert(ElemNeigh);
-        if((*(ElemNeigh->get_state_vars())>=dabs(contour_height))||
+        if((*(ElemNeigh->get_state_vars()+1)>=contour_height)||
             (*(ElemNeigh->get_influx()+1)>0.0))
         {
           iffirstbuffer=1;
@@ -3519,7 +3519,7 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
       {
         ElemNeigh=(Element*) ElemTable->lookup(neighbor[ineigh]);
         assert(ElemNeigh);
-        if((*(ElemNeigh->get_state_vars())<dabs(contour_height))&&
+        if((*(ElemNeigh->get_state_vars()+1)<contour_height)&&
             (*(ElemNeigh->get_influx()+1)==0.0))
         {
           iffirstbuffer=1;
@@ -3564,7 +3564,7 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable,
         }
 
         if((abs(ElemNeigh->get_adapted_flag())==BUFFER)&&
-            (state_vars[0]>=*(ElemNeigh->get_state_vars())))//for levelset >=
+            (state_vars[1]<=*(ElemNeigh->get_state_vars()+1)))//for levelset >=
         { //this element is next to a member of the old buffer layer
           ifnextbuffer=1; //which means this element is a member of the next outer boundary of the buffer layer
           break;

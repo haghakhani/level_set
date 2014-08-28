@@ -94,7 +94,7 @@ void correct(HashTable* NodeTable, HashTable* El_Table,
   double Vfluid[DIMENSION], Vsolid[DIMENSION];
   // double volf;
 
-  if ( state_vars[0] < 0 && state_vars[1]>0)
+  if ( state_vars[0] < 0 && state_vars[1]>tiny)
     {
       for (i=0; i<DIMENSION; i++)
 	kactxy[i]=*(EmTemp->get_effect_kactxy()+i);
@@ -123,7 +123,7 @@ void correct(HashTable* NodeTable, HashTable* El_Table,
   double V_avg[DIMENSION];
   V_avg[0] = Vsolid[0];//*volf + Vfluid[0]*(1.-volf);
   V_avg[1] = Vsolid[1];//*volf + Vfluid[1]*(1.-volf);
-  EmTemp->convect_dryline(V_avg,dt); //this is necessary
+  //EmTemp->convect_dryline(V_avg,dt); //this is necessary
 
   if (state_vars[0] < GEOFLOW_SHORT && state_vars[1]!=0)
     navslip_coef *= state_vars[1];
@@ -268,6 +268,6 @@ void correct(HashTable* NodeTable, HashTable* El_Table,
   if(EmTemp->get_stoppedflags()) 
     *eroded=0.0;
 
-  EmTemp->calc_shortspeed(1.0/dt);
+  //EmTemp->calc_shortspeed(1.0/dt);
   return;
 }

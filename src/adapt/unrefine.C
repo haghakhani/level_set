@@ -215,8 +215,8 @@ void unrefine(HashTable* El_Table, HashTable* NodeTable, double target,
     while(currentPtr) {
       Curr_El = (Element*) currentPtr->value;
       currentPtr=currentPtr->next;
-      if(Curr_El->get_adapted_flag()>TOBEDELETED)
-	Curr_El->calc_wet_dry_orient(El_Table);
+      if(Curr_El->get_adapted_flag()>TOBEDELETED){}
+	//Curr_El->calc_wet_dry_orient(El_Table);
     }
   }
 	

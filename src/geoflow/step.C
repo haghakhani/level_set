@@ -242,7 +242,8 @@ if(*(buck+i))
       double *coord=Curr_El->get_coord();	      
       //update the record of maximum pileheight in the area covered by this element
       double hheight=0; 
-      if (*(Curr_El->get_state_vars())<0 ) hheight=*(Curr_El->get_state_vars()+1);
+      //if (*(Curr_El->get_state_vars())<0 ) 
+	hheight=*(Curr_El->get_state_vars()+1);
       if(hheight>0 && hheight<0);
 
 
@@ -301,7 +302,8 @@ for(i=0; i<El_Table->get_no_of_buckets(); i++)
     Element* Curr_El=(Element*)(currentPtr->value);
     currentPtr=currentPtr->next;      	    
     if(Curr_El->get_adapted_flag()>0) //if this is a refined element don't involve!!!
-      Curr_El->calc_wet_dry_orient(El_Table);
+      //Curr_El->calc_wet_dry_orient(El_Table);
+    {}
   }
 }
 
