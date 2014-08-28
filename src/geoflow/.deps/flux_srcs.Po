@@ -97,13 +97,15 @@ flux_srcs.o: flux_srcs.C ../../config.h ../header/hpfem.h \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
  /usr/include/string.h /usr/include/assert.h \
- /usr/include/mpich2-x86_64/mpi.h /usr/include/mpich2-x86_64/mpio.h \
- /usr/include/mpich2-x86_64/mpi.h ../header/properties.h \
- ../header/../useful/useful_lib.h ../header/../gisapi/GisApi.h \
- ../header/node.h ../header/constant.h ../header/hashtab.h \
- ../header/struct.h ../header/element2.h ../header/boundary.h \
- ../header/recv.h ../header/extfun.h ../header/geoflow.h \
- ../header/scale.h ../header/FileFormat.h ../header/flux_srcs.h
+ /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h \
+ /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpio.h \
+ /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h \
+ ../header/properties.h ../header/../useful/useful_lib.h \
+ ../header/../gisapi/GisApi.h ../header/node.h ../header/constant.h \
+ ../header/hashtab.h ../header/struct.h ../header/element2.h \
+ ../header/boundary.h ../header/recv.h ../header/extfun.h \
+ ../header/geoflow.h ../header/scale.h ../header/FileFormat.h \
+ ../header/flux_srcs.h
 
 ../../config.h:
 
@@ -357,11 +359,11 @@ flux_srcs.o: flux_srcs.C ../../config.h ../header/hpfem.h \
 
 /usr/include/assert.h:
 
-/usr/include/mpich2-x86_64/mpi.h:
+/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h:
 
-/usr/include/mpich2-x86_64/mpio.h:
+/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpio.h:
 
-/usr/include/mpich2-x86_64/mpi.h:
+/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h:
 
 ../header/properties.h:
 
