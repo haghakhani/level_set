@@ -270,7 +270,7 @@ create_narrow_bound(El_Table);
   //MPI_Barrier(MPI_COMM_WORLD);
 
   double time_inc=.5*min;
-  thresh=time_inc*min*min;
+  thresh=min*min;
   int flagi=0;
   double total_norm=0.0;
   do{
@@ -339,7 +339,7 @@ create_narrow_bound(El_Table);
 
     if(rank==0) printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", total_norm,time_inc,count,thresh,tot_min.min);
     count++;
-    //if((timeprops->iter>1 && count > 100) || (timeprops->iter==1 && count > 1000) ) 
+    if((timeprops->iter>1 && count > 100) || (timeprops->iter==1 && count > 1000) ) 
     //  flagi=1;
 
     move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
