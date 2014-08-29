@@ -305,7 +305,7 @@ void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
       case NOTRECADAPTED:
 	//it's an active (non ghost) element
 	EmTemp->calc_d_gravity(HT_Elem_Ptr);
-	//EmTemp->calc_wet_dry_orient(HT_Elem_Ptr);
+	EmTemp->calc_wet_dry_orient(HT_Elem_Ptr);
 	break;
       case TOBEDELETED:
 	//deleting the refined father elements but not ghost element so don't need to call move_data() again
@@ -840,19 +840,23 @@ int adapted_flag =0 ,newson=0,refinelevel=0,pile_boundary=0,source_boundary=0;
 	EmTemp = (Element*)(entryp->value);
 	assert(EmTemp);
 	//-- this requirement is used to exclude the new elements
-	if(((EmTemp->get_adapted_flag()>0)&&
-	    (EmTemp->get_adapted_flag()<NEWSON))&&
-	   (EmTemp->get_gen()<REFINE_LEVEL)){
-	  if(((EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0)|| 
-	    //(EmTemp->if_pile_boundary(HT_Elem_Ptr,REFINE_THRESHOLD1)>0)|| 
-	    //(EmTemp->if_pile_boundary(HT_Elem_Ptr,REFINE_THRESHOLD2)>0)|| 
-	      (EmTemp->if_pile_boundary(HT_Elem_Ptr,REFINE_THRESHOLD )>0)|| 
-	      (EmTemp->if_source_boundary(HT_Elem_Ptr)>0))
-	     ){
+//if(EmTemp->get_adapted_flag()>0) adapted_flag++;
+//if(EmTemp->get_adapted_flag()<NEWSON) newson++;
+//if(EmTemp->get_gen()<REFINE_LEVEL) refinelevel++;
+//if(EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0) pile_boundary++;
+//if(EmTemp->if_source_boundary(HT_Elem_Ptr)>0) source_boundary++;
+ 
+if(((EmTemp->get_adapted_flag()>0)&&
+            (EmTemp->get_adapted_flag()<NEWSON))&&
+           (EmTemp->get_gen()<REFINE_LEVEL)
+          && ((EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0)||
+              (EmTemp->if_source_boundary(HT_Elem_Ptr)>0))
+             )	     
+{
 	    refinewrapper(HT_Elem_Ptr,HT_Node_Ptr,matprops_ptr,&RefinedList,EmTemp);
 	    debug_ref_flag++;
 	  }
-	}
+	
 	entryp=entryp->next;
       }
     }
@@ -915,13 +919,9 @@ int adapted_flag =0 ,newson=0,refinelevel=0,pile_boundary=0,source_boundary=0;
 	assert(EmTemp);
 	//-- this requirement is used to exclude the new elements
 	if(EmTemp->get_adapted_flag()>0)
-	  if(
-	     ((EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0)|| 
-	      //(EmTemp->if_pile_boundary(HT_Elem_Ptr,REFINE_THRESHOLD1)>0)|| 
-	      //(EmTemp->if_pile_boundary(HT_Elem_Ptr,REFINE_THRESHOLD2)>0)|| \
-	      (EmTemp->if_pile_boundary(HT_Elem_Ptr,REFINE_THRESHOLD )>0)|| 
+	  if  ((EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY)>0)|| 
 	      (EmTemp->if_source_boundary(HT_Elem_Ptr)>0))
-	     ){
+	     {
 	    EmTemp->put_adapted_flag(BUFFER);
 	    if(minboundarygen>EmTemp->get_gen()) minboundarygen=EmTemp->get_gen();
 	  }
@@ -1226,7 +1226,7 @@ int adapted_flag =0 ,newson=0,refinelevel=0,pile_boundary=0,source_boundary=0;
       case NOTRECADAPTED:
 	//it's an active (non ghost) element
 	EmTemp->calc_d_gravity(HT_Elem_Ptr);
-	//EmTemp->calc_wet_dry_orient(HT_Elem_Ptr);
+	EmTemp->calc_wet_dry_orient(HT_Elem_Ptr);
 
 #ifdef FORDEBUG
 	NdTemp=(Node*) HT_Node_Ptr->lookup(EmTemp->pass_key());
@@ -1449,8 +1449,8 @@ void  H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable,
       assert(EmTemp);
 
       if((EmTemp->get_adapted_flag()>TOBEDELETED)&&
-	 (EmTemp->get_adapted_flag()<=BUFFER)){}
-	//EmTemp->calc_wet_dry_orient(El_Table);
+	 (EmTemp->get_adapted_flag()<=BUFFER))
+	EmTemp->calc_wet_dry_orient(El_Table);
     }
   }
 

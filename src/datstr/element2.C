@@ -1923,7 +1923,7 @@ void Element::xdirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 
     Vel[1] = Vel[3] = 0.; // not really, but don't need it here
 
-    if (hfv[0][1]>=GEOFLOW_TINY)
+    if (hfv[0][1]>GEOFLOW_TINY)
       // Solid-phase velocity in x-dir
       Vel[0] = hfv[0][2]/hfv[0][1];
     else
@@ -2686,7 +2686,7 @@ void Element::eval_velocity(double xoffset, double yoffset, double Vel[])
   for (i=0; i<4; i++)
     Vel[i]=0;
 
-  if (temp_state_vars[1] > GEOFLOW_TINY)
+  if (temp_state_vars[0] > GEOFLOW_TINY)
   {
     Vel[0]=temp_state_vars[2]/temp_state_vars[1];
     Vel[1]=temp_state_vars[3]/temp_state_vars[1];
@@ -3498,7 +3498,7 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
 
   assert(state_vars[1]>=0.0);
   assert(Influx[1]>=0.0);
-  if((state_vars[1]>contour_height)&&
+  if((state_vars[1]<contour_height)&&
       (Influx[1]==0.0)){
     for(ineigh=0;ineigh<8;ineigh++)
       if(neigh_proc[ineigh]>=0){ //don't check outside map boundary or duplicate neighbor
