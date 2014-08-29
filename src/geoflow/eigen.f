@@ -27,13 +27,13 @@ C***********************************************************************
       double precision eps
       double precision sound_speed
 
-      if (Uvec(1) .lt.0.d0 ) then
+      if (Uvec(2) .gt.tiny ) then
 c     iverson and denlinger
          if(kactxy(1) .lt. 0.d0) then
             kactxy(1) = -kactxy(1)
          endif
 
-         if (Uvec(2).gt.0.0001) then
+         if (Uvec(2).gt.tiny) then
            sound_speed = dsqrt(Uvec(2)*kactxy(1)*gravity(3))
 !        x-direction
            eigenvxmax=dabs(v_solid(1)+sound_speed)

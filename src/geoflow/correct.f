@@ -54,13 +54,13 @@ C***********************************************************************
       parameter(threshold=1.0D-02,erosion_rate=0.1)
 
 c     initialize to zero
-      forceintx=0.0
-      forcebedx=0.0
-      forceinty=0.0
-      forcebedy=0.0
-      unitvx=0.0
-      unitvy=0.0
-      eroded=0.0
+      forceintx=0.d0
+      forcebedx=0.d0
+      forceinty=0.d0
+      forcebedy=0.d0
+      unitvx=0.d0
+      unitvy=0.d0
+      eroded=0.d0
 
       slope=dsqrt(xslope*xslope+yslope*yslope)
 c     -------------------------------Hossein-------------------------------------
@@ -80,28 +80,28 @@ c      if (dabs(ustore(1)).lt.0.2) then
 c      endif
 
       
-      ustore(2) = max(ustore(2),0.)
+      ustore(2) = max(ustore(2),0.d0)
 c      ustore(1) = max(ustore(1),0.)
       ustore(5) = uvec(5)
       ustore(6) = 1.d0 
 
-      if(uvec(1).lt.0.d0) then
+      if(uvec(2).gt.tiny) then
 c     Source terms ...
 c     here speed is speed squared
          speed=v_solid(1)**2+v_solid(2)**2
-         if(speed.gt.0.0) then
+         if(speed.gt.0.d0) then
 c     here speed is speed
             speed=dsqrt(speed)
             unitvx=v_solid(1)/speed
             unitvy=v_solid(2)/speed
          else
-            unitvx=0.0
-            unitvy=0.0
+            unitvx=0.d0
+            unitvy=0.d0
          endif
          tanbed=dtan(bedfrictang)
 c     +++++++++++++++++++++++= Very important, please be careful +++++++++++++++++++
 
-         h_inv = 1.0/uvec(2)
+         h_inv = 1.d0/uvec(2)
 c++++++++++++++++++++++++++++++++++++++++++++++++++++++++====
          alphaxx = kactxy
          alphayy = kactxy
@@ -117,7 +117,7 @@ c     alphaxy -- see pitman-le (2005)
          t2=alphaxy*uvec(2)*(g(3)*dUdy(2)
      $        +dgdx(2)*uvec(2))
          t3=unitvx*
-     $        dmax1(g(3)*uvec(2)+v_solid(1)*uvec(3)*curv(1),0.0d0)
+     $        dmax1(g(3)*uvec(2)+v_solid(1)*uvec(3)*curv(1),0.d0)
      $        *tanbed
 
          t4 = uvec(2)*g(1)
@@ -137,7 +137,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      $        +dgdx(1)*uvec(2))
 c     ------------------------------------------------  the internal friction force ------------------------------------
          t3=unitvy*
-     $        dmax1(g(3)*uvec(2)+v_solid(2)*uvec(4)*curv(2),0.0d0)
+     $        dmax1(g(3)*uvec(2)+v_solid(2)*uvec(4)*curv(2),0.d0)
      $        *tanbed
 
 c-------------------------------the bed friction force for fast moving flow---------------------------------------
