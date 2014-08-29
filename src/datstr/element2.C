@@ -3358,7 +3358,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height){
   //   printf("\n");
   // }
 
-  //  assert(state_vars[0]>=0.0);
+  assert(state_vars[1]>=0.0);
   if(state_vars[1]>=contour_height)
   {
     for(ineigh=0;ineigh<8;ineigh++)
@@ -3496,9 +3496,9 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
   // }
 
 
-  //assert(state_vars[0]>=0.0);
+  assert(state_vars[1]>=0.0);
   assert(Influx[1]>=0.0);
-  if((state_vars[0]<dabs(contour_height))&&
+  if((state_vars[1]>contour_height)&&
       (Influx[1]==0.0)){
     for(ineigh=0;ineigh<8;ineigh++)
       if(neigh_proc[ineigh]>=0){ //don't check outside map boundary or duplicate neighbor

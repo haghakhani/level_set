@@ -45,13 +45,13 @@ extern void test_h_refine(HashTable* HT_Elem_Ptr, int myid, int h_count);
 
 extern void all_check(HashTable* eltab, HashTable* ndtab, int myid, int m, double TARGET);
 
-//#define REFINE_THRESHOLD1  5*GEOFLOW_TINY
-//#define REFINE_THRESHOLD2 15*GEOFLOW_TINY
-//#define REFINE_THRESHOLD  40*GEOFLOW_TINY
+#define REFINE_THRESHOLD1  5*GEOFLOW_TINY
+#define REFINE_THRESHOLD2 15*GEOFLOW_TINY
+#define REFINE_THRESHOLD  40*GEOFLOW_TINY
 
-#define REFINE_THRESHOLD1  .2*GEOFLOW_TINY
-#define REFINE_THRESHOLD2 .05*GEOFLOW_TINY
-#define REFINE_THRESHOLD  .025*GEOFLOW_TINY
+//#define REFINE_THRESHOLD1  .2*GEOFLOW_TINY
+//#define REFINE_THRESHOLD2 .05*GEOFLOW_TINY
+//#define REFINE_THRESHOLD  .025*GEOFLOW_TINY
 
 void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, 
 	      double target, MatProps* matprops_ptr, FluxProps *fluxprops, //doesn't need fluxprops

@@ -117,7 +117,7 @@ c     alphaxy -- see pitman-le (2005)
          t2=alphaxy*uvec(2)*(g(3)*dUdy(2)
      $        +dgdx(2)*uvec(2))
          t3=unitvx*
-     $        dmax1(g(3)*uvec(2)+v_solid(1)*uvec(3)*curv(1),0.0d0)
+     $        dmax1(g(3)*uvec(2)+v_solid(1)*uvec(3)*curv(1),0.d0)
      $        *tanbed
 
          t4 = uvec(2)*g(1)
@@ -137,7 +137,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      $        +dgdx(1)*uvec(2))
 c     ------------------------------------------------  the internal friction force ------------------------------------
          t3=unitvy*
-     $        dmax1(g(3)*uvec(2)+v_solid(2)*uvec(4)*curv(2),0.0d0)
+     $        dmax1(g(3)*uvec(2)+v_solid(2)*uvec(4)*curv(2),0.d0)
      $        *tanbed
 
 c-------------------------------the bed friction force for fast moving flow---------------------------------------

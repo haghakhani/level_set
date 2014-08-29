@@ -737,7 +737,7 @@ int SequentialSend(int numprocs, int myid,
 	//this is an active element
 
 	//weight the active elements for repartitioning
-	if(*(EmTemp->get_state_vars())>GEOFLOW_TINY)
+	if(*(EmTemp->get_state_vars()+1)>GEOFLOW_TINY)
 	  //this has pile
 	  EmTemp->put_lb_weight(NON_EMPTY_CELL);
 	else if(EmTemp->get_adapted_flag()==BUFFER)
