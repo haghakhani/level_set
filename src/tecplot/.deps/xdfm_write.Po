@@ -125,10 +125,8 @@ xdfm_write.o: xdfm_write.C \
  /usr/include/H5FDmpi.h /usr/include/H5FDmpio.h \
  /usr/include/H5FDmpiposix.h /usr/include/H5FDmulti.h \
  /usr/include/H5FDsec2.h /usr/include/H5FDstdio.h \
- /usr/include/H5FDdirect.h \
- /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h \
- /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpio.h \
- /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h \
+ /usr/include/H5FDdirect.h /usr/include/mpich2-x86_64/mpi.h \
+ /usr/include/mpich2-x86_64/mpio.h /usr/include/mpich2-x86_64/mpi.h \
  ../header/hashtab.h ../header/constant.h ../header/element2.h \
  /usr/include/math.h /usr/include/bits/huge_val.h \
  /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
@@ -475,11 +473,11 @@ xdfm_write.o: xdfm_write.C \
 
 /usr/include/H5FDdirect.h:
 
-/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h:
+/usr/include/mpich2-x86_64/mpi.h:
 
-/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpio.h:
+/usr/include/mpich2-x86_64/mpio.h:
 
-/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h:
+/usr/include/mpich2-x86_64/mpi.h:
 
 ../header/hashtab.h:
 

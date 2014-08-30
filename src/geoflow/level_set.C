@@ -211,7 +211,7 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table,
   HashEntryPtr currentPtr;
   Element* Em_Temp;
   double *dx,min,min_dx,max,max_delta,*phi_slope,thresh=.0001;
-create_narrow_bound(El_Table);
+  create_narrow_bound(El_Table);
   //cout<<"attention xmin: "<<outline_ptr->xminmax[0]<<" xmax: "<<outline_ptr->xminmax[1]<<" ymin: "<<outline_ptr->yminmax[0]<<" ymax: "<<outline_ptr->yminmax[1]<<endl;
   record_of_phi(NodeTable, El_Table);
   move_data(nump, rank, El_Table, NodeTable,timeprops);
@@ -340,9 +340,9 @@ create_narrow_bound(El_Table);
     if(rank==0) printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", total_norm,time_inc,count,thresh,tot_min.min);
     count++;
     if((timeprops->iter>1 && count > 100) || (timeprops->iter==1 && count > 1000) ) 
-    //  flagi=1;
+      //  flagi=1;
 
-    move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
+      move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
 
   }while((total_norm>thresh) && flagi < 1 );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
 

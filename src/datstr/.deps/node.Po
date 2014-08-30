@@ -98,10 +98,8 @@ node.o: node.C ../../config.h ../header/node.h ../header/properties.h \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/bits/fstream.tcc \
  /usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../include/c++/4.4.7/iostream \
  ../header/struct.h ../gisapi/GisApi.h ../header/properties.h \
- /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h \
- /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpio.h \
- /dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h \
- /usr/include/assert.h
+ /usr/include/mpich2-x86_64/mpi.h /usr/include/mpich2-x86_64/mpio.h \
+ /usr/include/mpich2-x86_64/mpi.h /usr/include/assert.h
 
 ../../config.h:
 
@@ -365,10 +363,10 @@ node.o: node.C ../../config.h ../header/node.h ../header/properties.h \
 
 ../header/properties.h:
 
-/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h:
+/usr/include/mpich2-x86_64/mpi.h:
 
-/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpio.h:
+/usr/include/mpich2-x86_64/mpio.h:
 
-/dinesh1/data/users/haghakha/slepc-3.4/petsc-3.4.4/regular/include/mpi.h:
+/usr/include/mpich2-x86_64/mpi.h:
 
 /usr/include/assert.h:
