@@ -489,7 +489,7 @@ class Element{
   //! this function calculates the extrusion (out of the ground) fluxes for this elements
   void calc_flux(HashTable *NodeTable,FluxProps *fluxprops, 
 		 TimeProps *timeprops);
-int if_phase_baundary(HashTable *ElemTable);
+int if_phase_boundary(HashTable *ElemTable);
 
 void narrow_bound_layers(HashTable *ElemTable, int num_layer);
 
