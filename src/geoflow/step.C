@@ -184,7 +184,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
     else
       reinitialization(NodeTable, El_Table,dt, matprops_ptr,fluxprops, timeprops_ptr, outline_ptr,nump,myid);
 
-    if (timeprops_ptr->iter%300==4 || timeprops_ptr->iter==1) meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
+    //if (timeprops_ptr->iter%300==4 || timeprops_ptr->iter==1) meshplotter(El_Table, NodeTable,matprops_ptr,timeprops_ptr,&mapnames,ce);
     //timeprops_ptr->iter++;
     //}
     //timeprops_ptr->iter=tt;

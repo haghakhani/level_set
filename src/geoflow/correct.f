@@ -71,7 +71,7 @@ c     -------------------------------Hossein------------------------------------
      2        -dtdy*(fluxyp(i)-fluxym(i))
  10   continue
 
-c      if (dabs(ustore(1)).lt.0.2) then      
+c      if ((ustore(6).lt.6.d0).and.(ustore(6).gt.0d0)) then      
 
       ustore(1)=uprev(1)+dt*fluxsrc(1)
      $     -dtdx*(fluxxp(1)+fluxxm(5))
