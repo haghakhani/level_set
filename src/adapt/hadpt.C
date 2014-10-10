@@ -850,7 +850,8 @@ void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
                 (EmTemp->get_adapted_flag()<NEWSON))&&
               (EmTemp->get_gen()<REFINE_LEVEL)
               && ((EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0)||
-                (EmTemp->if_source_boundary(HT_Elem_Ptr)>0))
+                (EmTemp->if_source_boundary(HT_Elem_Ptr)>0)||
+                (EmTemp->if_phase_boundary(HT_Elem_Ptr)>0))
             )	     
           {
             refinewrapper(HT_Elem_Ptr,HT_Node_Ptr,matprops_ptr,&RefinedList,EmTemp);
@@ -920,7 +921,8 @@ void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
           //-- this requirement is used to exclude the new elements
           if(EmTemp->get_adapted_flag()>0)
             if  ((EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY)>0)|| 
-                (EmTemp->if_source_boundary(HT_Elem_Ptr)>0))
+                (EmTemp->if_source_boundary(HT_Elem_Ptr)>0)||
+                (EmTemp->if_phase_boundary(HT_Elem_Ptr)>0))
             {
               EmTemp->put_adapted_flag(BUFFER);
               if(minboundarygen>EmTemp->get_gen()) minboundarygen=EmTemp->get_gen();
@@ -1095,7 +1097,6 @@ void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
               (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD )>0)
             )
             EmTemp->put_adapted_flag(BUFFER);
-            debug_ref_flag++
           entryp=entryp->next;
         }
       }

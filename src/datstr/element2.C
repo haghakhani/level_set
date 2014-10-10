@@ -3308,7 +3308,7 @@ void Element::calc_stop_crit(MatProps *matprops_ptr)
   return;
 }
 
-int Element::if_phase_baundary(HashTable *ElemTable){
+int Element::if_phase_boundary(HashTable *ElemTable){
   Element* ElemNeigh;
 
   if(state_vars[0]>=0.)

@@ -67,7 +67,7 @@ void narrow_bound_layers(HashTable *ElemTable, Element* elem, int num_layer){
 
 void narrow_bound_marker(HashTable *ElemTable, Element* elem, int num_layer){
   //*(elem->get_state_vars()+5)=0.;//we use here the state_vars[5] as a flag
-  if (elem->if_phase_baundary(ElemTable)){
+  if (elem->if_phase_boundary(ElemTable)){
     *(elem->get_state_vars()+5)=(double)num_layer;
     narrow_bound_layers(ElemTable,elem , num_layer-1);
   }
