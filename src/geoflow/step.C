@@ -243,9 +243,7 @@ if(*(buck+i))
       //update the record of maximum pileheight in the area covered by this element
       double hheight=0; 
       //if (*(Curr_El->get_state_vars())<0 ) 
-	hheight=*(Curr_El->get_state_vars()+1);
-      if(hheight>0 && hheight<0);
-
+	hheight=*(Curr_El->get_state_vars());
 
 #ifdef MAX_DEPTH_MAP
       double pfheight[6];

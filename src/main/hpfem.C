@@ -256,6 +256,14 @@ int main(int argc, char *argv[])
        averaged velocity falls back down below 2 meters... this hack is only
        for the colima hazard map runs, otherwise pass ifend() a constant 
        valued */
+      //output maximum flow depth a.k.a. flow outline
+        OutLine outline2;
+        double dxy[2];
+        dxy[0]=outline.dx;
+        dxy[1]=outline.dy;
+        outline2.init2(dxy,outline.xminmax,outline.yminmax);
+        int NxNyout=outline.Nx*outline.Ny;
+
 
     while(!(timeprops.ifend(0)) && !ifstop)//(timeprops.ifend(0.5*statprops.vmean)) && !ifstop)
     {
@@ -272,8 +280,7 @@ int main(int argc, char *argv[])
       else 
         matprops.frict_tiny=0.000000001;
 
-
-      //check for changes in topography and update if necessary
+        //check for changes in topography and update if necessary
       //may want to put an "if(timeprops.iter %20==0)" (20 is arbitrary) here
       if(timeprops.iter==200){
         update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, 
@@ -323,6 +330,11 @@ int main(int argc, char *argv[])
 
         output_discharge(&matprops, &timeprops, &discharge, myid);
         //output_flag=0;
+         MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Reduce(*(outline.pileheight),*(outline2.pileheight),NxNyout, 
+            MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+        if(myid==0) outline2.output(&matprops,&statprops,&timeprops);
+
 
         if(myid==0){ 
           output_summary(&timeprops, &statprops, savefileflag);
@@ -431,16 +443,10 @@ int main(int argc, char *argv[])
 
 
         //output maximum flow depth a.k.a. flow outline
-        OutLine outline2;
-        double dxy[2];
-        dxy[0]=outline.dx;
-        dxy[1]=outline.dy;
-        outline2.init2(dxy,outline.xminmax,outline.yminmax);
-        int NxNyout=outline.Nx*outline.Ny;
         MPI_Reduce(*(outline.pileheight),*(outline2.pileheight),NxNyout, 
-            MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-        if(myid==0) outline2.output(&matprops,&statprops);
-
+            MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
+        if(myid==0) outline2.output(&matprops,&statprops,&timeprops);
+ MPI_Barrier(MPI_COMM_WORLD);
 #ifdef PERFTEST  
         long  m = element_counter, ii;
 
