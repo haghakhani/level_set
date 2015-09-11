@@ -2856,6 +2856,11 @@ void Element::calc_lap_phi(HashTable* El_Table, HashTable* NodeTable) {
 }
 
 void Element::calc_d_gravity(HashTable* El_Table) {
+
+	int aa = 1, bb = 0;
+		if (key[0] == 2155926449 && key[1]  == 991146299 )//&& timeprops->iter == 123)
+			bb = aa;
+
   int xp, xm, yp, ym; //x plus, x minus, y plus, y minus
   xp = positive_x_side;
   switch(positive_x_side) {

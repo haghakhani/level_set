@@ -132,6 +132,8 @@ int main(int argc, char *argv[])
     init_piles(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, adaptflag,
         &matprops, &timeprops, &mapnames, &pileprops, &fluxprops,
         &statprops);
+
+    setup_geoflow(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops,&timeprops);
   }
 
 
@@ -155,64 +157,6 @@ int main(int argc, char *argv[])
   output_discharge(&matprops, &timeprops, &discharge, myid);
 
   move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr,&timeprops);
-  // int jiter;
-  // for( jiter=0; jiter <3; jiter++){
-
-  //   LaplacianData  Laplacian (BT_Elem_Ptr, BT_Node_Ptr ,1 ,.001);
-
-  //   implicit_solver(&Laplacian);
-  // }
-
-  // HashEntryPtr      *buck = BT_Elem_Ptr->getbucketptr();
-
-  // for(jiter=0; jiter<BT_Elem_Ptr->get_no_of_buckets(); jiter++){
-  //   if(*(buck+jiter))
-  //     {
-  // 	HashEntryPtr currentPtr = *(buck+jiter);
-  // 	while(currentPtr)
-  // 	  {
-  // 	    Element* Curr_El=(Element*)(currentPtr->value);
-  // 	    if(Curr_El->get_adapted_flag()>0)//||(timeprops_ptr->iter%5==2)))
-  // 	      { //if this is a refined element don't involve!!!
-  // 		double phi = *(Curr_El->get_state_vars()+4);
-  // 		if(phi>1) phi=1;
-  // 		if(phi<0) phi=0;
-  // 		Curr_El->update_phase2(phi);
-  // 		Curr_El->update_phase1(phi);
-
-  // 	      }
-  // 	    currentPtr=currentPtr->next;
-  // 	  }
-  //     }
-  // }
-  //=============================================================================================================
-
-  // int num_buck=BT_Elem_Ptr->get_no_of_buckets();
-  // HashEntryPtr* buck = BT_Elem_Ptr->getbucketptr();
-  // int num_nonzero_elem=0, *all_num_nonzero_elem;
-  // for(i=0; i<num_buck; i++)
-  //   if(*(buck+i)){
-
-  //     HashEntryPtr currentPtr = *(buck+i);
-  //     while(currentPtr){
-
-  // 	Element* Curr_El=(Element*)(currentPtr->value);
-  // 	if((Curr_El->get_adapted_flag()>0)&&
-  // 	   (myid==Curr_El->get_myprocess()))
-  // 	  if(*(Curr_El->pass_key())==3842346279 && *(Curr_El->pass_key()+1)==2368179492)
-  // 	    {
-  // 	      int xp=Curr_El->get_positive_x_side();
-  // 	      int yp=(xp+1)%4, xm=(xp+2)%4, ym=(xp+3)%4;
-  // 	      Node* nym = (Node*) BT_Node_Ptr->lookup(Curr_El->getNode()+(ym+4)*2);
-  // 	      assert(nym->flux[1]);
-  // 	    }
-
-  // 	currentPtr=currentPtr->next;
-  //     }
-  //   }
-
-  //=====================================================================================================
-
 
   if(myid==0) output_summary(&timeprops, &statprops, savefileflag);
 
@@ -223,8 +167,6 @@ int main(int argc, char *argv[])
   if(viz_flag&2)
     meshplotter(BT_Elem_Ptr, BT_Node_Ptr, &matprops, &timeprops, &mapnames, statprops.vstar);
 
-
-  //printdate(BT_Elem_Ptr, BT_Node_Ptr,&matprops, &fluxprops,&timeprops);
 
 #ifdef HAVE_HDF5
   if(viz_flag&8) 

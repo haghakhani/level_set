@@ -589,6 +589,11 @@ int get_ur_tri(HashTable* El_Table, HashTable* NodeTable,
 //for use when writing ascii tecplot files
 int print_bubble_node(FILE *fp, HashTable* NodeTable, MatProps* matprops,
 		      Element *EmTemp){
+
+	int aa = 1, bb = 0;
+	if (*(EmTemp->pass_key()) == 2155926449 && *(EmTemp->pass_key() + 1) == 991146299 )//&& timeprops->iter == 123)
+		bb = aa;
+
   int num_missing_bubble_node;
   double velocity_scale, momentum_scale, elevation;
 

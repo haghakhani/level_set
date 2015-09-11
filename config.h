@@ -111,6 +111,9 @@
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "titan"
 
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "2.0.2"
 
@@ -119,6 +122,11 @@
 
 /* Version number of package */
 #define VERSION "2.0.2"
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */

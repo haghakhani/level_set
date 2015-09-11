@@ -18,77 +18,71 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
- 
+
 #include "../header/hpfem.h"
 
+void setup_geoflow(HashTable* El_Table, HashTable* NodeTable, int myid, int nump,
+		MatProps* matprops_ptr, TimeProps *timeprops_ptr) {
 
-void setup_geoflow(HashTable* El_Table, HashTable* NodeTable, int myid, 
-		   int nump,MatProps* matprops_ptr,TimeProps *timeprops_ptr) 
-{
+	int i;
+	int num_buckets = El_Table->get_no_of_buckets();
+	int num_node_buckets = NodeTable->get_no_of_buckets();
+	/* zero out the fluxes for all of the nodes */
+	HashEntryPtr* buck = NodeTable->getbucketptr();
+	for (i = 0; i < num_node_buckets; i++)
+		if (*(buck + i)) {
+			HashEntryPtr currentPtr = *(buck + i);
+			while (currentPtr) {
+				Node* Curr_Node = (Node*) (currentPtr->value);
+				Curr_Node->zero_flux();
 
-  int i;
-  int num_buckets = El_Table->get_no_of_buckets();
-  int num_node_buckets = NodeTable->get_no_of_buckets();
-  /* zero out the fluxes for all of the nodes */
-  HashEntryPtr* buck = NodeTable->getbucketptr();
-  for(i=0; i<num_node_buckets; i++)
-    if(*(buck+i))
-      {
-	HashEntryPtr currentPtr = *(buck+i);
-	while(currentPtr)
-	  {
-	    Node* Curr_Node=(Node*)(currentPtr->value);
-	    Curr_Node->zero_flux();
-	      
-	    currentPtr=currentPtr->next;      	    
-	  }
-      }
+				currentPtr = currentPtr->next;
+			}
+		}
 
-  
-  /* put the coord for the center node in the element */
-  buck = El_Table->getbucketptr();
-  for(i=0; i<num_buckets; i++)
-    if(*(buck+i))
-      {
-	HashEntryPtr currentPtr = *(buck+i);
-	while(currentPtr)
-	  {
-	    Element* Curr_El=(Element*)(currentPtr->value);
-	    int refined = Curr_El->get_refined_flag();
- 	    if(Curr_El->get_adapted_flag()>0)//if this is a refined element don't involve!!!
-	      {
-		Curr_El->find_positive_x_side(NodeTable);
-		Curr_El->calculate_dx(NodeTable); 
-		Curr_El->calc_topo_data(matprops_ptr);
-		Curr_El->calc_gravity_vector(matprops_ptr);
-	      }
-	      
-	    currentPtr=currentPtr->next;      	    
-	  }
-      }
+	/* put the coord for the center node in the element */
+	buck = El_Table->getbucketptr();
+	for (i = 0; i < num_buckets; i++)
+		if (*(buck + i)) {
+			HashEntryPtr currentPtr = *(buck + i);
+			while (currentPtr) {
+				Element* Curr_El = (Element*) (currentPtr->value);
+				int refined = Curr_El->get_refined_flag();
+				if (Curr_El->get_adapted_flag() > 0) //if this is a refined element don't involve!!!
+						{
+					Curr_El->find_positive_x_side(NodeTable);
+					Curr_El->calculate_dx(NodeTable);
+					Curr_El->calc_topo_data(matprops_ptr);
+					Curr_El->calc_gravity_vector(matprops_ptr);
+				}
 
+				currentPtr = currentPtr->next;
+			}
+		}
 
-  /* transfer ghost elements to proper processors */
-  move_data(nump, myid, El_Table, NodeTable,timeprops_ptr);
+	/* transfer ghost elements to proper processors */
+	move_data(nump, myid, El_Table, NodeTable, timeprops_ptr);
 
-  /* calculate d_gravity array for each element */
-  buck = El_Table->getbucketptr();
-  for(i=0; i<num_buckets; i++)
-    if(*(buck+i))
-      {
-	HashEntryPtr currentPtr = *(buck+i);
-	while(currentPtr)
-	  {
-	    Element* Curr_El=(Element*)(currentPtr->value);
-	    int refined = Curr_El->get_refined_flag();
- 	    if(Curr_El->get_adapted_flag()>0)//if this is a refined element don't involve!!!
-	      {
-		Curr_El->calc_d_gravity(El_Table);
-	      }
-	    
-	    currentPtr=currentPtr->next;      	    
-	  }
-      }
+	/* calculate d_gravity array for each element */
+	buck = El_Table->getbucketptr();
+	for (i = 0; i < num_buckets; i++)
+		if (*(buck + i)) {
+			HashEntryPtr currentPtr = *(buck + i);
+			while (currentPtr) {
+				Element* Curr_El = (Element*) (currentPtr->value);
+				int refined = Curr_El->get_refined_flag();
+				if (Curr_El->get_adapted_flag() > 0) //if this is a refined element don't involve!!!
+						{
 
-  return;
+					int aa = 1, bb = 0;
+					if (*(Curr_El->pass_key()) == 2155926449 && *(Curr_El->pass_key() + 1) == 991146299)
+						bb = aa;
+					Curr_El->calc_d_gravity(El_Table);
+				}
+
+				currentPtr = currentPtr->next;
+			}
+		}
+
+	return;
 }
