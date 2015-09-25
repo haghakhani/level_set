@@ -17,17 +17,9 @@
 
 #ifndef CONSTANTS
 #define CONSTANTS
+
 const int  KEYLENGTH = 2;
 
-//const   NODE_TABLE_SIZE=6000;
-//const   EL_TABLE_SIZE=2000;
-
-
-const int  MAX_PROCS = 2056;
-
-const int  ZERO      = '0';
-const int  NONZERO   = 111;
-//const   NBUCKETS  = 2000;        //every hashtable posseses 5000 entries.
 const int   PRIME     = 2017;        //used for creating hash key
 const int   DIMENSION = 2;
 const int   EQUATIONS = 2;         /* be careful EQUATIONS and NUM_STATE_VARS
@@ -41,13 +33,8 @@ const int   EQUATIONS = 2;         /* be careful EQUATIONS and NUM_STATE_VARS
 				      titan.  Just leave it at 2 and otherwise
 				      ignore it. */
 const int   POWER     = 1; 
-const int   MAX_ORDER = 6;
 
 const double PI   = 3.1415926;
-
-const int   BCTYPE    = 3;
-
-const float  C = 1.5;
 
 const int   NODEINIT    = 0x0000;
 const int   CORNER      = 0x0002;//--corner dof
@@ -101,7 +88,7 @@ const int GHOST         = -9876; //"refined" GHOST CELL FLAG
 #define NEWSON         3  //Do not refine or unrefine new son elements
 #define NEWFATHER      2  //Do not unrefine new father elements 
 #define NOTRECADAPTED  1  //you can do anything you want to this element
-#define TOBEDELETED    0  //This element has been marked for deletion, do ot involve
+#define TOBEDELETED    0  //This element has been marked for deletion, do not involve
 #define OLDFATHER     -6  //This is a temporary marking that says neighbors need to be updated with NEWSON information and then this element should be remarked as TOBEDELETED
 #define OLDSON        -7  //The plan is make this analogous to OLDFATHER to allow unrefinement NEXT TO but not across interprocessor boundaries, this has not been implemented yet (date of this comment: 20061026)
 

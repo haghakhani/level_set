@@ -3,7 +3,17 @@
 *.lo
 *.o
 *.obj
-bin/
+
+#binaries
+/bin
+src/vectordatapreproc/VecDataPreproc
+src/stochastic/lhsvol
+src/stochastic/lhstitanstats
+src/stochastic/lhsbed
+src/stochastic/gentitanteststats
+src/preproc/titan_preprocess
+src/preproc/titan_materialnames
+src/main/titan
 
 # Compiled Dynamic libraries
 *.so
@@ -20,3 +30,5 @@ bin/
 *.exe
 *.out
 *.app
+
+*.orig

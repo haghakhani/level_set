@@ -43,10 +43,6 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH],
   for (int i=0; i<DIMENSION*NUM_STATE_VARS; i++)
     d_state_vars[i] = 0.;
 
-  for (int i=0; i<DIMENSION; i++) 
-    lap_phi[i]=0; 
-
-
   for(int ikey=0;ikey<KEYLENGTH;ikey++)
     father[ikey]=
       brothers[0][ikey]=
@@ -172,8 +168,6 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH],
   prev_state_vars[3] = prev_state_vars[5] = 0.;
   for(i=0;i<DIMENSION*NUM_STATE_VARS;i++)
     d_state_vars[i] = 0;
-  for (int i=0; i<DIMENSION; i++)
-    lap_phi[i]=0;
 
   for (i=0; i<NUM_STATE_VARS; i++)
     Influx[i]=0.0;
@@ -206,8 +200,7 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH],
   }
   for (int i=0; i<DIMENSION*NUM_STATE_VARS; i++)
     d_state_vars[i] = 0.;
-  for (int i=0; i<DIMENSION; i++)
-    lap_phi[i]=0;
+
 
   for(int ikey=0;ikey<KEYLENGTH;ikey++)
     father[ikey]=
@@ -330,6 +323,7 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH],
   coord[1] = coord_in[1];
 
   stoppedflags=fthTemp->stoppedflags;
+  narrow_bound_flag=0;
 
   return;
 }
@@ -350,8 +344,6 @@ Element::Element(Element* sons[], HashTable* NodeTable, HashTable* El_Table,
   }
   for (int i=0; i<DIMENSION*NUM_STATE_VARS; i++)
     d_state_vars[i] = 0.;
-  for (int i=0; i<DIMENSION; i++)
-    lap_phi[i]=0;
 
   for(int ikey=0;ikey<KEYLENGTH;ikey++)
     father[ikey]=
@@ -668,6 +660,8 @@ Element::Element(Element* sons[], HashTable* NodeTable, HashTable* El_Table,
   shortspeed=0.0;
   for(j=0;j<4;j++) shortspeed+=*(sons[j]->get_state_vars()+1)*sons[j]->get_shortspeed();
   if(state_vars[1]>0.0) shortspeed/=(4.0*state_vars[1]);
+
+  narrow_bound_flag=0;
 
   return;
 }
@@ -2722,137 +2716,6 @@ void Element::calc_gravity_vector(MatProps* matprops_ptr)
     gravity[i] = gravity[i]/matprops_ptr->GRAVITY_SCALE;
 
   return;
-}
-
-int Element::determine_refinement(double target)
-{
-  int flag = 0, i;
-
-  if(state_vars[0] > target)
-    flag = 1;
-  return flag;
-}
-
-
-//***************************   Hossein  ************************************
-void Element::level_set(HashTable* El_Table){
-
-  if (if_pile_boundary(El_Table,GEOFLOW_TINY)>1) state_vars[5]=3;
-
-  return;
-}
-
-
-void Element::calc_lap_phi(HashTable* El_Table, HashTable* NodeTable) {
-
-  int j = 0, bc = 0;
-  /* check to see if this is a boundary */
-  while(j<4 && bc == 0) {
-    if(neigh_proc[j] == INIT)
-      bc = 1;
-    j++;
-  }
-  if(bc == 1) {
-    for(j=0;j<DIMENSION;j++)
-      lap_phi[j] = 0;
-    return;
-  }
-
-
-  int xp, xm, yp, ym; //x plus, x minus, y plus, y minus
-  xp = positive_x_side;
-  switch(positive_x_side) {
-    case 0:
-      xm = 2;
-      yp = 1; 
-      ym = 3;
-      break;
-    case 1:
-      xm = 3;
-      yp = 2;
-      ym = 0;
-      break;
-    case 2:
-      xm = 0;
-      yp = 3;
-      ym = 1;
-      break;
-    case 3:
-      xm = 1;
-      yp = 0;
-      ym = 2;
-      break;
-  }
-  /* x direction */
-  Element *ep = (Element*) (El_Table->lookup(&neighbor[xp][0]));
-  Element *em = (Element*) (El_Table->lookup(&neighbor[xm][0]));
-  Element *ep2= NULL;
-  Element *em2= NULL;
-  //check if element has 2 neighbors on either side
-  Node* ndtemp = (Node*) NodeTable->lookup(&node_key[xp+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    ep2 = (Element*) (El_Table->lookup(&neighbor[xp+4][0]));
-    assert(neigh_proc[xp+4] >= 0 && ep2);
-  }
-  ndtemp = (Node*) NodeTable->lookup(&node_key[xm+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    em2 = (Element*) (El_Table->lookup(&neighbor[xm+4][0]));
-    assert(neigh_proc[xm+4] >= 0 && em2); 
-  }
-
-  double dp, dm, dc, dxp, dxm;
-  dxp = ep->coord[0] - coord[0];
-  dxm = coord[0] - em->coord[0];
-
-  dp = (ep->state_vars[0] - state_vars[0])/dxp;
-  if(ep2 != NULL)
-    dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
-  dm = (state_vars[0] - em->state_vars[0])/dxm;
-  if(em2 != NULL)
-    dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
-
-  lap_phi[0] = (dp - dm)/(dxp + dxm); 
-  //    printf("I am laplacian in x:.....%f....then respectively  dxm:%f....dp:%f....dxp:%f...dm:%f \n",lap_phi[0],dxm,dp,dxp,dm);
-
-  /* y direction */
-  ep = (Element*) (El_Table->lookup(&neighbor[yp][0]));
-  em = (Element*) (El_Table->lookup(&neighbor[ym][0]));
-  ep2= NULL;
-  em2= NULL;
-  //check if element has 2 neighbors on either side
-  ndtemp = (Node*) NodeTable->lookup(&node_key[yp+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    ep2 = (Element*) (El_Table->lookup(&neighbor[yp+4][0]));
-    assert(neigh_proc[yp+4] >= 0 && ep2);
-  }
-  ndtemp = (Node*) NodeTable->lookup(&node_key[ym+4][0]);
-  if(ndtemp->info == S_C_CON) {
-    em2 = (Element*) (El_Table->lookup(&neighbor[ym+4][0]));
-    if(!(neigh_proc[ym+4] >= 0 && em2)){
-      printf("ym=%d neigh_proc[ym+4]=%d em2=%d\n",
-          ym,neigh_proc[ym+4],em2);
-    }
-
-    assert(neigh_proc[ym+4] >= 0 && em2);
-  }
-
-  dxp = ep->coord[1] - coord[1];
-  dxm = coord[1] - em->coord[1];  
-
-  dp = (ep->state_vars[0] - state_vars[0])/dxp;
-  if(ep2 != NULL)
-    dp = .5*(dp + (ep2->state_vars[0] - state_vars[0])/dxp);
-  dm = (state_vars[0] - em->state_vars[0])/dxm;
-  if(em2 != NULL)
-    dm = .5*(dm + (state_vars[0] - em2->state_vars[0])/dxm);
-
-
-  lap_phi[1] = (dp -dm)/(dxp + dxm); 
-
-  //    printf("I am laplacian in y:.....%f....then respectively  dxm:%f....dp:%f....dxp:%f...dm:%f \n",lap_phi[1],dxm,dp,dxp,dm);
-
-  return;
-
 }
 
 void Element::calc_d_gravity(HashTable* El_Table) {

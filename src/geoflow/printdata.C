@@ -43,7 +43,6 @@ void printdata(HashTable* El_Table, HashTable* NodeTable,MatProps* matprops_ptr,
 				d_state_vars=EmTemp->get_d_state_vars();
 				gravity=EmTemp->get_gravity();
 				d_gravity=EmTemp->get_d_gravity();
-				lap_phi=EmTemp->get_lap_phi();
 				zeta=EmTemp->get_zeta();
 				curvature=EmTemp->get_curvature();
 				bedfrict=EmTemp->get_effect_bedfrict();

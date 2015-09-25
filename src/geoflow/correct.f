@@ -17,7 +17,7 @@ C     *
 
 C***********************************************************************
       subroutine correct(uvec, uprev, fluxxp, fluxyp, fluxxm, fluxym,
-     1     tiny, dtdx, dtdy, dt, dUdx, dUdy,lap_phi, xslope, yslope,
+     1     tiny, dtdx, dtdy, dt, dUdx, dUdy, xslope, yslope,
      2     curv,intfrictang, bedfrictang, g, kactxy,  dgdx, 
      3     frict_tiny, forceint,forcebed, dragfoce ,DO_EROSION,
      4     eroded, v_solid, v_fluid,den_solid, den_fluid, terminal_vel,

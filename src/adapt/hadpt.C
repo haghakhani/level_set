@@ -187,10 +187,10 @@ void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
       while(entryp){	
         EmTemp = (Element*)(entryp->value);
         assert(EmTemp);
-        if((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )==1) ||
+        if((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,GEOFLOW_TINY      )==1)||
             (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD1)==1)||
             (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD2)==1)||
-            (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD)==1)
+            (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD )==1)
           ){
           refinewrapper(HT_Elem_Ptr,HT_Node_Ptr,matprops_ptr,&RefinedList,EmTemp);
           debug_ref_flag++;
@@ -211,7 +211,7 @@ void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
       while(entryp){
         EmTemp = (Element*)(entryp->value);
         assert(EmTemp);
-        if((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0)||
+        if((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,GEOFLOW_TINY      )>0)||
             (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD1)>0)||
             (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD2)>0)||
             (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr,REFINE_THRESHOLD)>0)

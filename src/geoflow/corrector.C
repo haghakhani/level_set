@@ -76,7 +76,6 @@ void correct(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* mat
 	double *d_state_vars = EmTemp->get_d_state_vars();
 	double *gravity = EmTemp->get_gravity();
 	double *d_gravity = EmTemp->get_d_gravity();
-	double *lap_phi = EmTemp->get_lap_phi();
 	double *zeta = EmTemp->get_zeta();
 	double *curvature = EmTemp->get_curvature();
 	double bedfrict = EmTemp->get_effect_bedfrict();
@@ -124,7 +123,7 @@ void correct(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* mat
 		bb = aa;
 
 	correct_(state_vars, prev_state_vars, fluxxp, fluxyp, fluxxm, fluxym, &tiny, &dtdx, &dtdy, &dt,
-			d_state_vars, (d_state_vars + NUM_STATE_VARS), lap_phi, &(zeta[0]), &(zeta[1]), curvature,
+			d_state_vars, (d_state_vars + NUM_STATE_VARS), &(zeta[0]), &(zeta[1]), curvature,
 			&(matprops_ptr->intfrict), &bedfrict, gravity, kactxy, d_gravity, &(matprops_ptr->frict_tiny),
 			forceint, forcebed, dragforce, &do_erosion, eroded, Vsolid, Vfluid, &solid_den, &fluid_den,
 			&terminal_vel, &(matprops_ptr->epsilon), &IF_STOPPED, Influx, &navslip_coef);

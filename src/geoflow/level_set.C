@@ -19,443 +19,564 @@
 # include <config.h>
 #endif
 
-#define REFINE_THRESHOLD1 .2*GEOFLOW_TINY
-#define REFINE_THRESHOLD2 .05*GEOFLOW_TINY
-#define REFINE_THRESHOLD .025*GEOFLOW_TINY
-
 #include "../header/hpfem.h"
-#include "../header/geoflow.h"
+#include <set>
+#include <vector>
+#include <map>
 
-double signed_d_f(double p,double eps);
-double mini(double a,double b);
-double maxi(double a,double b);
-double absol (double a);
-void initialize_phi(HashTable* El_Table,Element *EmTemp, double* norm, double dt,double min,int* elem);
-void record_of_phi(HashTable* NodeTable, HashTable* El_Table);
-int num_nonzero_elem(HashTable *El_Table);
-double minidxdy(double x,double y, int* falg);
+typedef double (*Pt2Path)(void* path, double x, double y);
+typedef void (*Pt2Grad)(void* path, double x, double y, double* grad);
 
-struct Min_rank {
-  double min;
-  int rank;
+extern "C" void dgesv_(int *n, int *nrhs, double *a, int *lda, int *ipiv, double *b, int *ldb,
+    int *info);
+
+class Key {
+
+public:
+	Key();
+	Key(unsigned* key) {
+		Key::key[0] = key[0];
+		Key::key[1] = key[1];
+	}
+	;
+	bool operator<(const Key& rkey) const {
+		if (key[0] < rkey.key[0] || (key[0] == rkey.key[0] && key[1] < rkey.key[1]))
+			return true;
+
+		return false;
+	}
+	;
+
+	void print_key() const {
+		cout << " key1= " << key[0] << "  key2= " << key[1] << endl;
+	}
+
+private:
+	unsigned key[2];
 };
 
-//struct Boundry_Point{
-//  double xpos;
-//  double ypos;
-//};
+class Edge {
+	// this  class holds information of an edge consisting of two elements
+	// and also the neighbor number of the second element in the first element
+public:
+	Edge() {
+		elem[0] = NULL;
+		elem[1] = NULL;
+		neigh_num = 9;
+	}
+	;
 
-void narrow_bound_layers(HashTable *ElemTable, Element* elem, int num_layer){
+	Edge(Element* elem_l, Element* elem_r, int neigh_n) {
+		elem[0] = elem_l;
+		elem[1] = elem_r;
+		neigh_num = neigh_n;
+	}
+	;
 
-  while(num_layer>0){
-    // cout<<"num lyer: "<<num_layer<<endl;
-    for(int ineigh=0;ineigh<8;ineigh++){
-      // cout<<"neighbor:  "<<ineigh<<endl;
-      if(*(elem->get_neigh_proc()+ineigh)>=0) //don't check outside map boundary or duplicate neighbor
-      {
-        Element* ElemNeigh=(Element*) ElemTable->lookup(elem->get_neighbors()+ineigh*KEYLENGTH);
-        assert(ElemNeigh);
-        *(elem->get_state_vars()+5)=(double) num_layer;
-        // cout<<"elem keys are:   "<<*(ElemNeigh->pass_key())<<"  and  "<<*(ElemNeigh->pass_key()+1)<<endl;
-        narrow_bound_layers(ElemTable, ElemNeigh,num_layer-1);
-      }
-    }
-    return;
-  }
-  return;
+	bool operator<(const Edge& redge) const {
+		if (elem[0] < redge.elem[0] || (elem[0] == redge.elem[0] && elem[1] < redge.elem[1]))
+			return true;
+
+		return false;
+	}
+	;
+	Element *elem[2];
+	int neigh_num;
+};
+
+class Quad {
+public:
+	Quad() {
+		elem[0] = NULL;
+		elem[1] = NULL;
+		elem[2] = NULL;
+		elem[3] = NULL;
+
+	}
+	;
+
+	Quad(Element* elem_1, Element* elem_2, Element* elem_3, Element* elem_4) {
+		elem[0] = elem_1;
+		elem[1] = elem_2;
+		elem[2] = elem_3;
+		elem[3] = elem_4;
+	}
+	;
+
+	bool operator<(const Quad& rrect) const {
+		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
+		        && elem[3] < rrect.elem[3]))
+			return true;
+
+		return false;
+	}
+	;
+
+	Element *elem[4];
+};
+
+typedef std::set<Edge> EdgeList;
+typedef std::set<Quad> QuadList;
+typedef std::map<Key, Element*> Map;
+
+class Ellipse {
+public:
+	Ellipse(double x_center, double y_center, double x_radius, double y_radius, double cosrot,
+	    double sinrot) :
+			x_center(x_center), y_center(y_center), x_radius(x_radius), y_radius(y_radius), cosrot(
+			    cosrot), sinrot(sinrot) {
+	}
+
+	const double get_x_center() const {
+		return x_center;
+	}
+
+	const double get_y_center() const {
+		return y_center;
+	}
+
+	const double get_x_radius() const {
+		return x_radius;
+	}
+
+	const double get_y_radius() const {
+		return y_radius;
+	}
+
+	const double get_cosrot() const {
+		return cosrot;
+	}
+
+	const double get_sinrot() const {
+		return sinrot;
+	}
+
+private:
+	const double x_center;
+	const double y_center;
+	const double x_radius;
+	const double y_radius;
+	const double cosrot;
+	const double sinrot;
+};
+
+struct BilinearPath {
+
+	double bilinear_coef[4];
+};
+
+double path_ellipse(void* path, double x, double y) {
+
+	Ellipse* ellipse = (Ellipse*) path;
+
+	const double x_radius = ellipse->get_x_radius();
+	const double x_rad_sq = x_radius * x_radius;
+	const double y_radius = ellipse->get_y_radius();
+	const double y_rad_sq = y_radius * y_radius;
+	const double x_center = ellipse->get_x_center();
+	const double y_center = ellipse->get_y_center();
+	const double cosrot = ellipse->get_cosrot();
+	const double sinrot = ellipse->get_sinrot();
+
+	return ((x - x_center) * cosrot + (y - y_center) * sinrot)
+	    * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+	    + ((x - x_center) * sinrot - (y - y_center) * cosrot)
+	        * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
+
 }
 
-void narrow_bound_marker(HashTable *ElemTable, Element* elem, int num_layer){
-  //*(elem->get_state_vars()+5)=0.;//we use here the state_vars[5] as a flag
-  if (elem->if_phase_boundary(ElemTable)){
-    *(elem->get_state_vars()+5)=(double)num_layer;
-    narrow_bound_layers(ElemTable,elem , num_layer-1);
-  }
-  return;
+void grad_path_ellipse(void* path, double x, double y, double* grad) {
+
+	Ellipse* ellipse = (Ellipse*) path;
+
+	const double x_radius = ellipse->get_x_radius();
+	const double x_rad_sq = x_radius * x_radius;
+	const double y_radius = ellipse->get_y_radius();
+	const double y_rad_sq = y_radius * y_radius;
+	const double x_center = ellipse->get_x_center();
+	const double y_center = ellipse->get_y_center();
+	const double cosrot = ellipse->get_cosrot();
+	const double sinrot = ellipse->get_sinrot();
+
+	grad[0] = 2. * cosrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+	    + 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+
+	grad[1] = 2. * sinrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+	    - 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+
 }
 
+void bilinear_interp(Quad quad, BilinearPath& bilinear_path) {
 
-void create_narrow_bound(HashTable* El_Table){
-  HashEntryPtr* buck = El_Table->getbucketptr();
-  HashEntryPtr currentPtr;
-  int num_layer=5, num=0;
+//	Ab=x
+//	[1,x0,y0,x0y0][x0] [phi0]
+//	[1,x1,y1,x1y1][x1] [phi1]
+//	[1,x2,y2,x2y2][x2]=[phi2]
+//	[1,x3,y3,x3y3][x3] [phi3]
 
-  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
-  {
-    currentPtr = *(buck+i);
-    while(currentPtr)
-    {
-      Element* Em_Temp=(Element*)(currentPtr->value);
+	int dim = 4, one = 1, info, ipiv[dim];
 
-      if(Em_Temp->get_adapted_flag()>0 /* && num<1*/ ){
-        *(Em_Temp->get_state_vars()+5)= 0.;
-        num++; 
-      }
+	double A[dim * dim], phi[dim], x[dim], y[dim];
 
-      currentPtr=currentPtr->next;
-    }
-  }
+	for (int i = 0; i < dim; ++i) {
+		x[i] = *(quad.elem[i]->get_coord());
+		y[i] = *(quad.elem[i]->get_coord() + 1);
+		phi[i] = *(quad.elem[i]->get_state_vars());
+		A[i] = 1;
+		A[i + 4] = x[i];
+		A[i + 8] = y[i];
+		A[i + 12] = x[i] * y[i];
+	}
 
-  cout<<"number of elements are:  "<<num<<endl;
-  num=0;
+	cout << "Matrix A and vector phi" << endl;
+	for (int i = 0; i < dim; ++i) {
+		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
+		cout << "[ " << phi[i] << " ]" << endl;
+	}
 
-  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
-  {
-    currentPtr = *(buck+i);
-    while(currentPtr)
-    {
-      Element* Em_Temp=(Element*)(currentPtr->value);
+	dgesv_(&dim, &one, A, &dim, ipiv, phi, &dim, &info);
 
-      if(Em_Temp->get_adapted_flag()>0 /* && num<1*/ ){
-        narrow_bound_marker(El_Table,Em_Temp,num_layer);
-        //if (Em_Temp->if_phase_baundary(El_Table)) cout << "I am working"<<endl;
-        //cout<<"now performing:  "<<num++<<endl; 
+	cout << "Solution" << endl;
+	for (int i = 0; i < dim; ++i)
+		cout << "[ " << phi[i] << " ]" << endl;
 
-      }
-
-      currentPtr=currentPtr->next;
-    }
-  }
-
-
-  return;
 }
 
-void initialization(HashTable* NodeTable, HashTable* El_Table,
-    double dt, MatProps* matprops_ptr,
-    FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,
-    int nump, int rank)
-{
-  HashEntryPtr* buck = El_Table->getbucketptr();
-  HashEntryPtr currentPtr;
-  //vector<Bounday_Point> boundary_point;
-  //Boundry_Point newBoundaryPoint;
+double bilinear_surface(void* path, double x, double y) {
 
-  double *coord;
-  int locNumBoundPoint=0;
-  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
-  {
-    currentPtr = *(buck+i);
-    while(currentPtr)
-    {
-      Element* Em_Temp=(Element*)(currentPtr->value);
+//	p=a0+a1x+a2y+a3xy;
 
-      if(Em_Temp->get_adapted_flag()>0  && *(Em_Temp->get_state_vars())==0. ) 
-        locNumBoundPoint++;
+	BilinearPath* bilinear_path = (BilinearPath*) path;
 
-      currentPtr=currentPtr->next;
-    }
-  }
-
-  double **boundaryPoints=CAllocD2(locNumBoundPoint,2);
-
-
-  int index=0;
-  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
-  {
-    currentPtr = *(buck+i);
-    while(currentPtr)
-    {
-      Element* Em_Temp=(Element*)(currentPtr->value);
-      if(Em_Temp->get_adapted_flag()>0  && *(Em_Temp->get_state_vars())==0. ) {
-        //coord=Em_Temp->get_coord();
-        boundaryPoints[index][0]=*(Em_Temp->get_coord());
-        boundaryPoints[index][1]=*(Em_Temp->get_coord()+1);
-        index++;
-      }
-      currentPtr=currentPtr->next;
-    }
-  }
-
-  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
-  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
-  double mindist=1000000;//sqrt(xrange*xrange+yrange*yrange);
-
-
-  for(int i=0; i<El_Table->get_no_of_buckets(); i++)
-  {
-    currentPtr = *(buck+i);
-    while(currentPtr)
-    {
-      Element* Em_Temp=(Element*)(currentPtr->value);
-      if(Em_Temp->get_adapted_flag()>0 && *(Em_Temp->get_state_vars())!=0.) {
-
-        double coef = *(Em_Temp->get_state_vars())>0. ? 1.0: -1.0;//*(Em_Temp->get_state_vars());//*(Em_Temp->get_state_vars())>0. ? 1.0: -1.0;
-        double dist=mindist;
-
-        for (int idist=0; idist<locNumBoundPoint; idist++){
-          coord=Em_Temp->get_coord();
-          double tempdist=sqrt(pow(*(Em_Temp->get_coord())-boundaryPoints[idist][0],2)+pow(*(Em_Temp->get_coord()+1)-boundaryPoints[idist][1],2));
-          dist = tempdist < dist ? tempdist : dist;
-        }
-        dist*=coef;
-        *(Em_Temp->get_state_vars())=dist;
-
-      }
-
-
-      currentPtr=currentPtr->next;
-    }
-  }
-
-  return;
-}
-void reinitialization(HashTable* NodeTable, HashTable* El_Table,
-    double dt, MatProps* matprops_ptr,
-    FluxProps *fluxprops, TimeProps *timeprops, OutLine* outline_ptr,
-    int nump, int rank)
-{
-  double norm;
-  int i,n,elem=0;
-  HashEntryPtr* buck = El_Table->getbucketptr();
-  HashEntryPtr currentPtr;
-  Element* Em_Temp;
-  double *dx,min,min_dx,max,max_delta,*phi_slope,thresh=.0001;
-  //create_narrow_bound(El_Table);
-  //cout<<"attention xmin: "<<outline_ptr->xminmax[0]<<" xmax: "<<outline_ptr->xminmax[1]<<" ymin: "<<outline_ptr->yminmax[0]<<" ymax: "<<outline_ptr->yminmax[1]<<endl;
-  record_of_phi(NodeTable, El_Table);
-  move_data(nump, rank, El_Table, NodeTable,timeprops);
-
-  min=10000;  
-  int flagxy=2,flagxymin=2;
-
-  for(i=0; i<El_Table->get_no_of_buckets(); i++) 
-  {
-    currentPtr = *(buck+i);
-    while(currentPtr) 
-    {
-      Em_Temp=(Element*)(currentPtr->value);
-
-      if(Em_Temp->get_adapted_flag()>0) {
-        dx=Em_Temp->get_dx();
-        min_dx = minidxdy(dx[0],dx[1],&flagxy);
-        if(min_dx<min) {min=min_dx; flagxymin=flagxy;}
-      }
-      currentPtr=currentPtr->next; 
-    }
-  }
-  Min_rank min_rank,tot_min;
-  min_rank.min=min;
-  min_rank.rank=rank;
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  //we need also to broadcast the flagxymin 
-  //Min_rank tot_min;
-
-  MPI_Allreduce(&min_rank,&tot_min,1,MPI_DOUBLE_INT,MPI_MINLOC,MPI_COMM_WORLD);
-
-  MPI_Bcast(&flagxymin, 1, MPI_INT,tot_min.rank,MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
-  min=tot_min.min;
-
-
-  //  MPI_Reduce(&min,&min,1,MPI_DOUBLE,MPI_MIN,0,MPI_COMM_WORLD);
-  int count=0;
-
-  //if (rank==0){
-
-  double xrange=(outline_ptr->xminmax[1]-outline_ptr->xminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
-  double yrange=(outline_ptr->yminmax[1]-outline_ptr->yminmax[0])/*/matprops_ptr->LENGTH_SCALE*/;
-
-  if (flagxymin==0)
-    min/=xrange;
-  else if (flagxymin==1)
-    min/=yrange;
-  else{
-    printf("there is an error in levelset.C min computation\n");
-    return;
-  }
-  //}
-  //MPI_Bcast(&min, 1, MPI_DOUBLE,0,MPI_COMM_WORLD );
-  //MPI_Barrier(MPI_COMM_WORLD);
-
-  double time_inc=.5*min;
-  thresh=time_inc;
-  int flagi=0;
-  double total_norm=0.0;
-  do{
-    norm=0;
-
-    for(i=0; i<El_Table->get_no_of_buckets(); i++) 
-    {
-      currentPtr = *(buck+i);
-      while(currentPtr) 
-      {
-        Em_Temp=(Element*)(currentPtr->value);
-        if(Em_Temp->get_adapted_flag()>0/*&& (*(Em_Temp->get_state_vars()+5)>0 && *(Em_Temp->get_state_vars()+5)<6 )*/) {
-          Em_Temp->calc_phi_slope(El_Table, NodeTable);
-        }
-        currentPtr=currentPtr->next; 
-      }
-    }
-    move_data(nump, rank, El_Table, NodeTable,timeprops); 
-
-    for(i=0; i<El_Table->get_no_of_buckets(); i++) 
-    {
-      currentPtr = *(buck+i);
-      while(currentPtr) 
-      {
-        Em_Temp=(Element*)(currentPtr->value);
-        if(Em_Temp->get_adapted_flag()>0 /*&& (*(Em_Temp->get_state_vars()+5)>0 && *(Em_Temp->get_state_vars()+5)<6 )*/)
-        {
-
-          initialize_phi( El_Table,Em_Temp,&norm,time_inc,/*time_inc*/10*min,&elem);
-          //	*(Em_Temp->get_state_vars()+5)=5;
-
-          //		printf("norm =%f    \n", norm);
-        }
-        currentPtr=currentPtr->next;      	    
-      }
-    }
-
-    MPI_Allreduce(&norm,&total_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-
-    int tot_elem=0;
-
-    if (timeprops->iter>1 )  MPI_Allreduce(&elem,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-
-    else {
-      int nonzelem=num_nonzero_elem(El_Table);
-
-      MPI_Allreduce(&nonzelem,&tot_elem,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-    }
-
-    //total_norm/=tot_elem;
-    total_norm=sqrt(total_norm)/tot_elem;
-
-
-    if(rank==0) printf("norm=  %e  dt=  %e   count=   %d    thresh= %e  min =  %e \n", total_norm,time_inc,count,thresh,tot_min.min);
-    count++;
-    if((timeprops->iter>1 && count > 100) || (timeprops->iter==1 && count > 1000) ) 
-      //  flagi=1;
-
-      move_data(nump, rank, El_Table, NodeTable,timeprops);//at begining and the end of move_data there is a Barrier, so here I do not need to call MPI_Barrier
-
-  }while((total_norm>thresh) && flagi < 1 );//&& count<21)||(sqrt(norm)>thresh && timeprops->iter<100 ));//&& (elem<1);//(sqrt(abs(norm))>.0100);
-
-  return;
+	return 1.;
 }
 
-void initialize_phi(HashTable *El_Table, Element *EmTemp, double *norm, double dt,double min,int* elem){
+void grad_bilinear_surface(void* path, double x, double y, double* grad) {
 
-  double *phi_slope=EmTemp->get_phi_slope();
-  double *state_vars=EmTemp->get_state_vars();
-  double *prev_state_vars=EmTemp->get_prev_state_vars();
-  //double *d_state_vars=EmTemp->get_d_state_vars();
-  double delta_p,delta_m;
-  double flux_phi,a_p,a_m,b_p,b_m,c_p,c_m,d_p,d_m; 
-  Element  *rev_elem;
+	//grad[0]=a1+a3y;
+	//grad[1]=a2+a3x;
 
-  prev_state_vars[0]=state_vars[0];
+	BilinearPath* bilinear_path = (BilinearPath*) path;
 
-  if (dabs(state_vars[0])<.5) *elem +=1;
-
-  a_p=maxi( phi_slope[0] ,0.);
-  a_m=mini( phi_slope[0] ,0.);
-  b_p=maxi( phi_slope[1] ,0.);
-  b_m=mini( phi_slope[1] ,0.);
-  c_p=maxi( phi_slope[2] ,0.);
-  c_m=mini( phi_slope[2] ,0.);
-  d_p=maxi( phi_slope[3] ,0.);
-  d_m=mini( phi_slope[3] ,0.);
-
-  if (state_vars[4]>0)
-    flux_phi=sqrt(maxi(a_p*a_p , b_m*b_m) + maxi(c_p*c_p , d_m*d_m))-1;
-  else if (state_vars[4]<0)
-    flux_phi=sqrt(maxi(a_m*a_m , b_p*b_p) + maxi(c_m*c_m , d_p*d_p))-1;
-  else
-    flux_phi=0;
-
-  state_vars[0]=prev_state_vars[0] - dt*signed_d_f(state_vars[4],min)*flux_phi;
-
-
-  //  int flag=1;
-  //  for(int j=0;j<4;j++)
-  //    if(*(EmTemp->get_neigh_proc()+j) == INIT) {  // this is a boundary!
-  //     int rev_side=(j+2)%4;
-  //     rev_elem = (Element*)(El_Table->lookup(EmTemp->get_neighbors()+rev_side*KEYLENGTH));//      EmTemp->get_neighbors();
-  //     state_vars[0]=*(rev_elem->get_state_vars());//1;//prev_state_vars[0];
-  //      flag=0;
-  //    }
-  //  if (flag)
-  *norm += (state_vars[0]-prev_state_vars[0])*(state_vars[0]-prev_state_vars[0]);//dabs(state_vars[0]-prev_state_vars[0]);
-  //state_vars[5]=dabs(state_vars[0]-prev_state_vars[0]);
-  //  if ((state_vars[0]-prev_state_vars[0])>0) printf("this is the difference .........%e\n", (state_vars[0]-prev_state_vars[0]));
-  return;
 }
 
-void record_of_phi(HashTable* NodeTable, HashTable* El_Table){
+void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_func, void* ctx,
+    double min_dx) {
 
-  int i;
-  HashEntryPtr      *buck = El_Table->getbucketptr();
+	double d1[2] = { 0., 0. }, d2[2] = { 0., 0. }, grad[2], pvalue, grad_dot, x_new, y_new, x_old,
+	    y_old, x_half, y_half, epslon = .01;
 
-  for(i=0; i<El_Table->get_no_of_buckets(); i++)
-    if(*(buck+i)){
-      HashEntryPtr currentPtr = *(buck+i);
-      while(currentPtr){
-        Element* Curr_El=(Element*)(currentPtr->value);
-        if(Curr_El->get_adapted_flag()>0){
-          *(Curr_El->get_state_vars()+4)= *(Curr_El->get_state_vars());
-          //if (*(Curr_El->get_state_vars()+4)!=*(Curr_El->get_state_vars())) exit(1);
-        }
-        currentPtr=currentPtr->next;
-      }
-    }
-  return;
-}
-double mini(double a,double b){
-  if (a<b)
-    return(a);
-  else
-    return(b);
-}
+// initializing the solution
+	x_new = x_old = *(elem->get_coord());
+	y_new = y_old = *(elem->get_coord() + 1);
 
-double minidxdy(double x,double y, int* flag){
-  if (x<y){
-    *flag=0;
-    return(x);}
-  else{
-    *flag=1;
-    return(y);}
-}
+	double& phi_old = *(elem->get_state_vars());
 
+	int iter = 0, max_iter = 20;// Chopp's paper says it normally has to converge after 4 or 5 iterations
+	double sgn = 1.;
+	const double treshold = 1e-3 * min_dx * min_dx;
 
-double maxi(double a,double b){
-  if (a>b)
-    return(a);
-  else
-    return(b);
-}
+	do {
+		iter++;
 
+		p_grad_func(ctx, x_new, y_new, grad);
+		pvalue = p_value_func(ctx, x_new, y_new);
 
-double absol (double a){
-  if (a<0) return (-a);
-  else  return (a);
-}
+		grad_dot = grad[0] * grad[0] + grad[1] * grad[1];
 
-double signed_d_f(double p,double eps){
-  return (p/sqrt(p*p+eps*eps));
-  //return (.5*(tanh(p/(2*eps))+1));
-  //return (tanh(p/(2*eps)));
+		d1[0] = -pvalue * grad[0] / grad_dot;
+		d1[1] = -pvalue * grad[1] / grad_dot;
+		x_half = x_new + d1[0];
+		y_half = y_new + d1[1];
+
+		d2[0] = (x_old - x_new) - (x_old - x_new) * grad[0] / grad_dot * grad[0];
+		d2[1] = (y_old - y_new) - (y_old - y_new) * grad[1] / grad_dot * grad[1];
+
+		x_new = x_half + d2[0];
+		y_new = y_half + d2[1];
+
+	} while (sqrt(d1[0] * d1[0] + d1[1] * d1[1] + d2[0] * d2[0] + d2[1] * d2[1]) > treshold
+	    && iter < max_iter);
+
+	if (phi_old < 0.)
+		sgn = -1.;
+
+	double phi_new = sqrt((x_new - x_old) * (x_new - x_old) + (y_new - y_old) * (y_new - y_old));
+
+	// this is for the case that a point is computed twice, and we take the smaller value
+	if (phi_new < fabs(phi_old))
+		phi_old = sgn * phi_new;
+//	std::cout << point.get_phi() << std::endl;
 }
 
-//(*(EmTemp->get_dx()+0)<*(EmTemp->get_dx()+1))?*(EmTemp->get_dx()+0):*(EmTemp->get_dx()+1))
-int num_nonzero_elem(HashTable *El_Table){
-  int               num=0,myid,i;
-  HashEntryPtr      currentPtr;
-  Element           *Curr_El;
-  HashEntryPtr      *buck = El_Table->getbucketptr();
-  for(i=0;i<El_Table->get_no_of_buckets();i++)
-    if(*(buck+i)){
-      currentPtr = *(buck+i);
-      while(currentPtr){
-        Curr_El=(Element*)(currentPtr->value);
-        if(Curr_El->get_adapted_flag()>0){
-          num++;
-        }
-        currentPtr=currentPtr->next;
-      }
-    }
+void adjacent_to_interface(HashTable* El_Table, EdgeList& accepted) {
 
-  return (num);
+	HashEntryPtr* buck = El_Table->getbucketptr();
+
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++)
+
+		if (*(buck + i)) {
+
+			HashEntryPtr currentPtr = *(buck + i);
+
+			while (currentPtr) {
+
+				Element* Curr_El = (Element*) (currentPtr->value);
+
+				if (Curr_El->get_adapted_flag() > 0) {
+
+					double *phi = (Curr_El->get_state_vars());
+
+					for (int ineigh = 0; ineigh < 8; ineigh++)
+
+						if (*(Curr_El->get_neigh_proc() + ineigh) >= 0) {
+
+							unsigned* neigh_key = Curr_El->get_neighbors();
+
+							Element* ElemNeigh = (Element*) El_Table->lookup(neigh_key + ineigh * KEYLENGTH);
+
+							double neighb_phi = *(ElemNeigh->get_state_vars());
+
+							if (neighb_phi * phi[0] < 0.) {
+
+								int yp, xm, ym, xp = Curr_El->get_positive_x_side();
+								yp = (xp + 1) % 4;
+								xm = (xp + 2) % 4;
+								ym = (xp + 3) % 4;
+
+								int orientation = fabs(ineigh - xp);
+
+								if (orientation % 4 == 0 || orientation % 4 == 1)
+									accepted.insert(Edge(Curr_El, ElemNeigh, ineigh));
+								else
+									accepted.insert(
+									    Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
+							}
+
+						}
+				}
+				currentPtr = currentPtr->next;
+			}
+
+		}
+}
+
+void calc_phi_slope(HashTable* El_Table, HashTable* NodeTable) {
+
+	HashEntryPtr *buck = El_Table->getbucketptr();
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++) {
+		HashEntryPtr currentPtr = *(buck + i);
+		while (currentPtr) {
+			Element* Em_Temp = (Element*) (currentPtr->value);
+			if (Em_Temp->get_adapted_flag() > 0)
+				Em_Temp->calc_phi_slope(El_Table, NodeTable);
+
+			currentPtr = currentPtr->next;
+		}
+	}
+}
+
+void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
+
+	HashEntryPtr *buck = El_Table->getbucketptr();
+
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++)
+		if (*(buck + i)) {
+			HashEntryPtr currentPtr = *(buck + i);
+			while (currentPtr) {
+				Element* Curr_El = (Element*) (currentPtr->value);
+				if (Curr_El->get_adapted_flag() > 0 && *(Curr_El->get_nbflag()) != 1
+				    && *(Curr_El->get_state_vars()) < 10. * min_dx) {
+					// with the last condition we narrow the range of update
+					// to maximum of 10 cell-width far the the interface
+
+					(*elem)++;
+
+					double *phi_slope = Curr_El->get_phi_slope();
+					double *state_vars = Curr_El->get_state_vars();
+					double *prev_state_vars = Curr_El->get_prev_state_vars();
+					double delta_p, delta_m;
+					double flux_phi, a_p, a_m, b_p, b_m, c_p, c_m, d_p, d_m;
+					const double CFL = .8;
+					const double dt = CFL * min_dx;
+
+					// based on Sussman Smerka 1994
+
+					prev_state_vars[0] = state_vars[0];
+
+					a_p = max(phi_slope[0], 0.);
+					a_m = min(phi_slope[0], 0.);
+					b_p = max(phi_slope[1], 0.);
+					b_m = min(phi_slope[1], 0.);
+					c_p = max(phi_slope[2], 0.);
+					c_m = min(phi_slope[2], 0.);
+					d_p = max(phi_slope[3], 0.);
+					d_m = min(phi_slope[3], 0.);
+
+					if (state_vars[4] > 0.)
+						flux_phi = sqrt(max(a_p * a_p, b_m * b_m) + max(c_p * c_p, d_m * d_m)) - 1;
+					else if (state_vars[4] < 0.)
+						flux_phi = sqrt(max(a_m * a_m, b_p * b_p) + max(c_m * c_m, d_p * d_p)) - 1;
+					else
+						flux_phi = 0.;
+
+					state_vars[0] = prev_state_vars[0] - dt * sign(state_vars[4]) * flux_phi;
+
+					*norm += (state_vars[0] - prev_state_vars[0]) * (state_vars[0] - prev_state_vars[0]);
+
+				}
+
+				currentPtr = currentPtr->next;
+			}
+		}
+}
+
+void record_of_phi(HashTable* El_Table) {
+
+	HashEntryPtr *buck = El_Table->getbucketptr();
+
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++)
+		if (*(buck + i)) {
+			HashEntryPtr currentPtr = *(buck + i);
+			while (currentPtr) {
+				Element* Curr_El = (Element*) (currentPtr->value);
+				if (Curr_El->get_adapted_flag() > 0)
+					*(Curr_El->get_state_vars() + 4) = *(Curr_El->get_state_vars());
+
+				currentPtr = currentPtr->next;
+			}
+		}
+}
+
+void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
+
+	Element* elem[4];
+
+	for (EdgeList::iterator it = accepted.begin(); it != accepted.end(); ++it) {
+		elem[0] = it->elem[0];
+		elem[1] = it->elem[1];
+
+		// given the neighbor number, we can build 2 Quads, but we do not care.
+		// what we need to do is to find 4 points for making approximated surface
+		// from the bilinear map, and then computing the distance to the interface
+
+		int neigh_num = it->neigh_num;
+		unsigned* elem_key = elem[0]->get_neighbors();
+		elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num + 1) % 8) * KEYLENGTH);
+
+		unsigned* neigh_key = elem[2]->get_neighbors();
+		elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+
+		// this if never should happen, because the elements adjucent to the interface
+		// are maximally refined. but in case that the generation of the quad points
+		// are different
+//		if (elem[3]==elem[1])
+
+		quadlist.insert(Quad(elem[0], elem[1], elem[2], elem[3]));
+
+//		cout << "x of quad: " << *(elem[0]->get_coord()) << " " << *(elem[1]->get_coord()) << " "
+//		    << *(elem[2]->get_coord()) << " " << *(elem[3]->get_coord()) << endl;
+//		cout << "y of quad: " << *(elem[0]->get_coord() + 1) << " " << *(elem[1]->get_coord() + 1)
+//		    << " " << *(elem[2]->get_coord() + 1) << " " << *(elem[3]->get_coord() + 1) << endl;
+//		cout << endl;
+
+	}
+
+}
+
+void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+
+// data in pileprops_ptr are scaled
+	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
+	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+
+	EdgeList accepted;
+	adjacent_to_interface(El_Table, accepted);
+
+	QuadList rectangles;
+
+// with each Edge we can build 2 rectangles, but this procedure can be repeated
+// for an edge, so make a new list of edges to prevent making these again
+	make_quad(El_Table, accepted, rectangles);
+
+	double* dx = accepted.begin()->elem[0]->get_dx();
+	double min_dx = min(dx[0], dx[1]);
+
+	Pt2Path p2path = bilinear_surface;
+	Pt2Grad p2grad = grad_bilinear_surface;
+
+//	vector<Element*> rectangle(4);
+//	double coef_bilinear_path[4];
+	BilinearPath bilinear_path;
+
+	for (QuadList::iterator it = rectangles.begin(); it != rectangles.end(); ++it) {
+
+		bilinear_interp(*it, bilinear_path);
+
+		for (int j = 0; j < 4; ++j) {
+			initialize_distance(it->elem[j], p2path, p2grad, (void*) &ellipse, min_dx);
+			*((it->elem[j])->get_nbflag()) = 1;
+		}
+	}
+
+	const double threshold = .5 * min_dx * min_dx * min_dx;
+	double norm = 0., total_norm = 0., normalized_norm;
+	int elem = 0, tot_elem = 0;
+
+	record_of_phi(El_Table);
+
+	int iter = 0;
+	do {
+		iter++;
+		elem = 0;
+		norm = 0;
+		calc_phi_slope(El_Table, NodeTable);
+		update_phi(El_Table, min_dx, &norm, &elem);
+
+		// after updating this data have to be transmitted into others
+		move_data(nump, rank, El_Table, NodeTable, timeprops);
+		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+		normalized_norm = sqrt(norm) / tot_elem;
+		cout << "norm: " << normalized_norm << endl;
+
+	} while (normalized_norm > threshold && iter < 7);
+
+	MapNames mapnames;
+	char *b, *c, *d;
+	char a[5] = "abs";
+	b = c = d = a;
+	int ce = 0;
+	mapnames.assign(a, b, c, d, ce);
+	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
+
+	cout << "you have to stop here!" << endl;
+}
+
+void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+
+// data in pileprops_ptr are scaled
+	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
+	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+
+	EdgeList accepted;
+	adjacent_to_interface(El_Table, accepted);
+
+	double* dx = accepted.begin()->elem[0]->get_dx();
+	double min_dx = min(dx[0], dx[1]);
+
+	Pt2Path p2path = path_ellipse;
+	Pt2Grad p2grad = grad_path_ellipse;
+
+	for (EdgeList::iterator it = accepted.begin(); it != accepted.end(); ++it)
+		for (int j = 0; j < 2; ++j) {
+			initialize_distance(it->elem[j], p2path, p2grad, (void*) &ellipse, min_dx);
+			*((it->elem[j])->get_nbflag()) = 1;
+
+		}
+
 }
