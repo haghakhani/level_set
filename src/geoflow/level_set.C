@@ -162,11 +162,6 @@ private:
 	const double sinrot;
 };
 
-struct BilinearPath {
-
-	double bilinear_coef[4];
-};
-
 double path_ellipse(void* path, double x, double y) {
 
 	Ellipse* ellipse = (Ellipse*) path;
@@ -208,7 +203,7 @@ void grad_path_ellipse(void* path, double x, double y, double* grad) {
 
 }
 
-void bilinear_interp(Quad quad, BilinearPath& bilinear_path) {
+void bilinear_interp(Quad quad, double* bilinear_coef) {
 
 //	Ab=x
 //	[1,x0,y0,x0y0][x0] [phi0]
@@ -218,29 +213,29 @@ void bilinear_interp(Quad quad, BilinearPath& bilinear_path) {
 
 	int dim = 4, one = 1, info, ipiv[dim];
 
-	double A[dim * dim], phi[dim], x[dim], y[dim];
+	double A[dim * dim], x[dim], y[dim];
 
 	for (int i = 0; i < dim; ++i) {
 		x[i] = *(quad.elem[i]->get_coord());
 		y[i] = *(quad.elem[i]->get_coord() + 1);
-		phi[i] = *(quad.elem[i]->get_state_vars());
+		bilinear_coef[i] = *(quad.elem[i]->get_state_vars());
 		A[i] = 1;
 		A[i + 4] = x[i];
 		A[i + 8] = y[i];
 		A[i + 12] = x[i] * y[i];
 	}
 
-	cout << "Matrix A and vector phi" << endl;
-	for (int i = 0; i < dim; ++i) {
-		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
-		cout << "[ " << phi[i] << " ]" << endl;
-	}
+//	cout << "Matrix A and vector phi" << endl;
+//	for (int i = 0; i < dim; ++i) {
+//		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
+//		cout << "[ " << phi[i] << " ]" << endl;
+//	}
 
-	dgesv_(&dim, &one, A, &dim, ipiv, phi, &dim, &info);
+	dgesv_(&dim, &one, A, &dim, ipiv, bilinear_coef, &dim, &info);
 
-	cout << "Solution" << endl;
-	for (int i = 0; i < dim; ++i)
-		cout << "[ " << phi[i] << " ]" << endl;
+//	cout << "Solution" << endl;
+//	for (int i = 0; i < dim; ++i)
+//		cout << "[ " << phi[i] << " ]" << endl;
 
 }
 
@@ -248,9 +243,9 @@ double bilinear_surface(void* path, double x, double y) {
 
 //	p=a0+a1x+a2y+a3xy;
 
-	BilinearPath* bilinear_path = (BilinearPath*) path;
+	double* bilinear_coef = (double*) path;
 
-	return 1.;
+	return bilinear_coef[0] + bilinear_coef[1] * x + bilinear_coef[2] * y + bilinear_coef[3] * x * y;
 }
 
 void grad_bilinear_surface(void* path, double x, double y, double* grad) {
@@ -258,7 +253,10 @@ void grad_bilinear_surface(void* path, double x, double y, double* grad) {
 	//grad[0]=a1+a3y;
 	//grad[1]=a2+a3x;
 
-	BilinearPath* bilinear_path = (BilinearPath*) path;
+	double* bilinear_coef = (double*) path;
+
+	grad[0] = bilinear_coef[1] + bilinear_coef[3] * y;
+	grad[1] = bilinear_coef[2] + bilinear_coef[3] * x;
 
 }
 
@@ -378,6 +376,34 @@ void calc_phi_slope(HashTable* El_Table, HashTable* NodeTable) {
 	}
 }
 
+void test_nbflag(HashTable* El_Table) {
+
+	HashEntryPtr *buck = El_Table->getbucketptr();
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++) {
+		HashEntryPtr currentPtr = *(buck + i);
+		while (currentPtr) {
+			Element* Em_Temp = (Element*) (currentPtr->value);
+			if (Em_Temp->get_adapted_flag() > 0 && *(Em_Temp->get_nbflag()))
+				exit(1);
+			currentPtr = currentPtr->next;
+		}
+	}
+}
+
+void reset_nbflag(HashTable* El_Table) {
+
+	HashEntryPtr *buck = El_Table->getbucketptr();
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++) {
+		HashEntryPtr currentPtr = *(buck + i);
+		while (currentPtr) {
+			Element* Em_Temp = (Element*) (currentPtr->value);
+			if (Em_Temp->get_adapted_flag() > 0)
+				*(Em_Temp->get_nbflag()) = 0;
+			currentPtr = currentPtr->next;
+		}
+	}
+}
+
 void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 
 	HashEntryPtr *buck = El_Table->getbucketptr();
@@ -399,7 +425,7 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 					double *prev_state_vars = Curr_El->get_prev_state_vars();
 					double delta_p, delta_m;
 					double flux_phi, a_p, a_m, b_p, b_m, c_p, c_m, d_p, d_m;
-					const double CFL = .8;
+					const double CFL = .5;
 					const double dt = CFL * min_dx;
 
 					// based on Sussman Smerka 1994
@@ -489,9 +515,7 @@ void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
 void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
     TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
-// data in pileprops_ptr are scaled
-	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
-	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+	reset_nbflag(El_Table);
 
 	EdgeList accepted;
 	adjacent_to_interface(El_Table, accepted);
@@ -508,19 +532,26 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 	Pt2Path p2path = bilinear_surface;
 	Pt2Grad p2grad = grad_bilinear_surface;
 
-//	vector<Element*> rectangle(4);
-//	double coef_bilinear_path[4];
-	BilinearPath bilinear_path;
+	double bilinear_coef[4];
 
 	for (QuadList::iterator it = rectangles.begin(); it != rectangles.end(); ++it) {
 
-		bilinear_interp(*it, bilinear_path);
+		bilinear_interp(*it, bilinear_coef);
 
 		for (int j = 0; j < 4; ++j) {
-			initialize_distance(it->elem[j], p2path, p2grad, (void*) &ellipse, min_dx);
+			initialize_distance(it->elem[j], p2path, p2grad, (void*) bilinear_coef, min_dx);
 			*((it->elem[j])->get_nbflag()) = 1;
+//			*((it->elem[j])->get_state_vars() + 5) = 200.;
 		}
 	}
+
+//	MapNames mapnames;
+//	char *b, *c, *d;
+//	char a[5] = "abs";
+//	b = c = d = a;
+//	int ce = 0;
+//	mapnames.assign(a, b, c, d, ce);
+//	meshplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
 
 	const double threshold = .5 * min_dx * min_dx * min_dx;
 	double norm = 0., total_norm = 0., normalized_norm;
@@ -545,15 +576,9 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 
 	} while (normalized_norm > threshold && iter < 7);
 
-	MapNames mapnames;
-	char *b, *c, *d;
-	char a[5] = "abs";
-	b = c = d = a;
-	int ce = 0;
-	mapnames.assign(a, b, c, d, ce);
-	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
+//	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
 
-	cout << "you have to stop here!" << endl;
+//	cout << "you have to stop here!" << endl;
 }
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
@@ -563,6 +588,7 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
 	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
 
+	test_nbflag(El_Table);
 	EdgeList accepted;
 	adjacent_to_interface(El_Table, accepted);
 
@@ -578,5 +604,40 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 			*((it->elem[j])->get_nbflag()) = 1;
 
 		}
+
+//	MapNames mapnames;
+//	char *b, *c, *d;
+//	char a[5] = "abs";
+//	b = c = d = a;
+//	int ce = 0;
+//	mapnames.assign(a, b, c, d, ce);
+//	meshplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
+
+	const double threshold = .5 * min_dx * min_dx * min_dx;
+	double norm = 0., total_norm = 0., normalized_norm;
+	int elem = 0, tot_elem = 0;
+
+	record_of_phi(El_Table);
+
+	int iter = 0;
+	do {
+		iter++;
+		elem = 0;
+		norm = 0;
+		calc_phi_slope(El_Table, NodeTable);
+		update_phi(El_Table, min_dx, &norm, &elem);
+
+		// after updating this data have to be transmitted into others
+		move_data(nump, rank, El_Table, NodeTable, timeprops);
+		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+		normalized_norm = sqrt(norm) / tot_elem;
+		cout << "norm: " << normalized_norm << endl;
+
+	} while (normalized_norm > threshold && iter < 7);
+
+//	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
+
+//	cout << "you have to stop here!" << endl;
 
 }
