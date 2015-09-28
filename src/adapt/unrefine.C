@@ -94,7 +94,7 @@ void unrefine(HashTable* El_Table, HashTable* NodeTable, double target,
 	Curr_El = (Element*) currentPtr->value;
 	//  need to get currentPtr->next now since currentPtr might get deleted!
 	currentPtr=currentPtr->next;
-	if(Curr_El->get_adapted_flag()==NOTRECADAPTED && !(Curr_El->if_phase_boundary(El_Table))) {//if this is a refined element don't involve!!! 
+	if(Curr_El->get_adapted_flag()==NOTRECADAPTED /*&& !(Curr_El->if_phase_boundary(El_Table))*/) {//if this is a refined element don't involve!!!
 	      
 	  // if this if the original element, don't unrefine.  only son 0 checks for unrefinement!
 	  if((Curr_El->get_gen()>MIN_GENERATION)&& 
