@@ -212,11 +212,13 @@ int main(int argc, char *argv[]) {
 			update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &mapnames);
 		}
 
-		if ((adaptflag != 0) && (timeprops.iter % 5 == 4)) {
+		if (timeprops.iter)// this is to avoid run for time step 0
+					reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
+
+		if ((adaptflag != 0) /*&& (timeprops.iter % 5 == 4)*/) {
 			AssertMeshErrorFree(BT_Elem_Ptr, BT_Node_Ptr, numprocs, myid, -2.0);
 
-			H_adapt(BT_Elem_Ptr, BT_Node_Ptr, h_count, TARGET, &matprops, &fluxprops, &timeprops, 6);
-
+			H_adapt(BT_Elem_Ptr, BT_Node_Ptr, h_count, TARGET, &matprops, &fluxprops, &timeprops, 5);
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 
 			unrefine(BT_Elem_Ptr, BT_Node_Ptr, UNREFINE_TARGET, myid, numprocs, &timeprops, &matprops);
@@ -233,9 +235,6 @@ int main(int argc, char *argv[]) {
 			}
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 		}
-
-		if (timeprops.iter)// this is to avoid run for time step 0
-			reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
 
 		step(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &pileprops, &fluxprops,
 		    &statprops, &order_flag, &outline, &discharge, adaptflag);

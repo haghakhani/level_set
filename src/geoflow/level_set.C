@@ -414,7 +414,7 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 			while (currentPtr) {
 				Element* Curr_El = (Element*) (currentPtr->value);
 				if (Curr_El->get_adapted_flag() > 0 && *(Curr_El->get_nbflag()) != 1
-						&& fabs(*(Curr_El->get_state_vars())) < 10. * min_dx) {
+						&& fabs(*(Curr_El->get_state_vars())) <= 10. * min_dx) {
 					// with the last condition we narrow the range of update
 					// to maximum of 10 cell-width far the the interface
 
@@ -577,7 +577,7 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 		normalized_norm = sqrt(norm) / tot_elem;
 		cout << "norm: " << normalized_norm << endl;
 
-	} while (normalized_norm > threshold && iter < 7);
+	} while (normalized_norm > threshold && iter < 12);
 
 //	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
 
@@ -637,7 +637,7 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 		normalized_norm = sqrt(norm) / tot_elem;
 		cout << "norm: " << normalized_norm << endl;
 
-	} while (normalized_norm > threshold && iter < 7);
+	} while (normalized_norm > threshold && iter < 12);
 
 //	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
 
