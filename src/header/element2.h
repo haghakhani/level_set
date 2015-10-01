@@ -801,7 +801,7 @@ inline int Element::get_opposite_brother_flag() {
 
 inline void Element::put_height_mom(double pile_height, double volf, double xmom, double ymom) {
 
-	double min_dx=std::min(dx[0],dx[1]);
+	double min_dx = std::min(dx[0], dx[1]);
 	if (pile_height > 0.)
 		prev_state_vars[0] = state_vars[0] = prev_state_vars[4] = state_vars[4] = - min_dx;
 	else

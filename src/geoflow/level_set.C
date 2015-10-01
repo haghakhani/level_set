@@ -22,38 +22,12 @@
 #include "../header/hpfem.h"
 #include <set>
 #include <vector>
-#include <map>
 
 typedef double (*Pt2Path)(void* path, double x, double y);
 typedef void (*Pt2Grad)(void* path, double x, double y, double* grad);
 
 extern "C" void dgesv_(int *n, int *nrhs, double *a, int *lda, int *ipiv, double *b, int *ldb,
-		int *info);
-
-class Key {
-
-public:
-	Key();
-	Key(unsigned* key) {
-		Key::key[0] = key[0];
-		Key::key[1] = key[1];
-	}
-	;
-	bool operator<(const Key& rkey) const {
-		if (key[0] < rkey.key[0] || (key[0] == rkey.key[0] && key[1] < rkey.key[1]))
-			return true;
-
-		return false;
-	}
-	;
-
-	void print_key() const {
-		cout << " key1= " << key[0] << "  key2= " << key[1] << endl;
-	}
-
-private:
-	unsigned key[2];
-};
+    int *info);
 
 class Edge {
 	// this  class holds information of an edge consisting of two elements
@@ -105,9 +79,9 @@ public:
 
 	bool operator<(const Quad& rrect) const {
 		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
-				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
-				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
-						&& elem[3] < rrect.elem[3]))
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
+		        && elem[3] < rrect.elem[3]))
 			return true;
 
 		return false;
@@ -119,14 +93,13 @@ public:
 
 typedef std::set<Edge> EdgeList;
 typedef std::set<Quad> QuadList;
-typedef std::map<Key, Element*> Map;
 
 class Ellipse {
 public:
 	Ellipse(double x_center, double y_center, double x_radius, double y_radius, double cosrot,
-			double sinrot) :
+	    double sinrot) :
 			x_center(x_center), y_center(y_center), x_radius(x_radius), y_radius(y_radius), cosrot(
-					cosrot), sinrot(sinrot) {
+			    cosrot), sinrot(sinrot) {
 	}
 
 	const double get_x_center() const {
@@ -176,9 +149,9 @@ double path_ellipse(void* path, double x, double y) {
 	const double sinrot = ellipse->get_sinrot();
 
 	return ((x - x_center) * cosrot + (y - y_center) * sinrot)
-			* ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-			+ ((x - x_center) * sinrot - (y - y_center) * cosrot)
-					* ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
+	    * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+	    + ((x - x_center) * sinrot - (y - y_center) * cosrot)
+	        * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
 
 }
 
@@ -196,10 +169,10 @@ void grad_path_ellipse(void* path, double x, double y, double* grad) {
 	const double sinrot = ellipse->get_sinrot();
 
 	grad[0] = 2. * cosrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-			+ 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+	    + 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
 
 	grad[1] = 2. * sinrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-			- 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+	    - 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
 
 }
 
@@ -261,10 +234,15 @@ void grad_bilinear_surface(void* path, double x, double y, double* grad) {
 }
 
 void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_func, void* ctx,
-		double min_dx) {
+    double min_dx) {
+
+	// this part is from reinitialization proposed in Chopp's, SOME IMPROVEMENTS OF THE FAST MARCHING METHOD
+	// the difference is that instead of bicubic interpolation, we used bilinear interpolation to find the distance
+	// near the interface. For the first time step we have the initial shape of pile and we can compute the
+	// distance to the interface exactly, and we do not need to bilinear interpolation
 
 	double d1[2] = { 0., 0. }, d2[2] = { 0., 0. }, grad[2], pvalue, grad_dot, x_new, y_new, x_old,
-			y_old, x_half, y_half, epslon = .01;
+	    y_old, x_half, y_half, epslon = .01;
 
 // initializing the solution
 	x_new = x_old = *(elem->get_coord());
@@ -296,7 +274,7 @@ void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_f
 		y_new = y_half + d2[1];
 
 	} while (sqrt(d1[0] * d1[0] + d1[1] * d1[1] + d2[0] * d2[0] + d2[1] * d2[1]) > treshold
-			&& iter < max_iter);
+	    && iter < max_iter);
 
 	if (phi_old < 0.)
 		sgn = -1.;
@@ -344,13 +322,13 @@ void adjacent_to_interface(HashTable* El_Table, EdgeList& accepted) {
 								xm = (xp + 2) % 4;
 								ym = (xp + 3) % 4;
 
-								int orientation = fabs(ineigh - xp);
+								int orientation = abs(ineigh - xp);
 
 								if (orientation % 4 == 0 || orientation % 4 == 1)
 									accepted.insert(Edge(Curr_El, ElemNeigh, ineigh));
 								else
 									accepted.insert(
-											Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
+									    Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
 							}
 
 						}
@@ -414,7 +392,8 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 			while (currentPtr) {
 				Element* Curr_El = (Element*) (currentPtr->value);
 				if (Curr_El->get_adapted_flag() > 0 && *(Curr_El->get_nbflag()) != 1
-						&& fabs(*(Curr_El->get_state_vars())) <= 10. * min_dx) {
+				// I did note get good result from the following condition
+				    && fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
 					// with the last condition we narrow the range of update
 					// to maximum of 10 cell-width far the the interface
 
@@ -497,6 +476,7 @@ void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
 
 		unsigned* neigh_key = elem[2]->get_neighbors();
 		elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+		assert(elem[3]);
 
 		// this if never should happen, because the elements adjucent to the interface
 		// are maximally refined. but in case that the generation of the quad points
@@ -516,7 +496,7 @@ void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
 }
 
 void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-		TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
 	reset_nbflag(El_Table);
 
@@ -544,17 +524,8 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 		for (int j = 0; j < 4; ++j) {
 			initialize_distance(it->elem[j], p2path, p2grad, (void*) bilinear_coef, min_dx);
 			*((it->elem[j])->get_nbflag()) = 1;
-//			*((it->elem[j])->get_state_vars() + 5) = 200.;
 		}
 	}
-
-//	MapNames mapnames;
-//	char *b, *c, *d;
-//	char a[5] = "abs";
-//	b = c = d = a;
-//	int ce = 0;
-//	mapnames.assign(a, b, c, d, ce);
-//	meshplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
 
 	const double threshold = .5 * min_dx * min_dx * min_dx;
 	double norm = 0., total_norm = 0., normalized_norm;
@@ -575,21 +546,17 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		normalized_norm = sqrt(norm) / tot_elem;
-		cout << "norm: " << normalized_norm << endl;
 
-	} while (normalized_norm > threshold && iter < 12);
-
-//	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
-
-//	cout << "you have to stop here!" << endl;
+	} while (normalized_norm > threshold && iter < 13);
+	cout << "norm: " << normalized_norm << endl;
 }
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-		TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
 // data in pileprops_ptr are scaled
 	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
-			pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
 
 	test_nbflag(El_Table);
 	EdgeList accepted;
@@ -602,19 +569,11 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 	Pt2Grad p2grad = grad_path_ellipse;
 
 	for (EdgeList::iterator it = accepted.begin(); it != accepted.end(); ++it)
-		for (int j = 0; j < 2; ++j) {
-			initialize_distance(it->elem[j], p2path, p2grad, (void*) &ellipse, min_dx);
-			*((it->elem[j])->get_nbflag()) = 1;
-
-		}
-
-//	MapNames mapnames;
-//	char *b, *c, *d;
-//	char a[5] = "abs";
-//	b = c = d = a;
-//	int ce = 0;
-//	mapnames.assign(a, b, c, d, ce);
-//	meshplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
+		for (int j = 0; j < 2; ++j)
+			if (it->elem[j]->get_adapted_flag() > 0) {		// we do not want to update ghost element
+				initialize_distance(it->elem[j], p2path, p2grad, (void*) &ellipse, min_dx);
+				*((it->elem[j])->get_nbflag()) = 1;
+			}
 
 	const double threshold = .5 * min_dx * min_dx * min_dx;
 	double norm = 0., total_norm = 0., normalized_norm;
@@ -635,12 +594,9 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		normalized_norm = sqrt(norm) / tot_elem;
-		cout << "norm: " << normalized_norm << endl;
 
-	} while (normalized_norm > threshold && iter < 12);
-
-//	tecplotter(El_Table, NodeTable, matprops_ptr, timeprops, &mapnames, 0.);
-
-//	cout << "you have to stop here!" << endl;
+		// CFL number is 0.5 and we use 12 iteration to make sure at least 6 neighbor element has been updated
+	} while (normalized_norm > threshold && iter < 13);
+	cout << "norm: " << normalized_norm << endl;
 
 }
