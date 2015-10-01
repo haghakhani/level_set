@@ -36,15 +36,15 @@ C***********************************************************************
 
       double precision fluxxp(6),fluxyp(6),tiny, uprev(6), ustore(6)
       double precision fluxxm(6), fluxym(6)
-      double precision uvec(6), dUdx(6), dUdy(6),lap_phi(2)
+      double precision uvec(6), dUdx(6), dUdy(6)
       double precision h_inv, hphi_inv, curv(2), frict_tiny
       double precision intfrictang, bedfrictang, kactxy, dgdx(2)
-      double precision dtdx, dtdy, dt, g(3), sgn_dudy, sgn_dvdx, tmp
+      double precision dtdx, dtdy, dt, g(3), sgn_dudy, sgn_dvdx
       double precision dnorm, fluxsrc(6)
       double precision xslope,yslope,slope
-      double precision t1, t2, t3, t4,aaa
+      double precision t1, t2, t3, t4
       double precision erosion_rate,threshold,es,totalShear
-      double precision eps, drag(4),tempo
+      double precision eps, drag(4),dvx,dvy
 
 !     function calls
       double precision sgn
@@ -71,19 +71,15 @@ c     -------------------------------Hossein------------------------------------
      2        -dtdy*(fluxyp(i)-fluxym(i))
  10   continue
 
-c      if ((ustore(6).lt.6.d0).and.(ustore(6).gt.0d0)) then      
-
-      ustore(1)=uprev(1)+dt*fluxsrc(1)
+      ustore(1)=uprev(1)
      $     -dtdx*(fluxxp(1)+fluxxm(5))
      $     -dtdy*(fluxyp(1)+fluxym(5))
-
-c      endif
 
       
       ustore(2) = max(ustore(2),0.d0)
 c      ustore(1) = max(ustore(1),0.)
       ustore(5) = uvec(5)
-      ustore(6) = 1.d0 
+      ustore(6) = uvec(6)
 
       if(uvec(2).gt.tiny) then
 c     Source terms ...
@@ -110,8 +106,8 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     x-direction source terms
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     alphaxy -- see pitman-le (2005)
-         tmp = h_inv*(dUdy(3)-v_solid(1)*dUdy(2))
-         sgn_dudy = sgn(tmp, frict_tiny)
+         dvx = h_inv*(dUdy(3)-v_solid(1)*dUdy(2))
+         sgn_dudy = sgn(dvx, frict_tiny)
          alphaxy = sgn_dudy*dsin(intfrictang)*kactxy
 
          t2=alphaxy*uvec(2)*(g(3)*dUdy(2)
@@ -129,8 +125,8 @@ c     update ustore
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     solid fraction y-direction source terms
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-         tmp = h_inv*(dUdx(4)-v_solid(2)*dUdx(2))
-         sgn_dvdx = sgn(tmp, frict_tiny)
+         dvy = h_inv*(dUdx(4)-v_solid(2)*dUdx(2))
+         sgn_dvdx = sgn(dvy, frict_tiny)
          alphaxy = sgn_dvdx*dsin(intfrictang)*kactxy
 
          t2=alphaxy*uvec(2)*(g(3)*dUdx(2)
@@ -144,10 +140,8 @@ c-------------------------------the bed friction force for fast moving flow-----
          t4 = uvec(2)*g(2)
 
          ustore(4) = ustore(4) + dt*(t4-t2-t3)
+
       endif
-      
-      forceint=unitvx*forceintx+unitvy*forceinty
-      forcebed=unitvx*forcebedx+unitvy*forcebedy
 
       do 20 i = 1,4
          uvec(i)=ustore(i)

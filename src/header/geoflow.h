@@ -72,6 +72,8 @@ void slopes(HashTable* El_Table, HashTable* NodeTable, MatProps* matprops_ptr);
 double get_coef_and_eigen(HashTable* El_Table, HashTable* NodeTable, MatProps* matprops_ptr,
     FluxProps* fluxprops_ptrs, TimeProps* timeprops_ptr, int ghost_flag);
 
+void find_min_dx(HashTable* El_Table, double* mindx);
+
 //! this function transfers information during events such as ghost element data exchange and repartitioning
 void move_data(int nump, int myid, HashTable* El_Table, HashTable* NodeTable,
     TimeProps* timeprops_ptr);

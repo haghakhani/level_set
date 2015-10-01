@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
 		if (timeprops.iter)// this is to avoid run for time step 0
 					reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
 
-		if ((adaptflag != 0) /*&& (timeprops.iter % 5 == 4)*/) {
+		if ((adaptflag != 0) && (timeprops.iter % 5 == 4)) {
 			AssertMeshErrorFree(BT_Elem_Ptr, BT_Node_Ptr, numprocs, myid, -2.0);
 
 			H_adapt(BT_Elem_Ptr, BT_Node_Ptr, h_count, TARGET, &matprops, &fluxprops, &timeprops, 5);
@@ -243,12 +243,7 @@ int main(int argc, char *argv[]) {
 		 * output results to file
 		 */
 		if (timeprops.ifoutput()) {
-			//if (timeprops.iter%10==0){//(timeprops.iter<1000 && timeprops.iter%60==58)
-			//output_flag=1;
-			//else if ( timeprops.iter%200==198)
-			//output_flag=1;
-			//    if(output_flag)
-			//	{
+
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 
 			output_discharge(&matprops, &timeprops, &discharge, myid);

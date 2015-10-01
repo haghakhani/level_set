@@ -170,6 +170,9 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH], in
 	effect_kactxy[0] = effect_kactxy[0] = 0.;
 	effect_bedfrict = effect_tanbedfrict = 0.;
 	narrow_bound_flag = 0;
+
+	for (int i = 0; i < 4; ++i)
+		phi_slope[i] = 0.;
 }
 
 //used for refinement
@@ -298,6 +301,9 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH], in
 
 	stoppedflags = fthTemp->stoppedflags;
 	narrow_bound_flag = 0;
+
+	for (int i = 0; i < 4; ++i)
+		phi_slope[i] = 0.;
 
 	return;
 }
@@ -600,6 +606,9 @@ Element::Element(Element* sons[], HashTable* NodeTable, HashTable* El_Table,
 		shortspeed /= (4.0 * state_vars[1]);
 
 	narrow_bound_flag = 0;
+
+	for (int i = 0; i < 4; ++i)
+		phi_slope[i] = 0.;
 
 	return;
 }
@@ -988,19 +997,19 @@ void Element::insert_coord(HashTable* NodeTable) {
 }
 
 double max(double x, double y) {
-	if (x >= y) {
-		return (x);
-	} else {
-		return (y);
-	}
+
+	if (x < y)
+		return y;
+
+	return x;
 }
 
 double min(double x, double y) {
-	if (x >= y) {
-		return (y);
-	} else {
-		return (x);
-	}
+
+	if (x > y)
+		return y;
+
+	return x;
 }
 
 // the element member function calc_wet_dry_orient() calculates the 
@@ -1742,44 +1751,29 @@ double Element::convect_dryline(double VxVy[2], double dt) {
 void Element::calc_phi_slope(HashTable* El_Table, HashTable* NodeTable) {
 	//this function returns the array of positive and minus phi approximation that are required for reinitialization
 
-	int j;
-	//bc = 0;
-	// /* check to see if this is a boundary */
-	// while(j<4 && bc == 0) {
-	//   if(neigh_proc[j] == INIT)
-	//     bc = 1;
-	//   j++;
-	// }
-	// if(bc == 1) {
-	//   for(j=0;j<2*DIMENSION;j++)
-	//     phi_slope[j] = 0.;
-	//   return;
-	// }
-
 	//x plus, x minus, y plus, y minus
-	int xp = positive_x_side;
-	int yp = (xp + 1) % 4, xm = (xp + 2) % 4, ym = (xp + 3) % 4;
-	int xpflag = 0, xmflag = 0, ypflag = 0, ymflag = 0;
+	int yp, xm, ym, xp, xpflag, xmflag, ypflag, ymflag;
+	xp = positive_x_side;
+	yp = (xp + 1) % 4;
+	xm = (xp + 2) % 4;
+	ym = (xp + 3) % 4;
 
-	for (j = 0; j < 4; j++)
+	xpflag = xmflag = ypflag = ymflag = 0;
+
+	for (int j = 0; j < 4; j++)
 		if (neigh_proc[j] == INIT)
-			switch (abs(xp - j) % 2) {
-			case 0:                    //boundary is in x direction
-				if ((xp - j) == 0) {           //boundary is in xp direction
-					phi_slope[1] = 0;
-					xpflag = 1;
-				} else {                     //boundary is in xm direction
-					phi_slope[0] = 0;
-					xmflag = 1;
-				}
-			case 1:                    //boundary is in y direction
-				if ((xp - j) > 0) {            //boundary is in ym direction
-					phi_slope[2] = 0;
-					ymflag = 1;
-				} else {                     //boundary is in yp direction
-					phi_slope[3] = 0;
-					ypflag = 1;
-				}
+			if (j == xp) {
+				phi_slope[1] = 0.;
+				xpflag = 1;
+			} else if (j == xm) {
+				phi_slope[0] = 0.;
+				xmflag = 1;
+			} else if (j == ym) {
+				phi_slope[2] = 0.;
+				ymflag = 1;
+			} else {
+				phi_slope[3] = 0.;
+				ypflag = 1;
 			}
 
 	/* x direction */
@@ -1877,19 +1871,7 @@ double Element::calc_levelset_flux(double dx) {
 void Element::xdirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 		double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS]) {
 	int i, j;
-	double a, Vel[4]; // Vel[0:1]: solid-vel, Vel[2:3]: fluid-vel
-	double volf = 0.;
-	double epsilon = matprops_ptr->epsilon;
-	double den_frac;
-
-	// if ( matprops_ptr->flow_type == FLUID_FLOW )
-	//   den_frac = 1.;
-	// else if ( matprops_ptr->flow_type == DRY_FLOW )
-	//   den_frac = 0.;
-	// else
-	//   den_frac = matprops_ptr->den_fluid/matprops_ptr->den_solid;
-
-	den_frac = 0;
+	double a, Vel; // Vel[0:1]: solid-vel, Vel[2:3]: fluid-vel
 
 	if ((state_vars[1] < GEOFLOW_TINY))  //&&(state_vars[1]==0))
 	{
@@ -1901,49 +1883,24 @@ void Element::xdirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 		for (i = 0; i < NUM_STATE_VARS; i++)
 			hfv[0][i] = state_vars[i] + d_state_vars[i] * dz;
 
-		// if((0.0<Awet)&&(Awet<1.0))
-		// 	for (i=0; i<NUM_STATE_VARS; i++)
-		// 	  hfv[0][i]*=wetnessfactor;
+		Vel = hfv[0][2] / hfv[0][1];
 
-		// compute volume-fraction
-		// if ( hfv[0][0] > GEOFLOW_TINY )
-		//volf = hfv[0][1]/hfv[0][0];
-
-		Vel[1] = Vel[3] = 0.; // not really, but don't need it here
-
-		if (hfv[0][1] > GEOFLOW_TINY)
-			// Solid-phase velocity in x-dir
-			Vel[0] = hfv[0][2] / hfv[0][1];
-		else
-			Vel[0] = 0;
-		// Fluid-phase velocity in y-dir
-		// Vel[2] = hfv[0][4]/hfv[0][1];
-
-		// sound-speed : a^2 = k_ap*h*ph*g(3) + h*(1-phi)*g(3)
-		//double temp=kactxy[0]*hfv[0][1]*gravity[2];
 		a = sqrt(kactxy[0] * hfv[0][1] * gravity[2]);
-		//printf("fluxx a:%f\n",a);
-
-		// get du/dy
-		//double dudy=(d_state_vars[NUM_STATE_VARS+2]-
-		//   d_state_vars[NUM_STATE_VARS+1]*Vel[0])/state_vars[1];
-		//double alphaxy=-c_sgn(dudy)*sin(matprops_ptr->intfrict)*kactxy[0];
-		//double temp2=alphaxy*hfv[0][0]*hfv[0][1]*gravity[2];
 		//fluxes
-		hfv[1][0] = hfv[0][0] * Vel[0];    //+hfv[0][4]*(1.-volf);
-		hfv[1][1] = hfv[0][1] * Vel[0];
-		hfv[1][2] = hfv[0][2] * Vel[0] + 0.5 * a * a * hfv[0][1];
-		hfv[1][3] = hfv[0][3] * Vel[0];
-		hfv[1][4] = 0;    //hfv[0][4]*Vel[2];//+ 0.5*epsilon*hfv[0][0]*hfv[0][0]*gravity[2];
-		hfv[1][5] = 0;    //hfv[0][5]*Vel[2];
+		hfv[1][0] = hfv[0][0]; // we put here to be able compute \frac{\partial \phi}{\partial x} in flux
+		hfv[1][1] = hfv[0][1] * Vel;
+		hfv[1][2] = hfv[0][2] * Vel + 0.5 * a * a * hfv[0][1];
+		hfv[1][3] = hfv[0][3] * Vel;
+		hfv[1][4] = 0;
+		hfv[1][5] = 0;
 
 		//wave speeds
-		hfv[2][0] = Vel[0] - a;
-		hfv[2][1] = Vel[0];
-		hfv[2][2] = Vel[0] + a;
-		hfv[2][3] = Vel[0] - a;
-		hfv[2][4] = Vel[0];
-		hfv[2][5] = Vel[0] + a;
+		hfv[2][0] = Vel - a;
+		hfv[2][1] = Vel;
+		hfv[2][2] = Vel + a;
+		hfv[2][3] = 0.;
+		hfv[2][4] = 0.;
+		hfv[2][5] = 0.;
 	}
 	for (i = 0; i < 3; i++)
 		for (j = 0; j < NUM_STATE_VARS; j++) {
@@ -1960,22 +1917,8 @@ void Element::xdirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 void Element::ydirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 		double hfv[3][NUM_STATE_VARS], double hrfv[3][NUM_STATE_VARS]) {
 	int i, j;
-	double Vel[4], a;
-	double volf = 0.;
-	double epsilon = matprops_ptr->epsilon;
-	double den_frac;
+	double Vel, a;
 
-	// if ( matprops_ptr->flow_type == FLUID_FLOW )
-	//   den_frac = 1.;
-	// else if ( matprops_ptr->flow_type == DRY_FLOW )
-	//   den_frac = 0.;
-	// else
-	//   den_frac = matprops_ptr->den_fluid/matprops_ptr->den_solid;
-
-	den_frac = 0;
-	//the "update flux" values (hfv) are the fluxes used to update the solution,
-	// they may or may not be "reset" from their standard values based on whether
-	// or not the stopping criteria is triggering a change intended to cause the flow to stop.
 	if ((state_vars[1] < GEOFLOW_TINY))  //&&(state_vars[1]==0))
 	{
 		for (i = 0; i < 3; i++)
@@ -1986,49 +1929,25 @@ void Element::ydirflux(MatProps* matprops_ptr, double dz, double wetnessfactor,
 		for (i = 0; i < NUM_STATE_VARS; i++)
 			hfv[0][i] = state_vars[i] + d_state_vars[NUM_STATE_VARS + i] * dz;
 
-		// if((0.0<Awet)&&(Awet<1.0))
-		// 	for (i=0; i<NUM_STATE_VARS; i++)
-		// 	  hfv[0][i]*=wetnessfactor;
-
-		if (hfv[0][0] > GEOFLOW_TINY)
-			volf = 0;    //hfv[0][1]/hfv[0][0];
-
-		// a = speed of sound through the medium
-		//double temp=kactxy[1]*hfv[0][1]*gravity[2];
 		a = sqrt(kactxy[1] * hfv[0][1] * gravity[2]);
-		//printf("fluxy a:%f\n",a);
 
-		// velocities
-		Vel[0] = Vel[2] = 0.; // don't need them here
-
-		if (hfv[0][1] > GEOFLOW_TINY)
-			// Solid-phase velocity in y-dir
-			Vel[1] = hfv[0][3] / hfv[0][1];
-		else
-			Vel[1] = 0;
-		// Fluid-phase velocity in y-dir
-		//Vel[3]=hfv[0][5]/hfv[0][1];
-
-		// hydostatic terms
-		//double dvdx=(d_state_vars[3]-d_state_vars[1]*Vel[1])/state_vars[1];
-		//double alphayx=-c_sgn(dvdx)*sin(matprops_ptr->intfrict)*kactxy[1];
-		//double temp2=alphayx*hfv[0][0]*hfv[0][1]*gravity[2];
+		Vel = hfv[0][3] / hfv[0][1];
 
 		//fluxes
-		hfv[1][0] = hfv[0][0] * Vel[1];    //+hfv[0][5]*(1.-volf);
-		hfv[1][1] = hfv[0][1] * Vel[1];
-		hfv[1][2] = hfv[0][2] * Vel[1];    // + 0.5*temp2;
-		hfv[1][3] = hfv[0][3] * Vel[1] + 0.5 * hfv[0][1] * a * a;
-		hfv[1][4] = 0;    //hfv[0][4]*Vel[3];
-		hfv[1][5] = 0;    //hfv[0][5]*Vel[3];//+ 0.5*epsilon*hfv[0][0]*hfv[0][0]*gravity[2];
+		hfv[1][0] = hfv[0][0]; //we put here to be able compute \frac{\partial \phi}{\partial u} in flux
+		hfv[1][1] = hfv[0][1] * Vel;
+		hfv[1][2] = hfv[0][2] * Vel;    // + 0.5*temp2;
+		hfv[1][3] = hfv[0][3] * Vel + 0.5 * hfv[0][1] * a * a;
+		hfv[1][4] = 0;
+		hfv[1][5] = 0;
 
 		//wave speeds
-		hfv[2][0] = Vel[1] - a;
-		hfv[2][1] = Vel[1];
-		hfv[2][2] = Vel[1] + a;
-		hfv[2][3] = Vel[1] - a;
-		hfv[2][4] = Vel[1];
-		hfv[2][5] = Vel[1] + a;
+		hfv[2][0] = Vel - a;
+		hfv[2][1] = Vel;
+		hfv[2][2] = Vel + a;
+		hfv[2][3] = 0.;
+		hfv[2][4] = 0.;
+		hfv[2][5] = 0.;
 	}
 	for (i = 0; i < 3; i++)
 		for (j = 0; j < NUM_STATE_VARS; j++) {
@@ -2126,66 +2045,65 @@ void riemannflux(double hfvl[3][NUM_STATE_VARS], double hfvr[3][NUM_STATE_VARS],
 			sr = max(0, max(hfvl[2][2], hfvr[2][2]));
 		}
 
-		if (sl >= 0.0)
-			for (ivar = 0; ivar < NUM_STATE_VARS; ivar++)
-				flux[ivar] = hfvl[1][ivar];
-		else if (sr <= 0.0)
-			for (ivar = 0; ivar < NUM_STATE_VARS; ivar++)
-				flux[ivar] = hfvr[1][ivar];
+		// we computed the flux for the level set equation based on the following papers:
+		// 1. C. Pares, Numerical methods for nonconservative hyperbolic systems: a theoretical framework. page 14.
+		// 2. M. Castro et. al., A HLLC scheme for nonconservative hyperbolic problems .
+		//    Application to turbidity currents with sediment transport page 9,10.
+
+		double v_r, v_l, v_star, phi_star;
+
+		if (hfvl[0][1] > 0.)
+			if (dir == 0)
+				v_l = hfvl[0][2] / hfvl[0][1];
+			else
+				v_l = hfvl[0][3] / hfvl[0][1];
 		else
-			for (ivar = 0; ivar < NUM_STATE_VARS; ivar++) {
+			v_l = 0;
+
+		if (hfvr[0][1] > 0.)
+			if (dir == 0)
+				v_r = hfvr[0][2] / hfvr[0][1];
+			else
+				v_r = hfvr[0][3] / hfvr[0][1];
+		else
+			v_r = 0;
+
+		if (sl >= 0.0) {
+
+			flux[0] = 0.;
+			flux[4] = .5 * (v_l + v_r) * (hfvr[0][0] - hfvl[0][0]);
+
+			for (ivar = 1; ivar < NUM_STATE_VARS - 2; ivar++)
+				flux[ivar] = hfvl[1][ivar];
+
+		} else if (sr <= 0.0) {
+
+			flux[0] = .5 * (v_l + v_r) * (hfvr[0][0] - hfvl[0][0]);
+			flux[4] = 0.;
+
+			for (ivar = 1; ivar < NUM_STATE_VARS - 2; ivar++)
+				flux[ivar] = hfvr[1][ivar];
+
+		} else {
+
+			for (ivar = 1; ivar < NUM_STATE_VARS - 2; ivar++)
 				flux[ivar] = (sr * hfvl[1][ivar] - sl * hfvr[1][ivar]
 						+ sl * sr * (hfvr[0][ivar] - hfvl[0][ivar])) / (sr - sl);
-				if (isnan(flux[ivar])) {
-					printf("Nan in flux_ivar");
+
+			phi_star = (sr * hfvr[0][0] - sl * hfvl[0][0] - .5 * (v_r + v_l) * (hfvr[0][0] - hfvl[0][0]))
+					/ (sr - sl);
+
+			// we do not have v_star so approximate by first order
+			flux[0] = v_l * (phi_star - hfvl[0][0]);
+			flux[4] = v_r * (hfvr[0][0] - phi_star);
+
+			for (ivar = 0; ivar < NUM_STATE_VARS - 1; ivar++)
+				if (isnan(flux[ivar]))
 					exit(1);
-				}
-			}
-		if (dir == 0) {
-			if (hfvl[0][1] > 0)
-				vel_l = hfvl[0][2] / hfvl[0][1];
-			else
-				vel_l = 0;
-			if (hfvr[0][1] > 0)
-				vel_r = hfvr[0][2] / hfvr[0][1];
-			else
-				vel_r = 0;
-			if (vel_l < 0) {
-				flux[0] = .5 * (hfvr[0][0] - hfvl[0][0]) * (vel_r + vel_l);
-				flux[4] = 0;
-			} else {
-				flux[0] = 0;
-				flux[4] = .5 * (hfvr[0][0] - hfvl[0][0]) * (vel_r + vel_l);
-			}
-		} else {
-			if (hfvl[0][1] > 0)
-				vel_l = hfvl[0][3] / hfvl[0][1];
-			else
-				vel_l = 0;
-			if (hfvr[0][1] > 0)
-				vel_r = hfvr[0][3] / hfvr[0][1];
-			else
-				vel_r = 0;
-			if (vel_l < 0) {
-				flux[0] = .5 * (hfvr[0][0] - hfvl[0][0]) * (vel_r + vel_l);
-				flux[4] = 0;
-			} else {
-				flux[0] = 0;
-				flux[4] = .5 * (hfvr[0][0] - hfvl[0][0]) * (vel_r + vel_l);
-			}
-		}
 
-		//calc_intercell_vel(hfvl,hfvr,dir,inter_cell_vel);
-		//flux[0]=inter_cell_vel[0]*(hfvr[0][0]-hfvl[0][0]);
-		//flux[4]=inter_cell_vel[1]*(hfvr[0][0]-hfvl[0][0]);
-		if (isnan(flux[0]) || isnan(flux[4])) {
-			printf("there is something wrong in y\n");
-			exit(1);
 		}
-
 	}
 
-	return;
 }
 
 void Element::calc_edge_states(HashTable* El_Table, HashTable* NodeTable, MatProps* matprops_ptr,
@@ -2199,7 +2117,7 @@ void Element::calc_edge_states(HashTable* El_Table, HashTable* NodeTable, MatPro
 	double hfv[3][NUM_STATE_VARS], hfv1[3][NUM_STATE_VARS], hfv2[3][NUM_STATE_VARS]; //update flux
 	double hrfv[3][NUM_STATE_VARS], hrfv1[3][NUM_STATE_VARS], hrfv2[3][NUM_STATE_VARS]; //refinement flux
 
-	//ghost elements don't have nodes so you have to make temp storage for flux
+//ghost elements don't have nodes so you have to make temp storage for flux
 	double ghostflux[NUM_STATE_VARS]; //, (*fluxptr)[NUM_STATE_VARS];
 	*outflow = 0.0;
 
@@ -2755,7 +2673,7 @@ void Element::calc_topo_data(MatProps* matprops_ptr) {
 			* (matprops_ptr->LENGTH_SCALE) / 2.0;  // element "size"
 	double xcoord = coord[0] * (matprops_ptr->LENGTH_SCALE);
 	double ycoord = coord[1] * (matprops_ptr->LENGTH_SCALE);
-	//double eldif = elevation;
+//double eldif = elevation;
 	int i = Get_elevation(resolution, xcoord, ycoord, &elevation);
 #ifdef PRINT_GIS_ERRORS
 	if(i != 0) {
@@ -2764,8 +2682,8 @@ void Element::calc_topo_data(MatProps* matprops_ptr) {
 	}
 #endif
 	elevation = elevation / matprops_ptr->LENGTH_SCALE;
-	//eldif=(elevation-eldif)*matprops_ptr->LENGTH_SCALE;
-	//if(fabs(eldif)>1.0) printf("calc_topo_data() after-before=%g\n",eldif);
+//eldif=(elevation-eldif)*matprops_ptr->LENGTH_SCALE;
+//if(fabs(eldif)>1.0) printf("calc_topo_data() after-before=%g\n",eldif);
 	i = Get_slope(resolution, xcoord, ycoord, zeta, (zeta + 1));
 #ifdef PRINT_GIS_ERRORS
 	if(i != 0) {
@@ -2789,7 +2707,7 @@ void Element::calc_topo_data(MatProps* matprops_ptr) {
 		//more than one material so need to get material from map
 		Get_raster_id(resolution, xcoord, ycoord, &material);
 
-	//flat plane!!!
+//flat plane!!!
 	/*  elevation = 0;
 	 zeta[0] = 0;
 	 zeta[1] = 0;
@@ -3140,60 +3058,60 @@ void Element::calc_stop_crit(MatProps *matprops_ptr) {
 //	return (0); //not on contour line
 //}
 
-int Element::if_pile_boundary(HashTable *ElemTable) {
-
-	for (int ineigh = 0; ineigh < 8; ineigh++)
-		if (neigh_proc[ineigh] >= 0) {
-			Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-			if (state_vars[0] * ElemNeigh->state_vars[0] <= 0.)
-				return (1);
-		}
-	return (0);
-}
-
-//int Element::if_pile_boundary(HashTable *ElemTable, double contour_height) {
+//int Element::if_pile_boundary(HashTable *ElemTable) {
 //
-//	int ineigh;
-//	Element* ElemNeigh;
-//
-//	if (dabs(state_vars[0]) <= contour_height) {
-//		for (ineigh = 0; ineigh < 8; ineigh++)
-//			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
-//					{
-//				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-//				if (ElemNeigh == NULL) {
-//					printf(
-//							"ElemNeigh==NULL ineigh=%d\n mykey   ={%u,%u} myprocess =%d generation=%d refined=%d adapted=%d\n",
-//							ineigh, key[0], key[1], myprocess, generation, refined, adapted);
-//					printf(" neighbor={%u,%u} neigh_proc=%d neigh_gen =%d\n\n", neighbor[ineigh][0],
-//							neighbor[ineigh][1], neigh_proc[ineigh], neigh_gen[ineigh]);
-//					fflush(stdout);
-//				}
-//				assert(ElemNeigh);
-//				if (dabs(*(ElemNeigh->get_state_vars())) > contour_height)
-//					return (2); //inside of pileheight contour line
-//			}
-//	} else {
-//		for (ineigh = 0; ineigh < 8; ineigh++)
-//			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
-//					{
-//				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-//				if (ElemNeigh == NULL) {
-//					printf(
-//							"ElemNeigh==NULL\n mykey   ={%u,%u} myprocess =%d generation=%d refined=%d adapted=%d\n",
-//							key[0], key[1], myprocess, generation, refined, adapted);
-//					printf(" neighbor={%u,%u} neigh_proc=%d neigh_gen =%d\n ineigh=%d\n", neighbor[ineigh][0],
-//							neighbor[ineigh][1], neigh_proc[ineigh], neigh_gen[ineigh], ineigh);
-//					fflush(stdout);
-//				}
-//				assert(ElemNeigh);
-//				if (dabs(*(ElemNeigh->get_state_vars())) <= contour_height)
-//					return (1); //outside of pileheight contour line
-//			}
-//	}
-//
-//	return (0); //not on pileheight contour line
+//	for (int ineigh = 0; ineigh < 8; ineigh++)
+//		if (neigh_proc[ineigh] >= 0) {
+//			Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+//			if (state_vars[0] * ElemNeigh->state_vars[0] <= 0.)
+//				return (1);
+//		}
+//	return (0);
 //}
+
+int Element::if_pile_boundary(HashTable *ElemTable, double contour_height) {
+
+	int ineigh;
+	Element* ElemNeigh;
+
+	if (state_vars[0] <= contour_height) {
+		for (ineigh = 0; ineigh < 8; ineigh++)
+			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
+					{
+				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+				if (ElemNeigh == NULL) {
+					printf(
+							"ElemNeigh==NULL ineigh=%d\n mykey   ={%u,%u} myprocess =%d generation=%d refined=%d adapted=%d\n",
+							ineigh, key[0], key[1], myprocess, generation, refined, adapted);
+					printf(" neighbor={%u,%u} neigh_proc=%d neigh_gen =%d\n\n", neighbor[ineigh][0],
+							neighbor[ineigh][1], neigh_proc[ineigh], neigh_gen[ineigh]);
+					fflush(stdout);
+				}
+				assert(ElemNeigh);
+				if (*(ElemNeigh->get_state_vars()) > contour_height)
+					return (2); //inside of pileheight contour line
+			}
+	} else {
+		for (ineigh = 0; ineigh < 8; ineigh++)
+			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
+					{
+				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+				if (ElemNeigh == NULL) {
+					printf(
+							"ElemNeigh==NULL\n mykey   ={%u,%u} myprocess =%d generation=%d refined=%d adapted=%d\n",
+							key[0], key[1], myprocess, generation, refined, adapted);
+					printf(" neighbor={%u,%u} neigh_proc=%d neigh_gen =%d\n ineigh=%d\n", neighbor[ineigh][0],
+							neighbor[ineigh][1], neigh_proc[ineigh], neigh_gen[ineigh], ineigh);
+					fflush(stdout);
+				}
+				assert(ElemNeigh);
+				if (*(ElemNeigh->get_state_vars()) <= contour_height)
+					return (1); //outside of pileheight contour line
+			}
+	}
+
+	return (0); //not on pileheight contour line
+}
 
 int Element::if_source_boundary(HashTable *ElemTable) {
 
@@ -3264,74 +3182,29 @@ int Element::if_source_boundary(HashTable *ElemTable) {
 	return (0); //not on line bounding area with mass source/sink
 }
 
-int Element::if_first_buffer_boundary(HashTable *ElemTable) {
-
-	int iffirstbuffer = 0;
-
-	if (adapted <= 0)
-		return (adapted - 1);
-
-	if ((state_vars[0] > 0.) && (Influx[1] == 0.0)) {
-		for (int ineigh = 0; ineigh < 8; ineigh++)
-			if (neigh_proc[ineigh] >= 0) { //don't check outside map boundary or duplicate neighbor
-				Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-				if ((*(ElemNeigh->get_state_vars()) <= 0.) || (*(ElemNeigh->get_influx() + 1) > 0.0)) {
-					iffirstbuffer = 1;
-					break;
-				}
-			}
-	} else {
-		for (int ineigh = 0; ineigh < 8; ineigh++)
-			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
-					{
-				Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-				assert(ElemNeigh);
-				if ((*(ElemNeigh->get_state_vars()) >= 0.) && *(ElemNeigh->get_influx() + 1) == 0.0) {
-					iffirstbuffer = 1;
-					break;
-				}
-			}
-	}
-
-	if (iffirstbuffer) {
-		if ((adapted >= NEWSON) || (generation == REFINE_LEVEL))
-			return (2); //is a member of the buffer but doesn't need to be refined
-		else
-			return (1); //needs to be refined and some of its sons will be members
-	}
-
-	return (0);
-
-}
-
-//int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_height) {
+//int Element::if_first_buffer_boundary(HashTable *ElemTable) {
 //
-//	int ineigh;
-//	Element* ElemNeigh;
 //	int iffirstbuffer = 0;
 //
 //	if (adapted <= 0)
 //		return (adapted - 1);
 //
-//	if ((dabs(state_vars[0]) < contour_height) && (Influx[1] == 0.0)) {
-//		for (ineigh = 0; ineigh < 8; ineigh++)
+//	if ((state_vars[0] > 0.) && (Influx[1] == 0.0)) {
+//		for (int ineigh = 0; ineigh < 8; ineigh++)
 //			if (neigh_proc[ineigh] >= 0) { //don't check outside map boundary or duplicate neighbor
-//				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-//				assert(ElemNeigh);
-//				if ((dabs(*(ElemNeigh->get_state_vars())) >= contour_height)
-//						|| (*(ElemNeigh->get_influx() + 1) > 0.0)) {
+//				Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+//				if ((*(ElemNeigh->get_state_vars()) <= 0.) || (*(ElemNeigh->get_influx() + 1) > 0.0)) {
 //					iffirstbuffer = 1;
 //					break;
 //				}
 //			}
 //	} else {
-//		for (ineigh = 0; ineigh < 8; ineigh++)
+//		for (int ineigh = 0; ineigh < 8; ineigh++)
 //			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
 //					{
-//				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+//				Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
 //				assert(ElemNeigh);
-//				if ((dabs(*(ElemNeigh->get_state_vars())) < contour_height)
-//						&& (*(ElemNeigh->get_influx() + 1) == 0.0)) {
+//				if ((*(ElemNeigh->get_state_vars()) >= 0.) && *(ElemNeigh->get_influx() + 1) == 0.0) {
 //					iffirstbuffer = 1;
 //					break;
 //				}
@@ -3346,39 +3219,44 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable) {
 //	}
 //
 //	return (0);
+//
 //}
 
-int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable) {
+int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_height) {
 
-	int ifnextbuffer;
-	ifnextbuffer = 0;
+	int ineigh;
+	Element* ElemNeigh;
+	int iffirstbuffer = 0;
+
 	if (adapted <= 0)
-		//GHOST element or element that should be deleted soon
 		return (adapted - 1);
 
-	if ((adapted != BUFFER) && //this element is not in the buffer
-			((Influx[1] == 0.0))) //&& //this element is OUTSIDE the buffer layer "circle"
-		for (int ineigh = 0; ineigh < 8; ineigh++)
-			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
-					{
-				Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
-				if (!ElemNeigh) {
-					printf("Elem={%10u,%10u} missing neighbor ineigh=%d {%10u,%10u}\n", key[0], key[1],
-							ineigh, neighbor[ineigh][0], neighbor[ineigh][1]);
-					ElemBackgroundCheck(ElemTable, NodeTable, key, stdout);
-					assert(ElemNeigh);
-				}
-
-				if ((abs(ElemNeigh->get_adapted_flag()) == BUFFER)
-						&& (fabs(state_vars[0]) >= *(ElemNeigh->get_state_vars())))
-					//the condition finds the elements near the buffer, but farther from the interface
-						{ //this element is next to a member of the old buffer layer
-					ifnextbuffer = 1; //which means this element is a member of the next outer boundary of the buffer layer
+	if ((dabs(state_vars[0]) < contour_height) && (Influx[1] == 0.0)) {
+		for (ineigh = 0; ineigh < 8; ineigh++)
+			if (neigh_proc[ineigh] >= 0) { //don't check outside map boundary or duplicate neighbor
+				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+				assert(ElemNeigh);
+				if ((dabs(*(ElemNeigh->get_state_vars())) >= contour_height)
+						|| (*(ElemNeigh->get_influx() + 1) > 0.0)) {
+					iffirstbuffer = 1;
 					break;
 				}
 			}
+	} else {
+		for (ineigh = 0; ineigh < 8; ineigh++)
+			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
+					{
+				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+				assert(ElemNeigh);
+				if ((dabs(*(ElemNeigh->get_state_vars())) < contour_height)
+						&& (*(ElemNeigh->get_influx() + 1) == 0.0)) {
+					iffirstbuffer = 1;
+					break;
+				}
+			}
+	}
 
-	if (ifnextbuffer == 1) {
+	if (iffirstbuffer) {
 		if ((adapted >= NEWSON) || (generation == REFINE_LEVEL))
 			return (2); //is a member of the buffer but doesn't need to be refined
 		else
@@ -3388,11 +3266,8 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable)
 	return (0);
 }
 
-//int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable,
-//		double contour_height) {
+//int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable) {
 //
-//	int ineigh;
-//	Element* ElemNeigh;
 //	int ifnextbuffer;
 //	ifnextbuffer = 0;
 //	if (adapted <= 0)
@@ -3401,10 +3276,10 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable)
 //
 //	if ((adapted != BUFFER) && //this element is not in the buffer
 //			((Influx[1] == 0.0))) //&& //this element is OUTSIDE the buffer layer "circle"
-//		for (ineigh = 0; ineigh < 8; ineigh++)
+//		for (int ineigh = 0; ineigh < 8; ineigh++)
 //			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
 //					{
-//				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+//				Element* ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
 //				if (!ElemNeigh) {
 //					printf("Elem={%10u,%10u} missing neighbor ineigh=%d {%10u,%10u}\n", key[0], key[1],
 //							ineigh, neighbor[ineigh][0], neighbor[ineigh][1]);
@@ -3413,7 +3288,8 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable)
 //				}
 //
 //				if ((abs(ElemNeigh->get_adapted_flag()) == BUFFER)
-//						&& (state_vars[0] <= *(ElemNeigh->get_state_vars()))) //for levelset >=
+//						&& (fabs(state_vars[0]) >= *(ElemNeigh->get_state_vars())))
+//						//the condition finds the elements near the buffer, but farther from the interface
 //						{ //this element is next to a member of the old buffer layer
 //					ifnextbuffer = 1; //which means this element is a member of the next outer boundary of the buffer layer
 //					break;
@@ -3429,6 +3305,48 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable)
 //
 //	return (0);
 //}
+
+int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable,
+		double contour_height) {
+
+	int ineigh;
+	Element* ElemNeigh;
+	int ifnextbuffer;
+	ifnextbuffer = 0;
+	if (adapted <= 0)
+		//GHOST element or element that should be deleted soon
+		return (adapted - 1);
+
+	if ((adapted != BUFFER) && //this element is not in the buffer
+			((Influx[1] == 0.0))) //&& //this element is OUTSIDE the buffer layer "circle"
+		for (ineigh = 0; ineigh < 8; ineigh++)
+			if (neigh_proc[ineigh] >= 0) //don't check outside map boundary or duplicate neighbor
+					{
+				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
+				if (!ElemNeigh) {
+					printf("Elem={%10u,%10u} missing neighbor ineigh=%d {%10u,%10u}\n", key[0], key[1],
+							ineigh, neighbor[ineigh][0], neighbor[ineigh][1]);
+					ElemBackgroundCheck(ElemTable, NodeTable, key, stdout);
+					assert(ElemNeigh);
+				}
+
+				if ((abs(ElemNeigh->get_adapted_flag()) == BUFFER)
+						&& (fabs(state_vars[0]) >= *(ElemNeigh->get_state_vars()))) //for levelset >=
+						{ //this element is next to a member of the old buffer layer
+					ifnextbuffer = 1; //which means this element is a member of the next outer boundary of the buffer layer
+					break;
+				}
+			}
+
+	if (ifnextbuffer == 1) {
+		if ((adapted >= NEWSON) || (generation == REFINE_LEVEL))
+			return (2); //is a member of the buffer but doesn't need to be refined
+		else
+			return (1); //needs to be refined and some of its sons will be members
+	}
+
+	return (0);
+}
 
 void Element::save_elem(FILE* fp, FILE *fptxt) {
 
@@ -3592,7 +3510,7 @@ void Element::save_elem(FILE* fp, FILE *fptxt) {
 		}
 #ifdef DEBUG_SAVE_ELEM
 		fprintf(fpdb,"(%u %u) ",brothers[itemp][0],brothers[itemp][1]);
-#endif 
+#endif
 	}
 	assert(Itemp == 76);
 

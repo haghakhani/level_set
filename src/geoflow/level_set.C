@@ -448,7 +448,7 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 					else
 						flux_phi = 0.;
 
-					state_vars[0] = prev_state_vars[0] - dt * sign(state_vars[4]) * flux_phi;
+					state_vars[0] = state_vars[0] - dt * sign(state_vars[4]) * flux_phi;
 
 					*norm += (state_vars[0] - prev_state_vars[0]) * (state_vars[0] - prev_state_vars[0]);
 

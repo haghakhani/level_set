@@ -34,11 +34,16 @@ void update_neighbor_info(HashTable* HT_Elem_Ptr, ElemPtrList* RefinedList, int 
 		HashTable* HT_Node_Ptr, int h_count);
 //extern void  update_neighbor_info(HashTable*, Element*[], int, int,int, HashTable*, int h_count);
 
+extern void data_com(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int myid, int numprocs,
+		int h_count);
+
 extern void htflush(HashTable*, HashTable*, int);
 
-#define REFINE_THRESHOLD1  5*GEOFLOW_TINY
-#define REFINE_THRESHOLD2 15*GEOFLOW_TINY
-#define REFINE_THRESHOLD  40*GEOFLOW_TINY
+extern void test_h_refine(HashTable* HT_Elem_Ptr, int myid, int h_count);
+
+extern void all_check(HashTable* eltab, HashTable* ndtab, int myid, int m, double TARGET);
+
+#define PHI_ZERO 0.
 
 void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double target,
 		MatProps* matprops_ptr, FluxProps *fluxprops, //doesn't need fluxprops
@@ -76,6 +81,9 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 		printf("After first AssertMeshErrorFree\n");
 	}
 
+	unsigned elemdebugkey2a[2] = { 2114123639, 2004318068 };
+	Element* Curr_El = (Element*) HT_Elem_Ptr->lookup(elemdebugkey2a);
+
 	int k, i, j;
 	HashEntryPtr entryp;
 	Element* EmTemp;
@@ -84,8 +92,12 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 	int count = 0;
 	int ifg; //--
 	int refine_flag;
+	int htype = 101; //-- 101 is arbitary
 
 	htflush(HT_Elem_Ptr, HT_Node_Ptr, 1);
+
+	int h_begin = 1;
+	int h_begin_type = 102;
 
 	delete_unused_elements_nodes(HT_Elem_Ptr, HT_Node_Ptr, myid);
 
@@ -96,6 +108,7 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 	double geo_target = element_weight(HT_Elem_Ptr, HT_Node_Ptr, myid, numprocs);
 
 	int hash_size = HT_Elem_Ptr->get_no_of_buckets();
+	int debug_ref_flag = 0;
 
 	for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 
@@ -113,6 +126,14 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 
 	move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 
+	double mindx = 0.;
+
+	find_min_dx(HT_Elem_Ptr, &mindx);
+
+	const double REFINE_THRESHOLD1 = 2 * mindx;
+	const double REFINE_THRESHOLD2 = 5 * mindx;
+	const double REFINE_THRESHOLD = 8 * mindx;
+
 	for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 
 		entryp = *(HT_Elem_Ptr->getbucketptr() + i);
@@ -121,13 +142,19 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			EmTemp = (Element*) (entryp->value);
 			assert(EmTemp);
 			//-- this requirement is used to exclude the new elements
-			if (((EmTemp->get_adapted_flag() > 0) && (EmTemp->get_adapted_flag() < NEWSON))
-					&& (EmTemp->get_gen() < REFINE_LEVEL)
-					&& ((EmTemp->if_pile_boundary(HT_Elem_Ptr) > 0)
+			if (((EmTemp->get_adapted_flag() > 0) && (EmTemp->get_adapted_flag() < NEWSON)) &&
+
+			(EmTemp->get_gen() < REFINE_LEVEL)
+					&&
+
+					((EmTemp->if_pile_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
+							|| (EmTemp->if_pile_boundary(HT_Elem_Ptr, REFINE_THRESHOLD1) > 0)
+							|| (EmTemp->if_pile_boundary(HT_Elem_Ptr, REFINE_THRESHOLD2) > 0)
+							|| (EmTemp->if_pile_boundary(HT_Elem_Ptr, REFINE_THRESHOLD) > 0)
 							|| (EmTemp->if_source_boundary(HT_Elem_Ptr) > 0)
 							|| (*(EmTemp->get_el_error()) > geo_target))) {
 				refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
-
+				debug_ref_flag++;
 			}
 			entryp = entryp->next;
 		}
@@ -157,9 +184,12 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr) == 1)) {
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) == 1)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD1) == 1)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD2) == 1)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD) == 1)) {
 					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
-
+					debug_ref_flag++;
 				}
 				entryp = entryp->next;
 			}
@@ -176,7 +206,10 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr) > 0))
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD1) > 0)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD2) > 0)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD) > 0))
 					EmTemp->put_adapted_flag(BUFFER);
 				entryp = entryp->next;
 			}
@@ -191,9 +224,9 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr) == 1) {
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, REFINE_THRESHOLD) == 1) {
 						refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
-
+						debug_ref_flag++;
 					}
 					entryp = entryp->next;
 				}
@@ -220,7 +253,7 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr) > 0)
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, REFINE_THRESHOLD) > 0)
 						TempList.add(EmTemp);
 					//EmTemp->put_adapted_flag(NEWBUFFER);
 
@@ -391,6 +424,14 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 	//move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr,timeprops_ptr);
 	//printf("myid=%d init_H_adapt 1\n",myid);
 	//AssertMeshErrorFree(HT_Elem_Ptr,HT_Node_Ptr,numprocs,myid,0.0);
+
+	double mindx = 0.;
+
+	find_min_dx(HT_Elem_Ptr, &mindx);
+
+	const double REFINE_THRESHOLD = 2 * mindx;
+	const double REFINE_THRESHOLD1 = 5 * mindx;
+	const double REFINE_THRESHOLD2 = 8 * mindx;
 
 	int num_ellipse_centers = 0;
 
@@ -606,7 +647,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 					while (entryp) {
 						EmTemp = (Element*) (entryp->value);
 						assert(EmTemp);
-						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr) == 1) {
+						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, REFINE_THRESHOLD) == 1) {
 
 							if (EmTemp->get_gen() < REFINE_LEVEL)
 								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
@@ -778,7 +819,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 				if (((EmTemp->get_adapted_flag() > 0) && (EmTemp->get_adapted_flag() < NEWSON))
 						&& (EmTemp->get_gen() < REFINE_LEVEL)
-						&& ((EmTemp->if_pile_boundary(HT_Elem_Ptr) > 0)
+						&& ((EmTemp->if_pile_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
 								|| (EmTemp->if_source_boundary(HT_Elem_Ptr) > 0))) {
 					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
 					debug_ref_flag++;
@@ -843,7 +884,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				assert(EmTemp);
 				//-- this requirement is used to exclude the new elements
 				if (EmTemp->get_adapted_flag() > 0)
-					if ((EmTemp->if_pile_boundary(HT_Elem_Ptr) > 0)
+					if ((EmTemp->if_pile_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
 							|| (EmTemp->if_source_boundary(HT_Elem_Ptr) > 0)) {
 						EmTemp->put_adapted_flag(BUFFER);
 						if (minboundarygen > EmTemp->get_gen())
@@ -875,7 +916,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 					while (entryp) {
 						EmTemp = (Element*) (entryp->value);
 						assert(EmTemp);
-						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr) == 1) {
+						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, REFINE_THRESHOLD) == 1) {
 
 							if (EmTemp->get_gen() < REFINE_LEVEL)
 								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
@@ -974,7 +1015,10 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr) == 1)) {
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) == 1)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD1) == 1)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD2) == 1)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD) == 1)) {
 					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
 					debug_ref_flag++;
 				}
@@ -1004,7 +1048,10 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr) > 0))
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD1) > 0)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD2) > 0)
+						|| (EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, REFINE_THRESHOLD) > 0))
 					EmTemp->put_adapted_flag(BUFFER);
 				entryp = entryp->next;
 			}
@@ -1022,7 +1069,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr) == 1) {
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, REFINE_THRESHOLD) == 1) {
 						refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
 						debug_ref_flag++;
 					}
@@ -1053,7 +1100,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr) > 0)
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, REFINE_THRESHOLD) > 0)
 						TempList.add(EmTemp);
 					entryp = entryp->next;
 				}

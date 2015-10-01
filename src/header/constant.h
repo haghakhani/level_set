@@ -92,5 +92,4 @@ const int GHOST         = -9876; //"refined" GHOST CELL FLAG
 #define OLDFATHER     -6  //This is a temporary marking that says neighbors need to be updated with NEWSON information and then this element should be remarked as TOBEDELETED
 #define OLDSON        -7  //The plan is make this analogous to OLDFATHER to allow unrefinement NEXT TO but not across interprocessor boundaries, this has not been implemented yet (date of this comment: 20061026)
 
-
 #endif

@@ -477,8 +477,8 @@ public:
 	void calc_flux(HashTable *NodeTable, FluxProps *fluxprops, TimeProps *timeprops);
 
 	//! this function returns 2 if this element contains pileheight>=contour_height and has a neighbor who contains pileheight<contour_height.  It returns 1 if this element contains pileheight<contour_height and has a neighbor who contains pileheight>=contour_height.  It returns 0 otherwise. The intended use if if(EmTemp->if_pile_boundary(ElemTable,contour_height)) but I (Keith) added the distinction bewteen 1 and 2 to allow future developers to distinguish between the inside and outside of a pileheight contour line, as this functionality could be useful in the future.
-//	int if_pile_boundary(HashTable *ElemTable, double contour_height);
-	int if_pile_boundary(HashTable *ElemTable);
+	int if_pile_boundary(HashTable *ElemTable, double contour_height);
+//	int if_pile_boundary(HashTable *ElemTable);
 
 //	int if_level_boundary(HashTable *ElemTable);
 
@@ -486,12 +486,12 @@ public:
 	int if_source_boundary(HashTable *ElemTable);
 
 	//! the buffer layer is a layer of refined cells on the outside of the pile, i.e. ((pileheight<contour_height)&&(Influx[0]==0)) and adjacent to the pile.  It is "N" elements wide, and the "N" element width is increased one element at a time.  This function returns 2 if this element a member of the innermost boundary of the buffer and does not need to be adapted.  It returns 1 if this elment needs to be refined and some of its sons will be members of the innermost boundary of the buffer layer
-//	int if_first_buffer_boundary(HashTable *ElemTable, double contour_height);
-	int if_first_buffer_boundary(HashTable *ElemTable);
+	int if_first_buffer_boundary(HashTable *ElemTable, double contour_height);
+//	int if_first_buffer_boundary(HashTable *ElemTable);
 
 	//! the buffer layer is a layer of refined cells on the outside of the pile, i.e. ((pileheight<contour_height)&&(Influx[0]==0)) and adjacent to the pile.  It is "N" elements wide, and the "N" element width is increased one element at a time.  This function returns 2 if this element a member of the boundary of the buffer that is one element wider than the current buffer and does not need to be adapted.  It returns 1 if this elment needs to be refined and some of its sons will be in the next buffer boundary
-//	int if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable, double contour_height);
-	int if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable);
+	int if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable, double contour_height);
+//	int if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable);
 
 	//! for debugging only
 	int get_counted();
@@ -803,9 +803,9 @@ inline void Element::put_height_mom(double pile_height, double volf, double xmom
 
 	double min_dx=std::min(dx[0],dx[1]);
 	if (pile_height > 0.)
-		prev_state_vars[0] = state_vars[0] = prev_state_vars[4] = state_vars[4] = -10 * min_dx;
+		prev_state_vars[0] = state_vars[0] = prev_state_vars[4] = state_vars[4] = - min_dx;
 	else
-		prev_state_vars[0] = state_vars[0] = 10 * min_dx;
+		prev_state_vars[0] = state_vars[0] =  min_dx;
 
 	prev_state_vars[1] = state_vars[1] = pile_height;
 	prev_state_vars[2] = state_vars[2] = xmom;
