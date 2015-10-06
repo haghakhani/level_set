@@ -461,27 +461,51 @@ void record_of_phi(HashTable* El_Table) {
 void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
 
 	Element* elem[4];
+	int neigh_num;
+	int debug = 0;
 
 	for (EdgeList::iterator it = accepted.begin(); it != accepted.end(); ++it) {
-		elem[0] = it->elem[0];
-		elem[1] = it->elem[1];
+		debug++;
+//		cout<<debug<<endl;
+
+		if (it->elem[0]->get_adapted_flag() > 0) {
+			elem[0] = it->elem[0];
+			elem[1] = it->elem[1];
+			neigh_num = it->neigh_num;
+		} else {
+			elem[0] = it->elem[1];
+			elem[1] = it->elem[0];
+			neigh_num = elem[0]->which_neighbor(elem[1]->pass_key());					//= (it->neigh_num + 2) % 8;
+		}
 
 		// given the neighbor number, we can build 2 Quads, but we do not care.
 		// what we need to do is to find 4 points for making approximated surface
 		// from the bilinear map, and then computing the distance to the interface
 
-		int neigh_num = it->neigh_num;
 		unsigned* elem_key = elem[0]->get_neighbors();
 		elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num + 1) % 8) * KEYLENGTH);
+		unsigned* neigh_key;
 
-		unsigned* neigh_key = elem[2]->get_neighbors();
-		elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
-		assert(elem[3]);
+		if (elem[2]->get_adapted_flag() > 0) {
+			neigh_key = elem[2]->get_neighbors();
+			elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+		} else {
+			// this means that this proc has not access to this direction, so we have to change the direction
+			elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num - 1 + 8) % 8) * KEYLENGTH);
+			neigh_key = elem[2]->get_neighbors();
+			elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+		}
 
 		// this if never should happen, because the elements adjucent to the interface
 		// are maximally refined. but in case that the generation of the quad points
 		// are different
-//		if (elem[3]==elem[1])
+
+		if (!(elem[0] && elem[1] && elem[2] && elem[3])){
+			cout << "adaption flags are: " << elem[0]->get_adapted_flag() << " , "
+			    << elem[1]->get_adapted_flag() << " , " << elem[2]->get_adapted_flag() << " , "
+			    << elem[3]->get_adapted_flag() << endl;
+			exit(1);
+		}
 
 		quadlist.insert(Quad(elem[0], elem[1], elem[2], elem[3]));
 
@@ -492,6 +516,40 @@ void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
 //		cout << endl;
 
 	}
+
+}
+
+void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* timeprops,
+    double min_dx, int nump, int rank) {
+
+	const double threshold = .5 * min_dx * min_dx * min_dx;
+	double norm, total_norm, normalized_norm;
+	int elem, tot_elem;
+
+	record_of_phi(El_Table);
+
+	int iter = 0;
+
+	do {
+		iter++;
+		elem = 0;
+		tot_elem = 0;
+		norm = 0.;
+		normalized_norm = 0.;
+		calc_phi_slope(El_Table, NodeTable);
+		update_phi(El_Table, min_dx, &norm, &elem);
+
+		// after updating this data have to be transmitted into others
+		move_data(nump, rank, El_Table, NodeTable, timeprops);
+		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+		normalized_norm = sqrt(total_norm) / tot_elem;
+
+		// CFL number is 0.5 and we use 12 iteration to make sure at least 6 neighbor element has been updated
+	} while (normalized_norm > threshold && iter < 13);
+
+	if (rank == 0)
+		cout << "norm: " << normalized_norm << endl;
 
 }
 
@@ -509,8 +567,8 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 // for an edge, so make a new list of edges to prevent making these again
 	make_quad(El_Table, accepted, rectangles);
 
-	double* dx = accepted.begin()->elem[0]->get_dx();
-	double min_dx = min(dx[0], dx[1]);
+	double min_dx = 0.;
+	find_min_dx(El_Table, &min_dx);
 
 	Pt2Path p2path = bilinear_surface;
 	Pt2Grad p2grad = grad_bilinear_surface;
@@ -527,28 +585,7 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 		}
 	}
 
-	const double threshold = .5 * min_dx * min_dx * min_dx;
-	double norm = 0., total_norm = 0., normalized_norm;
-	int elem = 0, tot_elem = 0;
-
-	record_of_phi(El_Table);
-
-	int iter = 0;
-	do {
-		iter++;
-		elem = 0;
-		norm = 0;
-		calc_phi_slope(El_Table, NodeTable);
-		update_phi(El_Table, min_dx, &norm, &elem);
-
-		// after updating this data have to be transmitted into others
-		move_data(nump, rank, El_Table, NodeTable, timeprops);
-		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-		normalized_norm = sqrt(norm) / tot_elem;
-
-	} while (normalized_norm > threshold && iter < 13);
-	cout << "norm: " << normalized_norm << endl;
+	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 }
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
@@ -562,8 +599,8 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 	EdgeList accepted;
 	adjacent_to_interface(El_Table, accepted);
 
-	double* dx = accepted.begin()->elem[0]->get_dx();
-	double min_dx = min(dx[0], dx[1]);
+	double min_dx = 0.;
+	find_min_dx(El_Table, &min_dx);
 
 	Pt2Path p2path = path_ellipse;
 	Pt2Grad p2grad = grad_path_ellipse;
@@ -575,28 +612,6 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 				*((it->elem[j])->get_nbflag()) = 1;
 			}
 
-	const double threshold = .5 * min_dx * min_dx * min_dx;
-	double norm = 0., total_norm = 0., normalized_norm;
-	int elem = 0, tot_elem = 0;
-
-	record_of_phi(El_Table);
-
-	int iter = 0;
-	do {
-		iter++;
-		elem = 0;
-		norm = 0;
-		calc_phi_slope(El_Table, NodeTable);
-		update_phi(El_Table, min_dx, &norm, &elem);
-
-		// after updating this data have to be transmitted into others
-		move_data(nump, rank, El_Table, NodeTable, timeprops);
-		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-		normalized_norm = sqrt(norm) / tot_elem;
-
-		// CFL number is 0.5 and we use 12 iteration to make sure at least 6 neighbor element has been updated
-	} while (normalized_norm > threshold && iter < 13);
-	cout << "norm: " << normalized_norm << endl;
+	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 
 }
