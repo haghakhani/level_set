@@ -159,15 +159,6 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 
 	outflow *= dt;
 
-	MapNames mapnames;
-	char *b, *c, *d;
-	char a[5] = "abs";  // ,b[5],c[5],d[5];
-	b = c = d = a;
-	int ce = 0;
-
-	mapnames.assign(a, b, c, d, ce);
-	move_data(nump, myid, El_Table, NodeTable, timeprops_ptr);
-
 	/*
 	 * corrector step and b.c.s
 	 */
@@ -189,7 +180,6 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 					double *dxy = Curr_El->get_dx();
 					// if calculations are first-order, predict is never called
 					// ... so we need to update prev_states
-					// double phi=*(Curr_El->get_state_vars())+*(Curr_El->get_state_vars()+4);
 
 					if (*order_flag == 1)
 						Curr_El->update_prev_state_vars();
@@ -199,10 +189,6 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 					correct(NodeTable, El_Table, dt, matprops_ptr, fluxprops, timeprops_ptr, Curr_El_out,
 					    &elemforceint, &elemforcebed, &elemeroded, &elemdeposited);
 
-					for (int kk = 0; kk < 6; kk++)
-						if (isnan(*(Curr_El->get_state_vars() + kk)))
-							printf("Hello this is the NAN");
-
 					forceint += fabs(elemforceint);
 					forcebed += fabs(elemforcebed);
 					realvolume += dxy[0] * dxy[1] * *(Curr_El->get_state_vars() + 1);
@@ -211,7 +197,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 
 					double *coord = Curr_El->get_coord();
 					//update the record of maximum pileheight in the area covered by this element
-					double hheight = 0;
+					double hheight = 0.;
 					//if (*(Curr_El->get_state_vars())<0 )
 					hheight = *(Curr_El->get_state_vars());
 
@@ -231,47 +217,6 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 				currentPtr = currentPtr->next;
 			}
 		}
-
-//  for(i=0; i<El_Table->get_no_of_buckets(); i++) {
-//    if(*(buck+i))
-//      {
-//  	HashEntryPtr currentPtr = *(buck+i);
-//  	while(currentPtr)
-//  	  {
-//  	    Element* Curr_El=(Element*)(currentPtr->value);
-//  	    if(Curr_El->get_adapted_flag()>0
-//	       )//&& ((timeprops_ptr->iter%5==4)))//||(timeprops_ptr->iter%5==2)))
-//  	      { //if this is a refined element don't involve!!!
-//  		//if (*(Curr_El->get_state_vars()+1)>1e-3)
-//		//{					
-//		phi = *(Curr_El->get_state_vars());
-//		if(phi>1) phi=1;
-//		if(phi<0) phi=0;
-//}
-//else 
-//phi=0;
-//	*(Curr_El->get_state_vars())=phi;
-//  		Curr_El->update_phase1(phi);
-//  	      } 
-//  	    currentPtr=currentPtr->next;      	    
-//  	  }
-//      }
-//  }
-
-//update the orientation of the "dryline" (divides partially wetted cells
-//into wet and dry parts solely based on which neighbors currently have 
-//pileheight greater than GEOFLOW_TINY
-	for (i = 0; i < El_Table->get_no_of_buckets(); i++) {
-		HashEntryPtr currentPtr = *(buck + i);
-		while (currentPtr) {
-			Element* Curr_El = (Element*) (currentPtr->value);
-			currentPtr = currentPtr->next;
-			if (Curr_El->get_adapted_flag() > 0) //if this is a refined element don't involve!!!
-			    //Curr_El->calc_wet_dry_orient(El_Table);
-			    {
-			}
-		}
-	}
 
 	/* finished corrector step */
 	calc_stats(El_Table, NodeTable, myid, matprops_ptr, timeprops_ptr, statprops_ptr, discharge, dt);

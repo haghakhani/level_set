@@ -56,10 +56,7 @@ void correct(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* mat
 	for (ivar = 0; ivar < NUM_STATE_VARS; ivar++)
 		fluxym[ivar] = nym->flux[ivar];
 
-	//if(fluxxp[0]!=0||fluxxm[0]!=0||fluxyp[0]!=0||fluxym[0]!=0)
-	//printf("fluxxp=...%f, fluxxm=...%f, fluxyp = ...%f,fluxym =... %f \n",fluxxp[0],fluxxm[0],fluxyp[0],fluxym[0]);
-
-#ifdef DO_EROSION
+	#ifdef DO_EROSION
 	int do_erosion = 1;
 #else
 	int do_erosion=0;
@@ -80,10 +77,7 @@ void correct(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* mat
 	double *curvature = EmTemp->get_curvature();
 	double bedfrict = EmTemp->get_effect_bedfrict();
 	double *Influx = EmTemp->get_influx();
-	double solid_den = matprops_ptr->den_solid;
-	double fluid_den = matprops_ptr->den_fluid;
 	double terminal_vel = matprops_ptr->v_terminal;
-	double navslip_coef = matprops_ptr->navslip_coef;
 
 	double lscale = matprops_ptr->LENGTH_SCALE;
 	double gscale = matprops_ptr->GRAVITY_SCALE;
@@ -91,48 +85,36 @@ void correct(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* mat
 	double velocity_scale = sqrt(lscale * gscale);
 	double momentum_scale = hscale * velocity_scale;
 
-	double Vfluid[DIMENSION], Vsolid[DIMENSION];
-	// double volf;
+	double Vel[DIMENSION];
 
 	if (state_vars[1] > tiny) {
 		for (i = 0; i < DIMENSION; i++)
 			kactxy[i] = *(EmTemp->get_effect_kactxy() + i);
 
-		// fluid velocities
-		Vfluid[0] = state_vars[4] / state_vars[1];
-		Vfluid[1] = state_vars[5] / state_vars[1];
-		Vsolid[0] = state_vars[2] / state_vars[1];
-		Vsolid[1] = state_vars[3] / state_vars[1];
+		Vel[0] = state_vars[2] / state_vars[1];
+		Vel[1] = state_vars[3] / state_vars[1];
 
-		// volume fractions
-		//volf = state_vars[1]/state_vars[0];
 	} else {
 		for (i = 0; i < DIMENSION; i++) {
 			kactxy[i] = matprops_ptr->epsilon;
-			Vfluid[i] = 0.;
-			Vsolid[i] = 0.;
+			Vel[i] = 0.;
 		}
-		//volf=1.;
+
 		bedfrict = matprops_ptr->bedfrict[EmTemp->get_material()];
 	}
 
 	double dragforce[2] = { 0., 0. };
 
-	int aa = 1, bb = 0;
-	if (*(EmTemp->pass_key()) == 2155926449 && *(EmTemp->pass_key() + 1) == 991146299 )//&& timeprops->iter == 123)
-		bb = aa;
-
 	correct_(state_vars, prev_state_vars, fluxxp, fluxyp, fluxxm, fluxym, &tiny, &dtdx, &dtdy, &dt,
 			d_state_vars, (d_state_vars + NUM_STATE_VARS), &(zeta[0]), &(zeta[1]), curvature,
 			&(matprops_ptr->intfrict), &bedfrict, gravity, kactxy, d_gravity, &(matprops_ptr->frict_tiny),
-			forceint, forcebed, dragforce, &do_erosion, eroded, Vsolid, Vfluid, &solid_den, &fluid_den,
-			&terminal_vel, &(matprops_ptr->epsilon), &IF_STOPPED, Influx, &navslip_coef);
+			forceint, forcebed, dragforce, &do_erosion, eroded, Vel,
+			&terminal_vel, &(matprops_ptr->epsilon), &IF_STOPPED, Influx);
 
 	double ratio = 0;
-	if (state_vars[0] > 5.5) {
-		ratio = -1;  //dabs((state_vars[0]-state_vars[1])/state_vars[1]);
-		//printf("the ratio is %f\n",ratio);
-	}
+	if (state_vars[0] > 5.5)
+		ratio = -1;
+
 
 	if (ratio > .1)
 	//*EmTemp->pass_key()==3842346279 && *(EmTemp->pass_key()+1)==2368179492) //((isnan(state_vars[0]))||(state_vars[0]<0))

@@ -635,7 +635,7 @@ void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* 
 	} while (normalized_norm > threshold && iter < 13);
 
 	if (rank == 0)
-		cout << "norm: " << normalized_norm << endl;
+		cout << "norm: " << normalized_norm <<" threshold is: "<< threshold<<endl;
 
 }
 

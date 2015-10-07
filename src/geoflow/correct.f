@@ -20,8 +20,8 @@ C***********************************************************************
      1     tiny, dtdx, dtdy, dt, dUdx, dUdy, xslope, yslope,
      2     curv,intfrictang, bedfrictang, g, kactxy,  dgdx, 
      3     frict_tiny, forceint,forcebed, dragfoce ,DO_EROSION,
-     4     eroded, v_solid, v_fluid,den_solid, den_fluid, terminal_vel,
-     5     eps, IF_STOPPED, fluxsrc, navslip)
+     4     eroded, Vel, terminal_vel,
+     5     eps, IF_STOPPED, fluxsrc)
 C***********************************************************************
 
       implicit none
@@ -29,8 +29,7 @@ C***********************************************************************
       double precision forceintx, forceinty
       double precision forcebedx, forcebedy, navslip
       double precision forcebedmax, forcebedequil, forcegrav
-      double precision unitvx, unitvy, v_solid(2), v_fluid(2)
-      double precision den_frac, den_solid, den_fluid
+      double precision unitvx, unitvy, Vel(2)
       double precision alphaxx, alphayy, alphaxy, alphayz
       double precision tanbed, terminal_vel, dragfoce(2)
 
@@ -84,12 +83,12 @@ c      ustore(1) = max(ustore(1),0.)
       if(uvec(2).gt.tiny) then
 c     Source terms ...
 c     here speed is speed squared
-         speed=v_solid(1)**2+v_solid(2)**2
+         speed=Vel(1)**2+Vel(2)**2
          if(speed.gt.0.d0) then
 c     here speed is speed
             speed=dsqrt(speed)
-            unitvx=v_solid(1)/speed
-            unitvy=v_solid(2)/speed
+            unitvx=Vel(1)/speed
+            unitvy=Vel(2)/speed
          else
             unitvx=0.d0
             unitvy=0.d0
@@ -106,14 +105,14 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     x-direction source terms
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     alphaxy -- see pitman-le (2005)
-         dvx = h_inv*(dUdy(3)-v_solid(1)*dUdy(2))
+         dvx = h_inv*(dUdy(3)-Vel(1)*dUdy(2))
          sgn_dudy = sgn(dvx, frict_tiny)
          alphaxy = sgn_dudy*dsin(intfrictang)*kactxy
 
          t2=alphaxy*uvec(2)*(g(3)*dUdy(2)
      $        +dgdx(2)*uvec(2))
          t3=unitvx*
-     $        dmax1(g(3)*uvec(2)+v_solid(1)*uvec(3)*curv(1),0.d0)
+     $        dmax1(g(3)*uvec(2)+Vel(1)*uvec(3)*curv(1),0.d0)
      $        *tanbed
 
          t4 = uvec(2)*g(1)
@@ -125,7 +124,7 @@ c     update ustore
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     solid fraction y-direction source terms
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-         dvy = h_inv*(dUdx(4)-v_solid(2)*dUdx(2))
+         dvy = h_inv*(dUdx(4)-Vel(2)*dUdx(2))
          sgn_dvdx = sgn(dvy, frict_tiny)
          alphaxy = sgn_dvdx*dsin(intfrictang)*kactxy
 
@@ -133,7 +132,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      $        +dgdx(1)*uvec(2))
 c     ------------------------------------------------  the internal friction force ------------------------------------
          t3=unitvy*
-     $        dmax1(g(3)*uvec(2)+v_solid(2)*uvec(4)*curv(2),0.d0)
+     $        dmax1(g(3)*uvec(2)+Vel(2)*uvec(4)*curv(2),0.d0)
      $        *tanbed
 
 c-------------------------------the bed friction force for fast moving flow---------------------------------------
