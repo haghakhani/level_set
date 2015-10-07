@@ -27,7 +27,7 @@ typedef double (*Pt2Path)(void* path, double x, double y);
 typedef void (*Pt2Grad)(void* path, double x, double y, double* grad);
 
 extern "C" void dgesv_(int *n, int *nrhs, double *a, int *lda, int *ipiv, double *b, int *ldb,
-    int *info);
+		int *info);
 
 class Edge {
 	// this  class holds information of an edge consisting of two elements
@@ -79,9 +79,9 @@ public:
 
 	bool operator<(const Quad& rrect) const {
 		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
-		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
-		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
-		        && elem[3] < rrect.elem[3]))
+				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
+				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
+						&& elem[3] < rrect.elem[3]))
 			return true;
 
 		return false;
@@ -91,15 +91,45 @@ public:
 	Element *elem[4];
 };
 
+class Triangle {
+public:
+	Triangle() {
+		elem[0] = NULL;
+		elem[1] = NULL;
+		elem[2] = NULL;
+
+	}
+	;
+
+	Triangle(Element* elem_1, Element* elem_2, Element* elem_3) {
+		elem[0] = elem_1;
+		elem[1] = elem_2;
+		elem[2] = elem_3;
+	}
+	;
+
+	bool operator<(const Triangle& rrect) const {
+		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
+				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2]))
+			return true;
+
+		return false;
+	}
+	;
+
+	Element *elem[3];
+};
+
 typedef std::set<Edge> EdgeList;
 typedef std::set<Quad> QuadList;
+typedef std::set<Triangle> TriangList;
 
 class Ellipse {
 public:
 	Ellipse(double x_center, double y_center, double x_radius, double y_radius, double cosrot,
-	    double sinrot) :
+			double sinrot) :
 			x_center(x_center), y_center(y_center), x_radius(x_radius), y_radius(y_radius), cosrot(
-			    cosrot), sinrot(sinrot) {
+					cosrot), sinrot(sinrot) {
 	}
 
 	const double get_x_center() const {
@@ -149,9 +179,9 @@ double path_ellipse(void* path, double x, double y) {
 	const double sinrot = ellipse->get_sinrot();
 
 	return ((x - x_center) * cosrot + (y - y_center) * sinrot)
-	    * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-	    + ((x - x_center) * sinrot - (y - y_center) * cosrot)
-	        * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
+			* ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+			+ ((x - x_center) * sinrot - (y - y_center) * cosrot)
+					* ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
 
 }
 
@@ -169,20 +199,21 @@ void grad_path_ellipse(void* path, double x, double y, double* grad) {
 	const double sinrot = ellipse->get_sinrot();
 
 	grad[0] = 2. * cosrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-	    + 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+			+ 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
 
 	grad[1] = 2. * sinrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-	    - 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+			- 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
 
 }
 
 void bilinear_interp(Quad quad, double* bilinear_coef) {
 
+//  P=a0+a1*x+a2*y+a3*x*y
 //	Ab=x
-//	[1,x0,y0,x0y0][x0] [phi0]
-//	[1,x1,y1,x1y1][x1] [phi1]
-//	[1,x2,y2,x2y2][x2]=[phi2]
-//	[1,x3,y3,x3y3][x3] [phi3]
+//	[1,x0,y0,x0y0][a0] [phi0]
+//	[1,x1,y1,x1y1][a1] [phi1]
+//	[1,x2,y2,x2y2][a2]=[phi2]
+//	[1,x3,y3,x3y3][a3] [phi3]
 
 	int dim = 4, one = 1, info, ipiv[dim];
 
@@ -233,8 +264,63 @@ void grad_bilinear_surface(void* path, double x, double y, double* grad) {
 
 }
 
+void make_surface(Triangle triangle, double* surface_coef) {
+//  P=a0+a1*x+a2*y
+//	Ab=x
+//	[1,x0,y0][a0] [phi0]
+//	[1,x1,y1][a1] [phi1]
+//	[1,x2,y2][a2]=[phi2]
+
+	int dim = 3, one = 1, info, ipiv[dim];
+
+	double A[dim * dim], x[dim], y[dim];
+
+	for (int i = 0; i < dim; ++i) {
+		x[i] = *(triangle.elem[i]->get_coord());
+		y[i] = *(triangle.elem[i]->get_coord() + 1);
+		surface_coef[i] = *(triangle.elem[i]->get_state_vars());
+		A[i] = 1;
+		A[i + 3] = x[i];
+		A[i + 6] = y[i];
+	}
+
+//	cout << "Matrix A and vector phi" << endl;
+//	for (int i = 0; i < dim; ++i) {
+//		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
+//		cout << "[ " << phi[i] << " ]" << endl;
+//	}
+
+	dgesv_(&dim, &one, A, &dim, ipiv, surface_coef, &dim, &info);
+
+//	cout << "Solution" << endl;
+//	for (int i = 0; i < dim; ++i)
+//		cout << "[ " << phi[i] << " ]" << endl;
+
+}
+
+double surface(void* path, double x, double y) {
+
+//	p=a0+a1*x+a2*y;
+
+	double* surface_coef = (double*) path;
+
+	return surface_coef[0] + surface_coef[1] * x + surface_coef[2] * y;
+}
+
+void grad_surface(void* path, double x, double y, double* grad) {
+
+	//grad[0]=a1;
+	//grad[1]=a2;
+
+	double* surface_coef = (double*) path;
+
+	grad[0] = surface_coef[1];
+	grad[1] = surface_coef[2];
+
+}
+
 void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_func, void* ctx,
-    double min_dx) {
+		double min_dx) {
 
 	// this part is from reinitialization proposed in Chopp's, SOME IMPROVEMENTS OF THE FAST MARCHING METHOD
 	// the difference is that instead of bicubic interpolation, we used bilinear interpolation to find the distance
@@ -242,7 +328,7 @@ void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_f
 	// distance to the interface exactly, and we do not need to bilinear interpolation
 
 	double d1[2] = { 0., 0. }, d2[2] = { 0., 0. }, grad[2], pvalue, grad_dot, x_new, y_new, x_old,
-	    y_old, x_half, y_half, epslon = .01;
+			y_old, x_half, y_half, epslon = .01;
 
 // initializing the solution
 	x_new = x_old = *(elem->get_coord());
@@ -274,7 +360,7 @@ void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_f
 		y_new = y_half + d2[1];
 
 	} while (sqrt(d1[0] * d1[0] + d1[1] * d1[1] + d2[0] * d2[0] + d2[1] * d2[1]) > treshold
-	    && iter < max_iter);
+			&& iter < max_iter);
 
 	if (phi_old < 0.)
 		sgn = -1.;
@@ -328,7 +414,7 @@ void adjacent_to_interface(HashTable* El_Table, EdgeList& accepted) {
 									accepted.insert(Edge(Curr_El, ElemNeigh, ineigh));
 								else
 									accepted.insert(
-									    Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
+											Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
 							}
 
 						}
@@ -362,7 +448,7 @@ void test_nbflag(HashTable* El_Table) {
 		while (currentPtr) {
 			Element* Em_Temp = (Element*) (currentPtr->value);
 			if (Em_Temp->get_adapted_flag() > 0 && *(Em_Temp->get_nbflag()))
-				exit(1);
+				cout << "Error this should not happen" << endl;
 			currentPtr = currentPtr->next;
 		}
 	}
@@ -393,7 +479,7 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 				Element* Curr_El = (Element*) (currentPtr->value);
 				if (Curr_El->get_adapted_flag() > 0 && *(Curr_El->get_nbflag()) != 1
 				// I did note get good result from the following condition
-				    && fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
+						&& fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
 					// with the last condition we narrow the range of update
 					// to maximum of 10 cell-width far the the interface
 
@@ -458,7 +544,8 @@ void record_of_phi(HashTable* El_Table) {
 		}
 }
 
-void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
+void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist,
+		TriangList& trianglist) {
 
 	Element* elem[4];
 	int neigh_num;
@@ -496,31 +583,30 @@ void make_quad(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist) {
 			elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
 		}
 
-		// this if never should happen, because the elements adjucent to the interface
-		// are maximally refined. but in case that the generation of the quad points
-		// are different
-
-		if (!(elem[0] && elem[1] && elem[2] && elem[3])){
-			cout << "adaption flags are: " << elem[0]->get_adapted_flag() << " , "
-			    << elem[1]->get_adapted_flag() << " , " << elem[2]->get_adapted_flag() << " , "
-			    << elem[3]->get_adapted_flag() << endl;
-			exit(1);
+		if (elem[3]) {
+			quadlist.insert(Quad(elem[0], elem[1], elem[2], elem[3]));
+		} else {
+			// this is for the case that the element is in the corner, and three of its sides are in
+			// in the other processors, in this case we just make a triangle
+			trianglist.insert(Triangle(elem[0], elem[1], elem[2]));
 		}
 
-		quadlist.insert(Quad(elem[0], elem[1], elem[2], elem[3]));
-
-//		cout << "x of quad: " << *(elem[0]->get_coord()) << " " << *(elem[1]->get_coord()) << " "
-//		    << *(elem[2]->get_coord()) << " " << *(elem[3]->get_coord()) << endl;
-//		cout << "y of quad: " << *(elem[0]->get_coord() + 1) << " " << *(elem[1]->get_coord() + 1)
-//		    << " " << *(elem[2]->get_coord() + 1) << " " << *(elem[3]->get_coord() + 1) << endl;
-//		cout << endl;
+//		if (!(elem[0] && elem[1] && elem[2] && elem[3])) {
+//			cout << "adaption flags are: " << elem[0]->get_adapted_flag() << " , "
+//					<< elem[1]->get_adapted_flag() << " , " << elem[2]->get_adapted_flag() << endl;
+//			cout << "x of quad: " << *(elem[0]->get_coord()) << " " << *(elem[1]->get_coord()) << " "
+//					<< *(elem[2]->get_coord()) << endl;
+//			cout << "y of quad: " << *(elem[0]->get_coord() + 1) << " " << *(elem[1]->get_coord() + 1)
+//					<< " " << *(elem[2]->get_coord() + 1) << endl;
+//			cout << endl;
+//		}
 
 	}
 
 }
 
 void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* timeprops,
-    double min_dx, int nump, int rank) {
+		double min_dx, int nump, int rank) {
 
 	const double threshold = .5 * min_dx * min_dx * min_dx;
 	double norm, total_norm, normalized_norm;
@@ -554,7 +640,7 @@ void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* 
 }
 
 void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+		TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
 	reset_nbflag(El_Table);
 
@@ -562,10 +648,11 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 	adjacent_to_interface(El_Table, accepted);
 
 	QuadList rectangles;
+	TriangList trianglist;
 
 // with each Edge we can build 2 rectangles, but this procedure can be repeated
 // for an edge, so make a new list of edges to prevent making these again
-	make_quad(El_Table, accepted, rectangles);
+	make_quad_trangle(El_Table, accepted, rectangles, trianglist);
 
 	double min_dx = 0.;
 	find_min_dx(El_Table, &min_dx);
@@ -585,17 +672,32 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 		}
 	}
 
+	p2path = surface;
+	p2grad = grad_surface;
+
+	double surface_coef[4];
+
+	for (TriangList::iterator it = trianglist.begin(); it != trianglist.end(); ++it) {
+
+		make_surface(*it, bilinear_coef);
+
+		for (int j = 0; j < 3; ++j) {
+			initialize_distance(it->elem[j], p2path, p2grad, (void*) surface_coef, min_dx);
+			*((it->elem[j])->get_nbflag()) = 1;
+		}
+	}
+
 	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 }
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+		TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
 // data in pileprops_ptr are scaled
 	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
-	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+			pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
 
-	test_nbflag(El_Table);
+	reset_nbflag(El_Table);
 	EdgeList accepted;
 	adjacent_to_interface(El_Table, accepted);
 

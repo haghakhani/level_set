@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
 		printf("REFINE_LEVEL=%d\n", REFINE_LEVEL);
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
 	initialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
 
 	MPI_Barrier(MPI_COMM_WORLD);
