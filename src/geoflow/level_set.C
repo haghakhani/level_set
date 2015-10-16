@@ -27,7 +27,7 @@ typedef double (*Pt2Path)(void* path, double x, double y);
 typedef void (*Pt2Grad)(void* path, double x, double y, double* grad);
 
 extern "C" void dgesv_(int *n, int *nrhs, double *a, int *lda, int *ipiv, double *b, int *ldb,
-		int *info);
+    int *info);
 
 class Edge {
 	// this  class holds information of an edge consisting of two elements
@@ -79,9 +79,9 @@ public:
 
 	bool operator<(const Quad& rrect) const {
 		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
-				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
-				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
-						&& elem[3] < rrect.elem[3]))
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
+		        && elem[3] < rrect.elem[3]))
 			return true;
 
 		return false;
@@ -110,7 +110,7 @@ public:
 
 	bool operator<(const Triangle& rrect) const {
 		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
-				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2]))
+		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2]))
 			return true;
 
 		return false;
@@ -127,9 +127,9 @@ typedef std::set<Triangle> TriangList;
 class Ellipse {
 public:
 	Ellipse(double x_center, double y_center, double x_radius, double y_radius, double cosrot,
-			double sinrot) :
+	    double sinrot) :
 			x_center(x_center), y_center(y_center), x_radius(x_radius), y_radius(y_radius), cosrot(
-					cosrot), sinrot(sinrot) {
+			    cosrot), sinrot(sinrot) {
 	}
 
 	const double get_x_center() const {
@@ -179,9 +179,9 @@ double path_ellipse(void* path, double x, double y) {
 	const double sinrot = ellipse->get_sinrot();
 
 	return ((x - x_center) * cosrot + (y - y_center) * sinrot)
-			* ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-			+ ((x - x_center) * sinrot - (y - y_center) * cosrot)
-					* ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
+	    * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+	    + ((x - x_center) * sinrot - (y - y_center) * cosrot)
+	        * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
 
 }
 
@@ -199,10 +199,10 @@ void grad_path_ellipse(void* path, double x, double y, double* grad) {
 	const double sinrot = ellipse->get_sinrot();
 
 	grad[0] = 2. * cosrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-			+ 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+	    + 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
 
 	grad[1] = 2. * sinrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-			- 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+	    - 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
 
 }
 
@@ -320,7 +320,7 @@ void grad_surface(void* path, double x, double y, double* grad) {
 }
 
 void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_func, void* ctx,
-		double min_dx) {
+    double min_dx) {
 
 	// this part is from reinitialization proposed in Chopp's, SOME IMPROVEMENTS OF THE FAST MARCHING METHOD
 	// the difference is that instead of bicubic interpolation, we used bilinear interpolation to find the distance
@@ -328,7 +328,7 @@ void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_f
 	// distance to the interface exactly, and we do not need to bilinear interpolation
 
 	double d1[2] = { 0., 0. }, d2[2] = { 0., 0. }, grad[2], pvalue, grad_dot, x_new, y_new, x_old,
-			y_old, x_half, y_half, epslon = .01;
+	    y_old, x_half, y_half, epslon = .01;
 
 // initializing the solution
 	x_new = x_old = *(elem->get_coord());
@@ -360,7 +360,7 @@ void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_f
 		y_new = y_half + d2[1];
 
 	} while (sqrt(d1[0] * d1[0] + d1[1] * d1[1] + d2[0] * d2[0] + d2[1] * d2[1]) > treshold
-			&& iter < max_iter);
+	    && iter < max_iter);
 
 	if (phi_old < 0.)
 		sgn = -1.;
@@ -394,6 +394,7 @@ void adjacent_to_interface(HashTable* El_Table, EdgeList& accepted) {
 					for (int ineigh = 0; ineigh < 8; ineigh++)
 
 						if (*(Curr_El->get_neigh_proc() + ineigh) >= 0) {
+							// this condition is to avoid elements on the boundary, or duplicated neighbors
 
 							unsigned* neigh_key = Curr_El->get_neighbors();
 
@@ -414,7 +415,7 @@ void adjacent_to_interface(HashTable* El_Table, EdgeList& accepted) {
 									accepted.insert(Edge(Curr_El, ElemNeigh, ineigh));
 								else
 									accepted.insert(
-											Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
+									    Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
 							}
 
 						}
@@ -479,7 +480,7 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 				Element* Curr_El = (Element*) (currentPtr->value);
 				if (Curr_El->get_adapted_flag() > 0 && *(Curr_El->get_nbflag()) != 1
 				// I did note get good result from the following condition
-						&& fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
+				    && fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
 					// with the last condition we narrow the range of update
 					// to maximum of 10 cell-width far the the interface
 
@@ -545,7 +546,7 @@ void record_of_phi(HashTable* El_Table) {
 }
 
 void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist,
-		TriangList& trianglist) {
+    TriangList& trianglist) {
 
 	Element* elem[4];
 	int neigh_num;
@@ -573,14 +574,20 @@ void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadli
 		elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num + 1) % 8) * KEYLENGTH);
 		unsigned* neigh_key;
 
-		if (elem[2]->get_adapted_flag() > 0) {
+		if (elem[2] && elem[2]->get_adapted_flag() > 0) {
+			// first condition is to avoid the case that elem[2] is not available
+
 			neigh_key = elem[2]->get_neighbors();
 			elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
 		} else {
 			// this means that this proc has not access to this direction, so we have to change the direction
 			elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num - 1 + 8) % 8) * KEYLENGTH);
-			neigh_key = elem[2]->get_neighbors();
-			elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+
+			if (elem[2]) {
+				// the condition is to avoid the case that elem[2] is not available
+				neigh_key = elem[2]->get_neighbors();
+				elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+			}
 		}
 
 		if (elem[3]) {
@@ -606,7 +613,7 @@ void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadli
 }
 
 void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* timeprops,
-		double min_dx, int nump, int rank) {
+    double min_dx, int nump, int rank) {
 
 	const double threshold = .5 * min_dx * min_dx * min_dx;
 	double norm, total_norm, normalized_norm;
@@ -635,12 +642,12 @@ void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* 
 	} while (normalized_norm > threshold && iter < 13);
 
 	if (rank == 0)
-		cout << "norm: " << normalized_norm <<" threshold is: "<< threshold<<endl;
+		cout << "norm: " << normalized_norm << " threshold is: " << threshold << endl;
 
 }
 
 void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-		TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
 	reset_nbflag(El_Table);
 
@@ -691,11 +698,11 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 }
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-		TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
 
 // data in pileprops_ptr are scaled
 	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
-			pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
 
 	reset_nbflag(El_Table);
 	EdgeList accepted;
