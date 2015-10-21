@@ -177,6 +177,8 @@ void createfunky(int NumProc, char *GISDbase, char *location,
     ymax    = ymax-0.1*ylength;
     ylength = ymax-ymin;
 
+    printf("The simulation region excluding the margin is:  x = %e to %e   y = %e to %e.\n", xmin, xmax, ymin, ymax);
+
     int NumDim=2; //x,y
 
 #ifdef MIN_NONSEQ_REPART

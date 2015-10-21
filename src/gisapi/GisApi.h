@@ -302,7 +302,9 @@ int Get_raster_ncols (int *cols);
 //! Return number of columns of original image (for texture wrapping) grid, Input: none, Output: cols - number of columns of original grid, Return: 0 if error, 1 otherwise 
 int Get_image_ncols (int *cols);
 
+int Get_grid_ewresol(double *ewresol);
 
+int Get_grid_nsresol(double *nsresol);
 /***************************************************************/
 
 /***************************************************************/

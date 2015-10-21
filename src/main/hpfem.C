@@ -248,12 +248,6 @@ int main(int argc, char *argv[]) {
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 
 			output_discharge(&matprops, &timeprops, &discharge, myid);
-			//output_flag=0;
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Reduce(*(outline.pileheight), *(outline2.pileheight), NxNyout,
-			MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-			if (myid == 0)
-				outline2.output(&matprops, &statprops, &timeprops);
 
 			if (myid == 0) {
 				output_summary(&timeprops, &statprops, savefileflag);
