@@ -812,13 +812,13 @@ inline void Element::put_height_mom(double pile_height, double volf, double xmom
 	prev_state_vars[3] = state_vars[3] = ymom;
 	prev_state_vars[5] = state_vars[5] = 1.;
 
-	if (pile_height > GEOFLOW_TINY) {
-		shortspeed = sqrt(xmom * xmom + ymom * ymom) / (pile_height);
-		Awet = 1.0;
-	} else {
-		shortspeed = 0.0;
-		Awet = 0.0;
-	}
+//	if (pile_height > GEOFLOW_TINY) {
+//		shortspeed = sqrt(xmom * xmom + ymom * ymom) / (pile_height);
+//		Awet = 1.0;
+//	} else {
+//		shortspeed = 0.0;
+//		Awet = 0.0;
+//	}
 	return;
 }
 

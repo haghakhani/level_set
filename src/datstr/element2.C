@@ -144,11 +144,11 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH], in
 	if (state_vars[0] != 0)
 		state_vars[2] = 0.0001;
 	state_vars[3] = state_vars[5] = 0.;
-	shortspeed = 0.0;
-
-	iwetnode = 8;
-	drypoint[0] = drypoint[1] = 0.0;
-	Awet = Swet = (pile_height > GEOFLOW_TINY) ? 1.0 : 0.0;
+//	shortspeed = 0.0;
+//
+//	iwetnode = 8;
+//	drypoint[0] = drypoint[1] = 0.0;
+//	Awet = Swet = (pile_height > GEOFLOW_TINY) ? 1.0 : 0.0;
 
 	prev_state_vars[0] = prev_state_vars[4] = 0;
 	//if(pile_height>0) prev_state_vars[0]=prev_state_vars[4]=1.;
@@ -263,15 +263,15 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH], in
 	drypoint[0] = drypoint_in[0];
 	drypoint[1] = drypoint_in[1];
 
-	double myfractionoffather;
-	if ((Awetfather == 0.0) || (Awetfather == 1.0)) {
-		Awet = Awetfather;
-		myfractionoffather = 1.0;
-	} else {
-		Awet = convect_dryline(dx, 0.0); //dx is a dummy stand in for convection speed... value doesn't matter because it's being multiplied by a timestep of zero
-		myfractionoffather = Awet / Awetfather;
-	}
-	Swet = 1.0;
+//	double myfractionoffather;
+//	if ((Awetfather == 0.0) || (Awetfather == 1.0)) {
+//		Awet = Awetfather;
+//		myfractionoffather = 1.0;
+//	} else {
+//		Awet = convect_dryline(dx, 0.0); //dx is a dummy stand in for convection speed... value doesn't matter because it's being multiplied by a timestep of zero
+//		myfractionoffather = Awet / Awetfather;
+//	}
+//	Swet = 1.0;
 
 	double dxx = coord_in[0] - fthTemp->coord[0];
 	double dyy = coord_in[1] - fthTemp->coord[1];
@@ -577,22 +577,22 @@ Element::Element(Element* sons[], HashTable* NodeTable, HashTable* El_Table,
 		}
 
 	}
-	Awet = 0.0;
-	for (int ison = 0; ison < 4; ison++)
-		Awet += sons[ison]->get_Awet();
-	Awet *= 0.25;
+//	Awet = 0.0;
+//	for (int ison = 0; ison < 4; ison++)
+//		Awet += sons[ison]->get_Awet();
+//	Awet *= 0.25;
+//
+//	//uninitialized flag values... will fix shortly
+//	drypoint[0] = drypoint[1] = 0.0;
+//	iwetnode = 8;
+//	Swet = 1.0;
 
-	//uninitialized flag values... will fix shortly
-	drypoint[0] = drypoint[1] = 0.0;
-	iwetnode = 8;
-	Swet = 1.0;
-
-	//calculate the shortspeed
-	shortspeed = 0.0;
-	for (j = 0; j < 4; j++)
-		shortspeed += *(sons[j]->get_state_vars() + 1) * sons[j]->get_shortspeed();
-	if (state_vars[1] > 0.0)
-		shortspeed /= (4.0 * state_vars[1]);
+//	//calculate the shortspeed
+//	shortspeed = 0.0;
+//	for (j = 0; j < 4; j++)
+//		shortspeed += *(sons[j]->get_state_vars() + 1) * sons[j]->get_shortspeed();
+//	if (state_vars[1] > 0.0)
+//		shortspeed /= (4.0 * state_vars[1]);
 
 	narrow_bound_flag = 0;
 
@@ -1967,7 +1967,7 @@ void Element::zdirflux(HashTable* El_Table, HashTable* NodeTable, MatProps* matp
 		exit(ineigh);
 	}
 
-	double wetnessfactor = calc_elem_edge_wetness_factor(ineigh, dt);
+	double wetnessfactor ;// calc_elem_edge_wetness_factor(ineigh, dt);
 	if (order_flag == 2)
 		dz = (1.0 + dir % 2 - dir) * 0.5 * dx[dir % 2]; //+ or - 1/2 dx or dy
 

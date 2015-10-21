@@ -724,3 +724,25 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 
 }
+
+int num_nonzero_elem(HashTable *El_Table) {
+	int num = 0, myid, i;
+	HashEntryPtr currentPtr;
+	Element *Curr_El;
+	HashEntryPtr *buck = El_Table->getbucketptr();
+	//printf("the numebr of buckets are: %d", El_Table->get_no_of_buckets());
+
+	for (i = 0; i < El_Table->get_no_of_buckets(); i++)
+		if (*(buck + i)) {
+			currentPtr = *(buck + i);
+			while (currentPtr) {
+				Curr_El = (Element*) (currentPtr->value);
+				if (Curr_El->get_adapted_flag() > 0) {
+					num++;
+				}
+				currentPtr = currentPtr->next;
+			}
+		}
+
+	return (num);
+}

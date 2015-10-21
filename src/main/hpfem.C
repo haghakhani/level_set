@@ -165,6 +165,10 @@ int main(int argc, char *argv[]) {
 		grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, &timeprops);
 	}
 
+	vector<int> number_of_element_local;
+
+	number_of_element_local.push_back(num_nonzero_elem(BT_Elem_Ptr));
+
 	/*
 	 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 	 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -213,8 +217,8 @@ int main(int argc, char *argv[]) {
 			update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &mapnames);
 		}
 
-		if (timeprops.iter)// this is to avoid run for time step 0
-					reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
+		if (timeprops.iter)		// this is to avoid run for time step 0
+			reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
 
 		if ((adaptflag != 0) && (timeprops.iter % 5 == 4)) {
 			AssertMeshErrorFree(BT_Elem_Ptr, BT_Node_Ptr, numprocs, myid, -2.0);
@@ -239,6 +243,8 @@ int main(int argc, char *argv[]) {
 
 		step(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &pileprops, &fluxprops,
 		    &statprops, &order_flag, &outline, &discharge, adaptflag);
+
+		number_of_element_local.push_back(num_nonzero_elem(BT_Elem_Ptr));
 
 		/*
 		 * output results to file
@@ -361,6 +367,21 @@ int main(int argc, char *argv[]) {
 	if (myid == 0)
 		outline2.output(&matprops, &statprops, &timeprops);
 	MPI_Barrier(MPI_COMM_WORLD);
+
+	vector<int> number_of_element_global(timeprops.iter, 0.);
+
+	MPI_Reduce(&number_of_element_local.front(), &number_of_element_global.front(),
+	    number_of_element_local.size(), MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+	if (myid == 0) {
+		ofstream output_file("./elem_number.data");
+		ostream_iterator<int> output_iterator(output_file, "\n");
+		copy(number_of_element_global.begin(), number_of_element_global.end(), output_iterator);
+
+		ofstream output_file_l("./elem_number_local.data");
+		ostream_iterator<int> output_iterator_l(output_file_l, "\n");
+		copy(number_of_element_local.begin(), number_of_element_local.end(), output_iterator_l);
+	}
+
 #ifdef PERFTEST  
 	long m = element_counter, ii;
 
