@@ -368,18 +368,19 @@ int main(int argc, char *argv[]) {
 		outline2.output(&matprops, &statprops, &timeprops);
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	vector<int> number_of_element_global(timeprops.iter, 0.);
+	int* number_of_element_global;
+	if (myid == 0)
+		number_of_element_global = new int[timeprops.iter];
 
-	MPI_Reduce(&number_of_element_local.front(), &number_of_element_global.front(),
-	    number_of_element_local.size(), MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&number_of_element_local.front(), number_of_element_global, timeprops.iter, MPI_INT,
+	MPI_SUM, 0, MPI_COMM_WORLD);
+
 	if (myid == 0) {
-		ofstream output_file("./elem_number.data");
-		ostream_iterator<int> output_iterator(output_file, "\n");
-		copy(number_of_element_global.begin(), number_of_element_global.end(), output_iterator);
+		ofstream output_file("./number_of_elements.data", ofstream::out);
+		for (int i = 0; i < timeprops.iter; ++i)
+			output_file << number_of_element_global[i] << endl;
+		delete[] number_of_element_global;
 
-		ofstream output_file_l("./elem_number_local.data");
-		ostream_iterator<int> output_iterator_l(output_file_l, "\n");
-		copy(number_of_element_local.begin(), number_of_element_local.end(), output_iterator_l);
 	}
 
 #ifdef PERFTEST  
