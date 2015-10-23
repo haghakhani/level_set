@@ -90,22 +90,6 @@ void calc_stats(HashTable* El_Table, HashTable* NodeTable, int myid,
 
 	int num_buck=El_Table->get_no_of_buckets();
 	HashEntryPtr* buck = El_Table->getbucketptr();
-	int num_nonzero_elem=0, *all_num_nonzero_elem;
-	for(i=0; i<num_buck; i++)
-		if(*(buck+i)){
-
-			HashEntryPtr currentPtr = *(buck+i);
-			while(currentPtr){
-
-				Element* Curr_El=(Element*)(currentPtr->value);
-				if((Curr_El->get_adapted_flag()>0)&&
-						(myid==Curr_El->get_myprocess()))
-					if(*(Curr_El->get_state_vars()+1)>GEOFLOW_TINY)
-						num_nonzero_elem++;
-
-				currentPtr=currentPtr->next;      	    
-			}
-		}
 
 	double Velocity[4];
 	double temp1df[2], temp2df;
