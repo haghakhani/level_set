@@ -239,12 +239,12 @@ int main(int argc, char *argv[]) {
 				move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops); //this move_data() here for debug... to make AssertMeshErrorFree() Work
 			}
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
+
+			number_of_element_local.push_back(num_nonzero_elem(BT_Elem_Ptr));
 		}
 
 		step(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &pileprops, &fluxprops,
 		    &statprops, &order_flag, &outline, &discharge, adaptflag);
-
-		number_of_element_local.push_back(num_nonzero_elem(BT_Elem_Ptr));
 
 		/*
 		 * output results to file

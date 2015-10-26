@@ -726,13 +726,13 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 }
 
 int num_nonzero_elem(HashTable *El_Table) {
-	int num = 0, myid, i;
+	int num = 0, myid;
 	HashEntryPtr currentPtr;
 	Element *Curr_El;
 	HashEntryPtr *buck = El_Table->getbucketptr();
 	//printf("the numebr of buckets are: %d", El_Table->get_no_of_buckets());
 
-	for (i = 0; i < El_Table->get_no_of_buckets(); i++)
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++)
 		if (*(buck + i)) {
 			currentPtr = *(buck + i);
 			while (currentPtr) {
