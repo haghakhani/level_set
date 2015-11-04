@@ -116,10 +116,13 @@ c     alphaxy -- see pitman-le (2005)
      $        *tanbed
 
          t4 = uvec(2)*g(1)
-
-
 c     update ustore
-         ustore(3) = ustore(3) + dt*(t4-t2-t3)
+         if (abs(Ustore(3) + dt*t4)
+     $    .gt.abs(dt*(t3+t2))) then
+            Ustore(3) = Ustore(3) + dt*(t4 -t3 -t2)
+         else
+            Ustore(3)=0.d0
+         endif
 
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c     solid fraction y-direction source terms
@@ -138,7 +141,13 @@ c     ------------------------------------------------  the internal friction fo
 c-------------------------------the bed friction force for fast moving flow---------------------------------------
          t4 = uvec(2)*g(2)
 
-         ustore(4) = ustore(4) + dt*(t4-t2-t3)
+c     update ustore
+         if (abs(Ustore(4) + dt*t4)
+     $    .gt.abs(dt*(t3+t2))) then
+            Ustore(4) = Ustore(3) + dt*(t4 -t3 -t2)
+         else
+            Ustore(4)=0.d0
+         endif
 
       endif
 
