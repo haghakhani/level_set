@@ -59,7 +59,7 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 	 *  predictor step
 	 */
 	int j, k, counter;
-	double tiny = GEOFLOW_TINY, phi;
+	double tiny = GEOFLOW_TINY;
 	double flux_src_coef = 0;
 
 	// printf("the number of elements are ...........%d\n", num_nonzero_elem(El_Table));
@@ -197,14 +197,12 @@ void step(HashTable* El_Table, HashTable* NodeTable, int myid, int nump, MatProp
 
 					double *coord = Curr_El->get_coord();
 					//update the record of maximum pileheight in the area covered by this element
-					double hheight = 0.;
-					//if (*(Curr_El->get_state_vars())<0 )
-					hheight = *(Curr_El->get_state_vars());
+					double phi = *(Curr_El->get_state_vars());
 
 #ifdef MAX_DEPTH_MAP
 					double pfheight[6];
 					outline_ptr->update(coord[0] - 0.5 * dxy[0], coord[0] + 0.5 * dxy[0],
-					    coord[1] - 0.5 * dxy[1], coord[1] + 0.5 * dxy[1], hheight, pfheight);
+					    coord[1] - 0.5 * dxy[1], coord[1] + 0.5 * dxy[1], phi, pfheight);
 #endif
 
 #ifdef APPLY_BC

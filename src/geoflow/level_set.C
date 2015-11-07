@@ -22,6 +22,7 @@
 #include "../header/hpfem.h"
 #include <set>
 #include <vector>
+#include <algorithm>
 
 typedef double (*Pt2Path)(void* path, double x, double y);
 typedef void (*Pt2Grad)(void* path, double x, double y, double* grad);
@@ -243,6 +244,135 @@ void bilinear_interp(Quad quad, double* bilinear_coef) {
 
 }
 
+struct ElLess {
+	bool operator()(Element* a, Element* b) {
+		if (*(a->get_coord()) < *(b->get_coord())
+		    || (*(a->get_coord()) == *(b->get_coord()) && *(a->get_coord() + 1) < *(b->get_coord() + 1)))
+			return true;
+		return false;
+	}
+};
+
+void bilinear_interp1(Quad quad, double* bilinear_coef) {
+
+	ElLess customLess;
+
+//	cout << "before sort: " << endl;
+//	for (int i = 0; i < 4; ++i)
+//		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
+//		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
+
+	sort(quad.elem, quad.elem + 4, customLess);
+
+//	cout << "after sort: " << endl;
+//	for (int i = 0; i < 4; ++i)
+//		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
+//		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
+
+	double x[2], y[2], phi[4];
+
+	x[0] = *(quad.elem[0]->get_coord());
+	x[1] = *(quad.elem[2]->get_coord());
+	y[0] = *(quad.elem[0]->get_coord() + 1);
+	y[1] = *(quad.elem[1]->get_coord() + 1);
+
+	for (int i = 0; i < 4; ++i)
+		phi[i] = *(quad.elem[i]->get_state_vars());
+
+	// now we can easily compute the coefficients of bi-linear interpolation
+	//  P=a0+a1*x+a2*y+a3*x*y
+	double denum_inv = 1 / ((x[1] - x[0]) * (y[1] - y[0]));
+	assert(denum_inv > 0.);
+	bilinear_coef[0] = denum_inv
+	    * (phi[0] * x[1] * y[1] - phi[1] * x[1] * y[0] - phi[2] * x[0] * y[1] + phi[3] * x[0] * y[0]);
+	bilinear_coef[1] = denum_inv * (-phi[0] * y[1] + phi[1] * y[0] + phi[2] * y[1] - phi[3] * y[0]);
+	bilinear_coef[2] = denum_inv * (-phi[0] * x[1] + phi[1] * x[1] + phi[2] * x[0] - phi[3] * x[0]);
+	bilinear_coef[3] = denum_inv * (phi[0] - phi[1] - phi[2] + phi[3]);
+
+////for a rectangle we first need to find min of x and min of y
+//	//we first check x of two first vertices to see their x are same otherwise their y must be same
+//	if (*(quad.elem[0]->get_coord()) == *(quad.elem[1]->get_coord())) {
+//
+//		if (*(quad.elem[0]->get_coord() + 1) < *(quad.elem[1]->get_coord() + 1)) {
+//			y1 = *(quad.elem[0]->get_coord() + 1);
+//			y2 = *(quad.elem[1]->get_coord() + 1);
+//		} else {
+//			y1 = *(quad.elem[1]->get_coord() + 1);
+//			y2 = *(quad.elem[0]->get_coord() + 1);
+//		}
+//		// now we know y_min and y_max, in this part we know x_elem0=x_elem1, so x_elem2=x_elem3
+//		if (*(quad.elem[0]->get_coord()) < *(quad.elem[2]->get_coord())) {
+//			x1 = *(quad.elem[0]->get_coord());
+//			x2 = *(quad.elem[2]->get_coord());
+//		} else {
+//			x1 = *(quad.elem[2]->get_coord());
+//			x2 = *(quad.elem[0]->get_coord());
+//		}
+//	} else {
+//
+//		if (*(quad.elem[0]->get_coord()) < *(quad.elem[1]->get_coord())) {
+//			x1 = *(quad.elem[0]->get_coord());
+//			x2 = *(quad.elem[1]->get_coord());
+//		} else {
+//			x1 = *(quad.elem[1]->get_coord());
+//			x2 = *(quad.elem[0]->get_coord());
+//		}
+//
+//		// now we know x_min and x_max, in this part we know y_elem0=y_elem1, so y_elem2=y_elem3
+//		if (*(quad.elem[0]->get_coord() + 1) < *(quad.elem[2]->get_coord() + 1)) {
+//			y1 = *(quad.elem[0]->get_coord() + 1);
+//			y2 = *(quad.elem[2]->get_coord() + 1);
+//
+//		} else {
+//			y1 = *(quad.elem[2]->get_coord() + 1);
+//			y2 = *(quad.elem[0]->get_coord() + 1);
+//
+//		}
+//	}
+//
+//	int el[4];
+//	for (int i=0;i<4;++i)
+//		el[i]=5;
+//
+//	//now we have to find which point is where
+//	double phi11, phi12, phi21, phi22;
+//	for (int i = 0; i < 4; ++i) {
+//		if (dabs(*(quad.elem[i]->get_coord()) - x1)<1e-12)
+//			if (dabs(*(quad.elem[i]->get_coord() + 1) - y1)<1e-12) {
+//				phi11 = *(quad.elem[i]->get_state_vars());
+//				el[0]=i;
+//			} else {
+//				phi12 = *(quad.elem[i]->get_state_vars());
+//				el[1]=i;
+//			}
+//		else {
+//			if (dabs(*(quad.elem[i]->get_coord() + 1) - y1)<1e-12) {
+//				phi21 = *(quad.elem[i]->get_state_vars());
+//				el[2]=i;
+//			} else {
+//				phi22 = *(quad.elem[i]->get_state_vars());
+//				el[3]=i;
+//			}
+//		}
+//	}
+//
+//	for (int i=0;i<4;++i)
+//		if(!(el[i]==0||el[i]==1||el[i]==2||el[i]==3))
+//			cout<<"this is not good"<<endl;
+//
+//
+//	// now we can easily compute the coefficients of bi-linear interpolation
+//	//  P=a0+a1*x+a2*y+a3*x*y
+//	double denum_inv = 1 / ((x2 - x1) * (y2 - y1));
+//	assert(denum_inv > 0.);
+//	bilinear_coef[0] = denum_inv
+//	    * (phi11 * x2 * y2 - phi12 * x2 * y1 - phi21 * x1 * y2 + phi22 * x1 * y1);
+//	bilinear_coef[1] = denum_inv * (-phi11 * y2 + phi12 * y1 + phi21 * y2 - phi22 * y1);
+//	bilinear_coef[2] = denum_inv * (-phi11 * x2 + phi12 * x2 + phi21 * x1 - phi22 * x1);
+//	bilinear_coef[3] = denum_inv * (phi11 - phi12 - phi21 + phi22);
+
+}
+
 double bilinear_surface(void* path, double x, double y) {
 
 //	p=a0+a1x+a2y+a3xy;
@@ -264,37 +394,72 @@ void grad_bilinear_surface(void* path, double x, double y, double* grad) {
 
 }
 
+//void make_surface(Triangle triangle, double* surface_coef) {
+////  P=a0+a1*x+a2*y
+////	Ab=x
+////	[1,x0,y0][a0] [phi0]
+////	[1,x1,y1][a1] [phi1]
+////	[1,x2,y2][a2]=[phi2]
+//
+//	int dim = 3, one = 1, info, ipiv[dim];
+//
+//	double A[dim * dim], x[dim], y[dim];
+//
+//	for (int i = 0; i < dim; ++i) {
+//		x[i] = *(triangle.elem[i]->get_coord());
+//		y[i] = *(triangle.elem[i]->get_coord() + 1);
+//		surface_coef[i] = *(triangle.elem[i]->get_state_vars());
+//		A[i] = 1;
+//		A[i + 3] = x[i];
+//		A[i + 6] = y[i];
+//	}
+//
+////	cout << "Matrix A and vector phi" << endl;
+////	for (int i = 0; i < dim; ++i) {
+////		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
+////		cout << "[ " << phi[i] << " ]" << endl;
+////	}
+//
+//	dgesv_(&dim, &one, A, &dim, ipiv, surface_coef, &dim, &info);
+//
+////	cout << "Solution" << endl;
+////	for (int i = 0; i < dim; ++i)
+////		cout << "[ " << phi[i] << " ]" << endl;
+//
+//}
+
 void make_surface(Triangle triangle, double* surface_coef) {
 //  P=a0+a1*x+a2*y
-//	Ab=x
-//	[1,x0,y0][a0] [phi0]
-//	[1,x1,y1][a1] [phi1]
-//	[1,x2,y2][a2]=[phi2]
+	double a[3], b[3], normal[3];
 
-	int dim = 3, one = 1, info, ipiv[dim];
+	// first creating two vectors from these three points
+	a[0] = *(triangle.elem[1]->get_coord()) - *(triangle.elem[0]->get_coord());
+	b[0] = *(triangle.elem[2]->get_coord()) - *(triangle.elem[0]->get_coord());
 
-	double A[dim * dim], x[dim], y[dim];
+	a[1] = *(triangle.elem[1]->get_coord() + 1) - *(triangle.elem[0]->get_coord() + 1);
+	b[1] = *(triangle.elem[2]->get_coord() + 1) - *(triangle.elem[0]->get_coord() + 1);
 
-	for (int i = 0; i < dim; ++i) {
-		x[i] = *(triangle.elem[i]->get_coord());
-		y[i] = *(triangle.elem[i]->get_coord() + 1);
-		surface_coef[i] = *(triangle.elem[i]->get_state_vars());
-		A[i] = 1;
-		A[i + 3] = x[i];
-		A[i + 6] = y[i];
-	}
+	a[2] = *(triangle.elem[1]->get_state_vars()) - *(triangle.elem[0]->get_state_vars());
+	b[2] = *(triangle.elem[2]->get_state_vars()) - *(triangle.elem[0]->get_state_vars());
 
-//	cout << "Matrix A and vector phi" << endl;
-//	for (int i = 0; i < dim; ++i) {
-//		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
-//		cout << "[ " << phi[i] << " ]" << endl;
-//	}
+	// finding the normal vector of the two vectors
+	normal[0] = a[1] * b[2] - b[1] * a[2];
+	normal[1] = b[0] * a[2] - a[0] * b[2];
+	normal[2] = a[1] * b[0] - b[1] * a[0];
 
-	dgesv_(&dim, &one, A, &dim, ipiv, surface_coef, &dim, &info);
+	double c;
+	if (normal[2] != 0) {
+		c = -1 / normal[2];
+		surface_coef[0] = -c
+		    * (normal[0] * *(triangle.elem[0]->get_coord())
+		        + normal[1] * *(triangle.elem[0]->get_coord() + 1))
+		    + *(triangle.elem[0]->get_state_vars());
+		surface_coef[1] = normal[0] * c;
+		surface_coef[2] = normal[1] * c;
 
-//	cout << "Solution" << endl;
-//	for (int i = 0; i < dim; ++i)
-//		cout << "[ " << phi[i] << " ]" << endl;
+	} else
+		for (int i = 0; i < 3; ++i)
+			surface_coef[i] = 0.;
 
 }
 
@@ -563,7 +728,7 @@ void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadli
 		} else {
 			elem[0] = it->elem[1];
 			elem[1] = it->elem[0];
-			neigh_num = elem[0]->which_neighbor(elem[1]->pass_key());					//= (it->neigh_num + 2) % 8;
+			neigh_num = elem[0]->which_neighbor(elem[1]->pass_key());			//= (it->neigh_num + 2) % 8;
 		}
 
 		// given the neighbor number, we can build 2 Quads, but we do not care.
@@ -671,6 +836,7 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 
 	for (QuadList::iterator it = rectangles.begin(); it != rectangles.end(); ++it) {
 
+		bilinear_interp1(*it, bilinear_coef);
 		bilinear_interp(*it, bilinear_coef);
 
 		for (int j = 0; j < 4; ++j) {
@@ -723,4 +889,26 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 
 	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 
+}
+
+int num_nonzero_elem(HashTable *El_Table) {
+	int num = 0, myid;
+	HashEntryPtr currentPtr;
+	Element *Curr_El;
+	HashEntryPtr *buck = El_Table->getbucketptr();
+	//printf("the numebr of buckets are: %d", El_Table->get_no_of_buckets());
+
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++)
+		if (*(buck + i)) {
+			currentPtr = *(buck + i);
+			while (currentPtr) {
+				Curr_El = (Element*) (currentPtr->value);
+				if (Curr_El->get_adapted_flag() > 0) {
+					num++;
+				}
+				currentPtr = currentPtr->next;
+			}
+		}
+
+	return (num);
 }

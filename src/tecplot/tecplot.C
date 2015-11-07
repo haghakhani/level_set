@@ -615,7 +615,7 @@ int print_bubble_node(FILE *fp, HashTable* NodeTable, MatProps* matprops,
 	  (*(EmTemp->get_coord()+1))*(matprops)->LENGTH_SCALE,
 	  (elevation+(*(EmTemp->get_state_vars()+1))*(matprops)->HEIGHT_SCALE), 
 	  *(EmTemp->get_state_vars()+1)*(matprops)->HEIGHT_SCALE,
-	  *(EmTemp->get_state_vars())*(matprops)->LENGTH_SCALE,//level set is a signed distance function, so has length unit
+	  *(EmTemp->get_state_vars()),
 	  *(EmTemp->get_state_vars()+2)*momentum_scale, 
 	  *(EmTemp->get_state_vars()+3)*momentum_scale, 
 	  *(EmTemp->get_state_vars()+4)/**momentum_scale*/, 
@@ -886,7 +886,7 @@ void meshplotter(HashTable* El_Table, HashTable* NodeTable,
                       state_vars[1]*(matprops)->HEIGHT_SCALE,
                       state_vars[2]*momentum_scale, state_vars[3]*momentum_scale,
                       state_vars[4]/**momentum_scale*/, state_vars[5]/*momentum_scale*/,
-                      Vel[0], Vel[1], Vel[2], Vel[3], state_vars[0]*(matprops)->LENGTH_SCALE,
+                      Vel[0], Vel[1], Vel[2], Vel[3], state_vars[0],
                       *(EmTemp->get_drag()), *(EmTemp->get_drag()+1));
 
           else  // S_C_CON will have a discontinuity in the elevation so fix that by interpolation
@@ -937,7 +937,7 @@ void meshplotter(HashTable* El_Table, HashTable* NodeTable,
                       state_vars[1]*(matprops)->HEIGHT_SCALE,
                       state_vars[2]*momentum_scale, state_vars[3]*momentum_scale,
                       state_vars[4]/**momentum_scale*/, state_vars[5]*momentum_scale,
-                      Vel[0], Vel[1], Vel[2], Vel[3], state_vars[0]*(matprops)->LENGTH_SCALE,
+                      Vel[0], Vel[1], Vel[2], Vel[3], state_vars[0],
                       *(EmTemp->get_drag()), *(EmTemp->get_drag()+1));
 	  } 
 	} 

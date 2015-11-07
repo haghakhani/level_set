@@ -165,6 +165,10 @@ int main(int argc, char *argv[]) {
 		grass_sites_proc_output(BT_Elem_Ptr, BT_Node_Ptr, myid, &matprops, &timeprops);
 	}
 
+	vector<int> number_of_element_local;
+
+	number_of_element_local.push_back(num_nonzero_elem(BT_Elem_Ptr));
+
 	/*
 	 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 	 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -213,8 +217,8 @@ int main(int argc, char *argv[]) {
 			update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &mapnames);
 		}
 
-		if (timeprops.iter)// this is to avoid run for time step 0
-					reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
+		if (timeprops.iter)		// this is to avoid run for time step 0
+			reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
 
 		if ((adaptflag != 0) && (timeprops.iter % 5 == 4)) {
 			AssertMeshErrorFree(BT_Elem_Ptr, BT_Node_Ptr, numprocs, myid, -2.0);
@@ -235,6 +239,8 @@ int main(int argc, char *argv[]) {
 				move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops); //this move_data() here for debug... to make AssertMeshErrorFree() Work
 			}
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
+
+			number_of_element_local.push_back(num_nonzero_elem(BT_Elem_Ptr));
 		}
 
 		step(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &pileprops, &fluxprops,
@@ -248,12 +254,6 @@ int main(int argc, char *argv[]) {
 			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 
 			output_discharge(&matprops, &timeprops, &discharge, myid);
-			//output_flag=0;
-			MPI_Barrier(MPI_COMM_WORLD);
-			MPI_Reduce(*(outline.pileheight), *(outline2.pileheight), NxNyout,
-			MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-			if (myid == 0)
-				outline2.output(&matprops, &statprops, &timeprops);
 
 			if (myid == 0) {
 				output_summary(&timeprops, &statprops, savefileflag);
@@ -367,6 +367,22 @@ int main(int argc, char *argv[]) {
 	if (myid == 0)
 		outline2.output(&matprops, &statprops, &timeprops);
 	MPI_Barrier(MPI_COMM_WORLD);
+
+	int* number_of_element_global;
+	if (myid == 0)
+		number_of_element_global = new int[timeprops.iter];
+
+	MPI_Reduce(&number_of_element_local.front(), number_of_element_global, timeprops.iter, MPI_INT,
+	MPI_SUM, 0, MPI_COMM_WORLD);
+
+	if (myid == 0) {
+		ofstream output_file("./number_of_elements.data", ofstream::out);
+		for (int i = 0; i < timeprops.iter; ++i)
+			output_file << number_of_element_global[i] << endl;
+		delete[] number_of_element_global;
+
+	}
+
 #ifdef PERFTEST  
 	long m = element_counter, ii;
 

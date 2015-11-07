@@ -27,6 +27,8 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <iterator>
+#include <vector>
 using namespace std;
 
 #include <stdlib.h>
