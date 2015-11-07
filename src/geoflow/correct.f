@@ -144,7 +144,7 @@ c-------------------------------the bed friction force for fast moving flow-----
 c     update ustore
          if (abs(Ustore(4) + dt*t4)
      $    .gt.abs(dt*(t3+t2))) then
-            Ustore(4) = Ustore(3) + dt*(t4 -t3 -t2)
+            Ustore(4) = Ustore(4) + dt*(t4 -t3 -t2)
          else
             Ustore(4)=0.d0
          endif
