@@ -20,6 +20,8 @@
 #define DEBUG_HEADER
 const int QUADNODES = 9;
 
+struct Box;
+
 //! this function checks for any and all possible mesh errors, i.e. it checks if the mesh is legal, it says nothing about the quality of a legal mesh, you must have ghost information present before performing this check, WARNING THIS CHECK TAKES A LOT OF TIME, ONLY USE IT TO DEBUG.
 void AssertMeshErrorFree(HashTable *El_Table, HashTable* NodeTable,
 				  int numprocs, int myid,double loc);
@@ -140,7 +142,7 @@ void  H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable,
 //! this is the normal grid adaptive refinement function it also refreshes the flux sources
 void  H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, 
 	      double target, MatProps* matprops_ptr, FluxProps *fluxprops_ptr,
-	      TimeProps* timeprops_ptr, int num_buffer_layer);
+	      TimeProps* timeprops_ptr, int num_buffer_layer, Box* box);
 
 
 //! this function flushes the hashtables, it is called during grid adaptation in hadpt.C

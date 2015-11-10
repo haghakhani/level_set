@@ -32,6 +32,26 @@ extern int REFINE_LEVEL; //make REFINE_LEVEL a global variable that can be chang
 //(mdj)2007-04-11 #define MIN_GENERATION -1 //minimum refinement level
 #define MIN_GENERATION -3 //minimum refinement level
 
+
+struct Box {
+	MatProps* mat;
+	MapNames* map;
+	TimeProps* time;
+	HashTable* node;
+	HashTable* elem;
+	int flag=0;
+
+	Box(MatProps* mati, MapNames* mapi, TimeProps* timei, HashTable* nodei,
+			HashTable* elemi) {
+		mat=mati;
+		map=mapi;
+		time=timei;
+		node=nodei;
+		elem=elemi;
+	}
+};
+
+
 //! non member C++ function that wraps the fortran correct_() function
 void correct(HashTable* NodeTable, HashTable* El_Table, double dt, MatProps* matprops_ptr,
     FluxProps *fluxprops, TimeProps *timeprops, void *EmTemp, double *forceint, double *forcebed,
@@ -160,7 +180,7 @@ inline double dabs(double dd) {
 	return dd;
 }
 void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank);
+    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank, Box* box);
 
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
     TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank);

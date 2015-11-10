@@ -23,31 +23,32 @@
 #define TARGETPROC -1
 //#define FORDEBUG
 
-void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr, MatProps* matprops_ptr,
-		ElemPtrList *RefinedList, Element *EmTemp);
+void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr,
+		MatProps* matprops_ptr, ElemPtrList *RefinedList, Element *EmTemp);
 
 extern void refine(Element*, HashTable*, HashTable*, MatProps* matprops_ptr);
 
 extern void depchk(Element*, HashTable*, HashTable*, int*, ElemPtrList*);
 
-void update_neighbor_info(HashTable* HT_Elem_Ptr, ElemPtrList* RefinedList, int myid, int numprocs,
-		HashTable* HT_Node_Ptr, int h_count);
+void update_neighbor_info(HashTable* HT_Elem_Ptr, ElemPtrList* RefinedList,
+		int myid, int numprocs, HashTable* HT_Node_Ptr, int h_count);
 //extern void  update_neighbor_info(HashTable*, Element*[], int, int,int, HashTable*, int h_count);
 
-extern void data_com(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int myid, int numprocs,
-		int h_count);
+extern void data_com(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int myid,
+		int numprocs, int h_count);
 
 extern void htflush(HashTable*, HashTable*, int);
 
 extern void test_h_refine(HashTable* HT_Elem_Ptr, int myid, int h_count);
 
-extern void all_check(HashTable* eltab, HashTable* ndtab, int myid, int m, double TARGET);
+extern void all_check(HashTable* eltab, HashTable* ndtab, int myid, int m,
+		double TARGET);
 
 #define PHI_ZERO 0.
 
-void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double target,
-		MatProps* matprops_ptr, FluxProps *fluxprops, //doesn't need fluxprops
-		TimeProps* timeprops_ptr, int num_buffer_layer)
+void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
+		double target, MatProps* matprops_ptr, FluxProps *fluxprops, //doesn't need fluxprops
+		TimeProps* timeprops_ptr, int num_buffer_layer, Box* box)
 		/*-------------
 		 scanning element hashtable, if the error of an element is bigger than the target error
 		 1). check if it has been marked for refinement caused by other element refinement
@@ -105,7 +106,8 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 	move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 
 	// determine which elements to refine and flag them for refinement
-	double geo_target = element_weight(HT_Elem_Ptr, HT_Node_Ptr, myid, numprocs);
+	double geo_target = element_weight(HT_Elem_Ptr, HT_Node_Ptr, myid,
+			numprocs);
 
 	int hash_size = HT_Elem_Ptr->get_no_of_buckets();
 	int debug_ref_flag = 0;
@@ -119,6 +121,7 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			assert(EmTemp);
 			if (EmTemp->get_adapted_flag() >= NEWSON)
 				EmTemp->put_adapted_flag(NOTRECADAPTED);
+			*(EmTemp->get_state_vars()+5)=0.;
 
 			entryp = entryp->next;
 		}
@@ -134,7 +137,8 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			EmTemp = (Element*) (entryp->value);
 			assert(EmTemp);
 			//-- this requirement is used to exclude the new elements
-			if (((EmTemp->get_adapted_flag() > 0) && (EmTemp->get_adapted_flag() < NEWSON)) &&
+			if (((EmTemp->get_adapted_flag() > 0)
+					&& (EmTemp->get_adapted_flag() < NEWSON)) &&
 
 			(EmTemp->get_gen() < REFINE_LEVEL)
 					&&
@@ -142,7 +146,8 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 					((EmTemp->if_pile_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
 							|| (EmTemp->if_source_boundary(HT_Elem_Ptr) > 0)
 							|| (*(EmTemp->get_el_error()) > geo_target))) {
-				refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+				refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr,
+						&RefinedList, EmTemp);
 				debug_ref_flag++;
 			}
 			entryp = entryp->next;
@@ -151,8 +156,8 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 
 	// -h_count for debugging
 	//update_neighbor_info(HT_Elem_Ptr, &RefinedList,myid, numprocs, HT_Node_Ptr, h_count);
-	refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-			timeprops_ptr);
+	refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+			(void*) &RefinedList, timeprops_ptr);
 
 	move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 	if ((myid == TARGETPROC)) { //&&(timeprops_ptr->iter==354)){
@@ -173,19 +178,23 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) == 1)
-) {
-					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO)
+						== 1)) {
+					*(EmTemp->get_state_vars()+5)=40.;
+					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr,
+							&RefinedList, EmTemp);
 					debug_ref_flag++;
 				}
 				entryp = entryp->next;
 			}
 		}
 
-		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-				timeprops_ptr);
+		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+				(void*) &RefinedList, timeprops_ptr);
 
 		move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
+
+		meshplotter(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, timeprops_ptr, box->map, 0.);
 
 		//mark the elements in the innermost buffer layer as the BUFFER layer
 		for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
@@ -193,15 +202,17 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
-)
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) > 0))
 					EmTemp->put_adapted_flag(BUFFER);
 				entryp = entryp->next;
 			}
 		}
 
-		for (int ibufferlayer = 2; ibufferlayer <= num_buffer_layer; ibufferlayer++) {
+		for (int ibufferlayer = 2; ibufferlayer <= num_buffer_layer;
+				ibufferlayer++) {
 			move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
+
+			meshplotter(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, timeprops_ptr, box->map, 0.);
 
 			//refine where necessary before placing the next buffer layer
 			for (i = 0; i < hash_size; i++) {
@@ -209,8 +220,10 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, PHI_ZERO) == 1) {
-						refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr,
+							HT_Node_Ptr, PHI_ZERO) == 1) {
+						refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr,
+								&RefinedList, EmTemp);
 						debug_ref_flag++;
 					}
 					entryp = entryp->next;
@@ -221,13 +234,14 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 
 			//refine_neigh_update() needs to know new sons are NEWSONs,
 			//can't call them BUFFER until after refine_neigh_update()
-			refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-					timeprops_ptr);
+			refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+					(void*) &RefinedList, timeprops_ptr);
 
 			move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 
 			if ((myid == TARGETPROC)) {      //&&(timeprops_ptr->iter==354)){
-				AssertMeshErrorFree(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, 0.0);
+				AssertMeshErrorFree(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+						0.0);
 				printf("After fourth AssertMeshErrorFree\n");
 			}
 
@@ -238,7 +252,8 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, PHI_ZERO) > 0)
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr,
+							HT_Node_Ptr, PHI_ZERO) > 0)
 						TempList.add(EmTemp);
 					//EmTemp->put_adapted_flag(NEWBUFFER);
 
@@ -251,6 +266,7 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 				EmTemp = TempList.get(i);
 				assert(EmTemp);
 				EmTemp->put_adapted_flag(BUFFER);
+				*(EmTemp->get_state_vars()+5)=80.;
 			}
 			TempList.trashlist();
 
@@ -258,17 +274,19 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 	}
 
 	move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
+	meshplotter(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, timeprops_ptr, box->map, 0.);
 	htflush(HT_Elem_Ptr, HT_Node_Ptr, 2);
 
 	for (i = 0; i < hash_size; i++) {
 		entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 		while (entryp) {
-			EmTemp = (Element*) (entryp->value);
+			EmTemp = (Element*) (entryp->value);struct Box;
 			entryp = entryp->next;
 
 			switch (EmTemp->get_adapted_flag()) {
 			case NEWBUFFER:
-				printf("Suspicious element has adapted flag=%d\n aborting", EmTemp->get_adapted_flag());
+				printf("Suspicious element has adapted flag=%d\n aborting",
+						EmTemp->get_adapted_flag());
 				assert(0);
 				break;
 			case BUFFER:
@@ -293,13 +311,16 @@ void H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count, double
 				break;
 			case OLDFATHER:
 			case OLDSON:
-				printf("Suspicious element has adapted flag=%d\n aborting", EmTemp->get_adapted_flag());
+				printf("Suspicious element has adapted flag=%d\n aborting",
+						EmTemp->get_adapted_flag());
 				assert(0);
 				break;
 			default:
 				//I don't know what kind of Element this is.
-				printf("FUBAR element type in H_adapt()!!! key={%u,%u} adapted=%d\naborting.\n",
-						*(EmTemp->pass_key() + 0), *(EmTemp->pass_key() + 1), EmTemp->get_adapted_flag());
+				printf(
+						"FUBAR element type in H_adapt()!!! key={%u,%u} adapted=%d\naborting.\n",
+						*(EmTemp->pass_key() + 0), *(EmTemp->pass_key() + 1),
+						EmTemp->get_adapted_flag());
 				assert(0);
 				break;
 			}
@@ -349,8 +370,8 @@ void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr, MatProps* matpr
 }
 #endif
 //Keith wrote this because the code block was repeated so many times
-void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr, MatProps* matprops_ptr,
-		ElemPtrList *RefinedList, Element *EmTemp) {
+void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr,
+		MatProps* matprops_ptr, ElemPtrList *RefinedList, Element *EmTemp) {
 
 	int sur = 0, ifg = 1, ielem;
 
@@ -365,7 +386,8 @@ void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr, MatProps* matpr
 		if (ifg)
 			for (ielem = 0; ielem < RefinedList->get_num_elem(); ielem++)
 				if (!((RefinedList->get(ielem))->get_refined_flag())) {
-					refine(RefinedList->get(ielem), HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr);
+					refine(RefinedList->get(ielem), HT_Elem_Ptr, HT_Node_Ptr,
+							matprops_ptr);
 					(RefinedList->get(ielem))->put_adapted_flag(OLDFATHER);
 					(RefinedList->get(ielem))->put_refined_flag(1);
 				}
@@ -374,12 +396,13 @@ void refinewrapper(HashTable*HT_Elem_Ptr, HashTable*HT_Node_Ptr, MatProps* matpr
 }
 
 //from init_piles.C
-extern void elliptical_pile_height(HashTable* HT_Node_Ptr, Element *EmTemp, MatProps* matprops_ptr,
-		PileProps* pileprops_ptr);
+extern void elliptical_pile_height(HashTable* HT_Node_Ptr, Element *EmTemp,
+		MatProps* matprops_ptr, PileProps* pileprops_ptr);
 
-void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count,
-		MatProps* matprops_ptr, PileProps *pileprops_ptr, FluxProps *fluxprops_ptr,
-		TimeProps* timeprops_ptr, int num_buffer_layer) {
+void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr,
+		int h_count, MatProps* matprops_ptr, PileProps *pileprops_ptr,
+		FluxProps *fluxprops_ptr, TimeProps* timeprops_ptr,
+		int num_buffer_layer) {
 
 	int k, i, j;
 	HashEntryPtr entryp;
@@ -391,7 +414,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 	int numprocs;
 	int ifg;      //--
 	int refine_flag;
-	unsigned sent_buf[4 * KEYLENGTH];      //-- 1 source; 2 target; 3 refined flag; 4 generation
+	unsigned sent_buf[4 * KEYLENGTH]; //-- 1 source; 2 target; 3 refined flag; 4 generation
 	unsigned recv_buf[4 * KEYLENGTH];      //-- same
 	int htype = 101;      //-- 101 is arbitary
 	unsigned NodeDebugKey[2] = { 3489660928, 0 };
@@ -433,7 +456,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 	int icenter = 0;
 	if (timeprops_ptr->time == 0) {
-		for (int ipile = 0; ipile < pileprops_ptr->numpiles; ipile++, icenter++) {
+		for (int ipile = 0; ipile < pileprops_ptr->numpiles;
+				ipile++, icenter++) {
 			xycenter[icenter][0] = pileprops_ptr->xCen[ipile];
 			xycenter[icenter][1] = pileprops_ptr->yCen[ipile];
 		}
@@ -512,7 +536,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 	int mincentergen;
 	do {
 		mincentergen = REFINE_LEVEL;
-		for (i = 0; i < hash_size; i++) {    //-- every process begin to scan their own hashtable
+		for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 
 			entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 			while (entryp) {
@@ -526,7 +550,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		}
 
 		TempList.trashlist();
-		for (i = 0; i < hash_size; i++) {    //-- every process begin to scan their own hashtable
+		for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 			entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 			while (entryp) {
 
@@ -534,28 +558,38 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				assert(EmTemp);
 
 				if (EmTemp->get_adapted_flag() > 0) {
-					double minx = (*(EmTemp->get_coord() + 0) - (*(EmTemp->get_dx() + 0)) * 0.5);
+					double minx = (*(EmTemp->get_coord() + 0)
+							- (*(EmTemp->get_dx() + 0)) * 0.5);
 					//*(matprops_ptr->LENGTH_SCALE);
-					double maxx = (*(EmTemp->get_coord() + 0) + (*(EmTemp->get_dx() + 0)) * 0.5);
+					double maxx = (*(EmTemp->get_coord() + 0)
+							+ (*(EmTemp->get_dx() + 0)) * 0.5);
 					//*(matprops_ptr->LENGTH_SCALE);
-					double miny = (*(EmTemp->get_coord() + 1) - (*(EmTemp->get_dx() + 1)) * 0.5);
+					double miny = (*(EmTemp->get_coord() + 1)
+							- (*(EmTemp->get_dx() + 1)) * 0.5);
 					//*(matprops_ptr->LENGTH_SCALE);
-					double maxy = (*(EmTemp->get_coord() + 1) + (*(EmTemp->get_dx() + 1)) * 0.5);
+					double maxy = (*(EmTemp->get_coord() + 1)
+							+ (*(EmTemp->get_dx() + 1)) * 0.5);
 					//*(matprops_ptr->LENGTH_SCALE);
 
 					//printf("x=[%g,%g] y=[%g,%g]\n",minx,maxx,miny,maxy);
 
 					for (icenter = 0; icenter < num_ellipse_centers; icenter++)
-						if ((minx <= xycenter[icenter][0]) && (xycenter[icenter][0] <= maxx)
-								&& (miny <= xycenter[icenter][1]) && (xycenter[icenter][1] <= maxy)) {
+						if ((minx <= xycenter[icenter][0])
+								&& (xycenter[icenter][0] <= maxx)
+								&& (miny <= xycenter[icenter][1])
+								&& (xycenter[icenter][1] <= maxy)) {
 
-							if ((EmTemp->get_gen() < REFINE_LEVEL) && (EmTemp->get_adapted_flag() > 0)
+							if ((EmTemp->get_gen() < REFINE_LEVEL)
+									&& (EmTemp->get_adapted_flag() > 0)
 									&& (EmTemp->get_adapted_flag() < NEWSON))
-								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr,
+										matprops_ptr, &RefinedList, EmTemp);
 							Element *EmSon = EmTemp;
 							if (EmTemp->get_adapted_flag() == OLDFATHER)
 								for (int ison = 0; ison < 4; ison++) {
-									EmSon = (Element *) HT_Elem_Ptr->lookup(EmTemp->getson() + KEYLENGTH * ison);
+									EmSon = (Element *) HT_Elem_Ptr->lookup(
+											EmTemp->getson()
+													+ KEYLENGTH * ison);
 									TempList.add(EmSon);
 								}
 							else
@@ -572,7 +606,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		}
 
 		intswap = mincentergen;
-		MPI_Allreduce(&mincentergen, &intswap, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+		MPI_Allreduce(&mincentergen, &intswap, 1, MPI_INT, MPI_MIN,
+		MPI_COMM_WORLD);
 		mincentergen = intswap;
 
 		//printf("icounter=%d\n",icounter);
@@ -580,8 +615,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 		//refine_neigh_update() needs to know new sons are NEWSONs,
 		//can't call them BUFFER until after refine_neigh_update()
-		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-				timeprops_ptr);
+		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+				(void*) &RefinedList, timeprops_ptr);
 
 		//printf("Number of elements for refinement   %d\n", TempList.get_num_elem());
 		//mark the new buffer elements as BUFFER element,
@@ -624,14 +659,18 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 					while (entryp) {
 						EmTemp = (Element*) (entryp->value);
 						assert(EmTemp);
-						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, PHI_ZERO) == 1) {
+						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr,
+								HT_Node_Ptr, PHI_ZERO) == 1) {
 
 							if (EmTemp->get_gen() < REFINE_LEVEL)
-								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr,
+										matprops_ptr, &RefinedList, EmTemp);
 							if (EmTemp->get_adapted_flag() == OLDFATHER)
 								for (int ison = 0; ison < 4; ison++) {
-									Element *EmSon = (Element *) HT_Elem_Ptr->lookup(
-											EmTemp->getson() + KEYLENGTH * ison);
+									Element *EmSon =
+											(Element *) HT_Elem_Ptr->lookup(
+													EmTemp->getson()
+															+ KEYLENGTH * ison);
 									TempList.add(EmSon);
 								}
 							else {
@@ -646,8 +685,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				//update_neighbor_info(HT_Elem_Ptr, &RefinedList, myid, numprocs, HT_Node_Ptr, h_count);
 				//refine_neigh_update() needs to know new sons are NEWSONs,
 				//can't call them BUFFER until after refine_neigh_update()
-				refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-						timeprops_ptr);
+				refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+						(void*) &RefinedList, timeprops_ptr);
 
 				//mark the new buffer elements as BUFFER element,
 				for (i = 0; i < TempList.get_num_elem(); i++) {
@@ -657,7 +696,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				}
 				TempList.trashlist();
 
-				move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
+				move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr,
+						timeprops_ptr);
 				/*
 				 if(myid==0) {
 				 printf("before AssertMeshErrorFree() 2.0\n");
@@ -693,7 +733,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 	icounter = 0;
 	int minboundarygen;
-	int adapted_flag = 0, newson = 0, refinelevel = 0, pile_boundary = 0, source_boundary = 0;
+	int adapted_flag = 0, newson = 0, refinelevel = 0, pile_boundary = 0,
+			source_boundary = 0;
 	do {
 		/*
 		 if(myid==0) {
@@ -734,12 +775,13 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		//if(myid==0) printf("initial_H_adapt %d\n",2); fflush(stdout);
 		if (timeprops_ptr->iter == 0)
 			//mark the piles so we can refine their boundaries
-			for (i = 0; i < hash_size; i++) {      //-- every process begin to scan their own hashtable
+			for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 				entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					elliptical_pile_height(HT_Node_Ptr, EmTemp, matprops_ptr, pileprops_ptr);
+					elliptical_pile_height(HT_Node_Ptr, EmTemp, matprops_ptr,
+							pileprops_ptr);
 					entryp = entryp->next;
 				}
 			}
@@ -756,7 +798,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 		//if(myid==0) printf("initial_H_adapt %d\n",3); fflush(stdout);
 		//mark the mass flux sources so we can refine their boundaries
-		mark_flux_region(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, fluxprops_ptr, timeprops_ptr);
+		mark_flux_region(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, fluxprops_ptr,
+				timeprops_ptr);
 
 		//  if(myid==0) printf("initial_H_adapt %d\n",4); fflush(stdout);
 
@@ -781,7 +824,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		//printf("before loop adapted flag: %d, newson: %d, refinelelvel: %d, pile_boundary: %d, source_boundary:%d \n",
 		//adapted_flag,newson,refinelevel,pile_boundary,source_boundary); fflush(stdout);
 		//printf("number of elements   %d\n", num_nonzero_elem(HT_Elem_Ptr));fflush(stdout);
-		for (i = 0; i < hash_size; i++) {      //-- every process begin to scan their own hashtable
+		for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 			entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 			while (entryp) {
 
@@ -794,11 +837,13 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				//if(EmTemp->if_pile_boundary(HT_Elem_Ptr,GEOFLOW_TINY     )>0) pile_boundary++;
 				//if(EmTemp->if_source_boundary(HT_Elem_Ptr)>0) source_boundary++;
 
-				if (((EmTemp->get_adapted_flag() > 0) && (EmTemp->get_adapted_flag() < NEWSON))
+				if (((EmTemp->get_adapted_flag() > 0)
+						&& (EmTemp->get_adapted_flag() < NEWSON))
 						&& (EmTemp->get_gen() < REFINE_LEVEL)
 						&& ((EmTemp->if_pile_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
 								|| (EmTemp->if_source_boundary(HT_Elem_Ptr) > 0))) {
-					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr,
+							&RefinedList, EmTemp);
 					debug_ref_flag++;
 				}
 
@@ -815,8 +860,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 		//refine_neigh_update() needs to know new sons are NEWSONs,
 		//can't call them BUFFER until after refine_neigh_update()
-		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-				timeprops_ptr);
+		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+				(void*) &RefinedList, timeprops_ptr);
 
 		/*
 		 move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr,timeprops_ptr); //this move_data() only here for debug
@@ -829,12 +874,13 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		// if(myid==0) printf("initial_H_adapt %d\n",6); fflush(stdout);
 		if (timeprops_ptr->iter == 0)
 			//mark the piles so we can refine their boundaries
-			for (i = 0; i < hash_size; i++) {      //-- every process begin to scan their own hashtable
+			for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 				entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					elliptical_pile_height(HT_Node_Ptr, EmTemp, matprops_ptr, pileprops_ptr);
+					elliptical_pile_height(HT_Node_Ptr, EmTemp, matprops_ptr,
+							pileprops_ptr);
 					entryp = entryp->next;
 				}
 			}
@@ -842,7 +888,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		//if(myid==0) printf("initial_H_adapt %d\n",7); fflush(stdout);
 
 		//mark the mass flux sources so we can refine their boundaries
-		mark_flux_region(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, fluxprops_ptr, timeprops_ptr);
+		mark_flux_region(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, fluxprops_ptr,
+				timeprops_ptr);
 
 		//    if(myid==0) printf("initial_H_adapt %d\n",8); fflush(stdout);
 
@@ -853,7 +900,7 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		 ElemBackgroundCheck(HT_Elem_Ptr,HT_Node_Ptr,checkthisneighbor,stdout);
 		 */
 
-		for (i = 0; i < hash_size; i++) {      //-- every process begin to scan their own hashtable
+		for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 			entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 			while (entryp) {
 
@@ -873,7 +920,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		}
 
 		intswap = minboundarygen;
-		MPI_Allreduce(&minboundarygen, &intswap, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+		MPI_Allreduce(&minboundarygen, &intswap, 1, MPI_INT, MPI_MIN,
+		MPI_COMM_WORLD);
 		minboundarygen = intswap;
 
 		//   if(myid==0) printf("initial_H_adapt %d\n",9); fflush(stdout);
@@ -893,14 +941,18 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 					while (entryp) {
 						EmTemp = (Element*) (entryp->value);
 						assert(EmTemp);
-						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, PHI_ZERO) == 1) {
+						if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr,
+								HT_Node_Ptr, PHI_ZERO) == 1) {
 
 							if (EmTemp->get_gen() < REFINE_LEVEL)
-								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+								refinewrapper(HT_Elem_Ptr, HT_Node_Ptr,
+										matprops_ptr, &RefinedList, EmTemp);
 							if (EmTemp->get_adapted_flag() == OLDFATHER)
 								for (int ison = 0; ison < 4; ison++) {
-									Element *EmSon = (Element *) HT_Elem_Ptr->lookup(
-											EmTemp->getson() + KEYLENGTH * ison);
+									Element *EmSon =
+											(Element *) HT_Elem_Ptr->lookup(
+													EmTemp->getson()
+															+ KEYLENGTH * ison);
 									TempList.add(EmSon);
 								}
 							else {
@@ -919,8 +971,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 				//refine_neigh_update() needs to know new sons are NEWSONs,
 				//can't call them BUFFER until after refine_neigh_update()
-				refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-						timeprops_ptr);
+				refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+						(void*) &RefinedList, timeprops_ptr);
 
 				//	if(myid==0) printf("initial_H_adapt %d\n",12); fflush(stdout);
 
@@ -935,7 +987,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 				//	if(myid==0) printf("initial_H_adapt %d\n",13); fflush(stdout);
 
-				move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
+				move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr,
+						timeprops_ptr);
 
 				/*
 				 //move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr,timeprops_ptr); //this move_data() only here for debug
@@ -992,9 +1045,10 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) == 1)
-) {
-					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO)
+						== 1)) {
+					refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr,
+							&RefinedList, EmTemp);
 					debug_ref_flag++;
 				}
 				entryp = entryp->next;
@@ -1004,8 +1058,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		//update_neighbor_info(HT_Elem_Ptr, &RefinedList, myid, numprocs, HT_Node_Ptr, h_count);
 		//refine_neigh_update() needs to know new sons are NEWSONs,
 		//can't call them BUFFER until after refine_neigh_update()
-		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-				timeprops_ptr);
+		refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+				(void*) &RefinedList, timeprops_ptr);
 
 		move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 
@@ -1018,13 +1072,12 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 		 */
 
 		//mark the elements in the innermost buffer layer as the BUFFER layer
-		for (i = 0; i < hash_size; i++) {      //-- every process begin to scan their own hashtable
+		for (i = 0; i < hash_size; i++) { //-- every process begin to scan their own hashtable
 			entryp = *(HT_Elem_Ptr->getbucketptr() + i);
 			while (entryp) {
 				EmTemp = (Element*) (entryp->value);
 				assert(EmTemp);
-				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) > 0)
-)
+				if ((EmTemp->if_first_buffer_boundary(HT_Elem_Ptr, PHI_ZERO) > 0))
 					EmTemp->put_adapted_flag(BUFFER);
 				entryp = entryp->next;
 			}
@@ -1032,7 +1085,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 		//increase the width of the buffer layer by one element at a time
 		//until it's num_buffer_layer Elements wide
-		for (int ibufferlayer = 2; ibufferlayer <= num_buffer_layer; ibufferlayer++) {
+		for (int ibufferlayer = 2; ibufferlayer <= num_buffer_layer;
+				ibufferlayer++) {
 
 			move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 
@@ -1042,8 +1096,10 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, PHI_ZERO) == 1) {
-						refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr, &RefinedList, EmTemp);
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr,
+							HT_Node_Ptr, PHI_ZERO) == 1) {
+						refinewrapper(HT_Elem_Ptr, HT_Node_Ptr, matprops_ptr,
+								&RefinedList, EmTemp);
 						debug_ref_flag++;
 					}
 					entryp = entryp->next;
@@ -1052,8 +1108,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 			// -h_count for debugging
 			//update_neighbor_info(HT_Elem_Ptr, &RefinedList, myid, numprocs, HT_Node_Ptr, h_count);
-			refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid, (void*) &RefinedList,
-					timeprops_ptr);
+			refine_neigh_update(HT_Elem_Ptr, HT_Node_Ptr, numprocs, myid,
+					(void*) &RefinedList, timeprops_ptr);
 
 			move_data(numprocs, myid, HT_Elem_Ptr, HT_Node_Ptr, timeprops_ptr);
 
@@ -1073,7 +1129,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				while (entryp) {
 					EmTemp = (Element*) (entryp->value);
 					assert(EmTemp);
-					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr, HT_Node_Ptr, PHI_ZERO) > 0)
+					if (EmTemp->if_next_buffer_boundary(HT_Elem_Ptr,
+							HT_Node_Ptr, PHI_ZERO) > 0)
 						TempList.add(EmTemp);
 					entryp = entryp->next;
 				}
@@ -1145,7 +1202,8 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 
 			switch (EmTemp->get_adapted_flag()) {
 			case NEWBUFFER:
-				printf("Suspicious element has adapted flag=%d\n aborting", EmTemp->get_adapted_flag());
+				printf("Suspicious element has adapted flag=%d\n aborting",
+						EmTemp->get_adapted_flag());
 				assert(0);
 				break;
 			case BUFFER:
@@ -1182,13 +1240,16 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 				break;
 			case OLDFATHER:
 			case OLDSON:
-				printf("Suspicious element has adapted flag=%d\n aborting", EmTemp->get_adapted_flag());
+				printf("Suspicious element has adapted flag=%d\n aborting",
+						EmTemp->get_adapted_flag());
 				assert(0);
 				break;
 			default:
 				//I don't know what kind of Element this is.
-				printf("FUBAR element type in H_adapt()!!! key={%u,%u} adapted=%d\naborting.\n",
-						*(EmTemp->pass_key() + 0), *(EmTemp->pass_key() + 1), EmTemp->get_adapted_flag());
+				printf(
+						"FUBAR element type in H_adapt()!!! key={%u,%u} adapted=%d\naborting.\n",
+						*(EmTemp->pass_key() + 0), *(EmTemp->pass_key() + 1),
+						EmTemp->get_adapted_flag());
 				assert(0);
 				break;
 			}
@@ -1235,8 +1296,9 @@ void initial_H_adapt(HashTable* HT_Elem_Ptr, HashTable* HT_Node_Ptr, int h_count
 }
 /***********************************************************************/
 
-void H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable, MatProps* matprops_ptr,
-		PileProps* pileprops_ptr, FluxProps *fluxprops_ptr, TimeProps* timeprops_ptr, int refinelevel) {
+void H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable,
+		MatProps* matprops_ptr, PileProps* pileprops_ptr,
+		FluxProps *fluxprops_ptr, TimeProps* timeprops_ptr, int refinelevel) {
 
 	if (refinelevel > REFINE_LEVEL)
 		refinelevel = REFINE_LEVEL;
@@ -1287,15 +1349,18 @@ void H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable, MatProps* matpr
 
 					generation = EmTemp->get_gen();
 
-					if ((EmTemp->get_adapted_flag() == NOTRECADAPTED) && (generation < refinelevel)) {
-						refinewrapper(El_Table, NodeTable, matprops_ptr, &RefinedList, EmTemp);
+					if ((EmTemp->get_adapted_flag() == NOTRECADAPTED)
+							&& (generation < refinelevel)) {
+						refinewrapper(El_Table, NodeTable, matprops_ptr,
+								&RefinedList, EmTemp);
 						if (generation < minrefinelevel)
 							minrefinelevel = generation;
 					}
 				}
 			}
 
-		refine_neigh_update(El_Table, NodeTable, numprocs, myid, (void*) &RefinedList, timeprops_ptr);
+		refine_neigh_update(El_Table, NodeTable, numprocs, myid,
+				(void*) &RefinedList, timeprops_ptr);
 
 		move_data(numprocs, myid, El_Table, NodeTable, timeprops_ptr);
 
@@ -1314,10 +1379,12 @@ void H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable, MatProps* matpr
 
 						if (EmTemp->get_adapted_flag() >= NOTRECADAPTED) {
 							EmTemp->put_adapted_flag(NOTRECADAPTED);
-							elliptical_pile_height(NodeTable, EmTemp, matprops_ptr, pileprops_ptr);
+							elliptical_pile_height(NodeTable, EmTemp,
+									matprops_ptr, pileprops_ptr);
 						} else {
 							EmTemp->void_bcptr();
-							El_Table->remove(EmTemp->pass_key(), 1, stdout, myid, 24);
+							El_Table->remove(EmTemp->pass_key(), 1, stdout,
+									myid, 24);
 							delete EmTemp;
 						}
 					}
@@ -1338,7 +1405,8 @@ void H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable, MatProps* matpr
 							EmTemp->put_height(0.0);
 						} else {
 							EmTemp->void_bcptr();
-							El_Table->remove(EmTemp->pass_key(), 1, stdout, myid, 25);
+							El_Table->remove(EmTemp->pass_key(), 1, stdout,
+									myid, 25);
 							delete EmTemp;
 						}
 					}
@@ -1346,7 +1414,8 @@ void H_adapt_to_level(HashTable* El_Table, HashTable* NodeTable, MatProps* matpr
 		}
 	}
 
-	mark_flux_region(El_Table, NodeTable, matprops_ptr, fluxprops_ptr, timeprops_ptr);
+	mark_flux_region(El_Table, NodeTable, matprops_ptr, fluxprops_ptr,
+			timeprops_ptr);
 
 	if (numprocs > 1)
 		repartition2(El_Table, NodeTable, timeprops_ptr);

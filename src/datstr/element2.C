@@ -137,7 +137,7 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH], in
 	opposite_brother_flag = 1;
 
 	new_old = OLD;
-	state_vars[0] = state_vars[4] = -1.0;
+	state_vars[0] = state_vars[4] = 0.;
 	//if (pile_height>0) state_vars[0]= state_vars[4]=1.;
 	state_vars[1] = pile_height;
 	state_vars[2] = 0.;
@@ -150,7 +150,7 @@ Element::Element(unsigned nodekeys[][KEYLENGTH], unsigned neigh[][KEYLENGTH], in
 //	drypoint[0] = drypoint[1] = 0.0;
 //	Awet = Swet = (pile_height > GEOFLOW_TINY) ? 1.0 : 0.0;
 
-	prev_state_vars[0] = prev_state_vars[4] = 0;
+	prev_state_vars[0] = prev_state_vars[4] = 0.;
 	//if(pile_height>0) prev_state_vars[0]=prev_state_vars[4]=1.;
 	prev_state_vars[1] = pile_height;
 	prev_state_vars[2] = 0.;
@@ -3052,7 +3052,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height) {
 				}
 				assert(ElemNeigh);
 				if (*(ElemNeigh->get_state_vars()) > contour_height)
-					return (2); //inside of pileheight contour line
+					return (2); //outside inside of pileheight contour line
 			}
 	} else {
 		for (ineigh = 0; ineigh < 8; ineigh++)
@@ -3069,7 +3069,7 @@ int Element::if_pile_boundary(HashTable *ElemTable, double contour_height) {
 				}
 				assert(ElemNeigh);
 				if (*(ElemNeigh->get_state_vars()) <= contour_height)
-					return (1); //outside of pileheight contour line
+					return (1); //inside of pileheight contour line
 			}
 	}
 
@@ -3194,7 +3194,7 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
 	if (adapted <= 0)
 		return (adapted - 1);
 
-	if ((state_vars[0] < contour_height) && (Influx[1] == 0.0)) {
+	if ((state_vars[0] < contour_height) && (Influx[1] == 0.)) {
 		for (ineigh = 0; ineigh < 8; ineigh++)
 			if (neigh_proc[ineigh] >= 0) { //don't check outside map boundary or duplicate neighbor
 				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
@@ -3212,7 +3212,7 @@ int Element::if_first_buffer_boundary(HashTable *ElemTable, double contour_heigh
 				ElemNeigh = (Element*) ElemTable->lookup(neighbor[ineigh]);
 				assert(ElemNeigh);
 				if ((*(ElemNeigh->get_state_vars()) <= contour_height)
-				    && (*(ElemNeigh->get_influx() + 1) == 0.0)) {
+				    && (*(ElemNeigh->get_influx() + 1) == 0.)) {
 					iffirstbuffer = 1;
 					break;
 				}
@@ -3294,7 +3294,7 @@ int Element::if_next_buffer_boundary(HashTable *ElemTable, HashTable *NodeTable,
 				}
 
 				if ((abs(ElemNeigh->get_adapted_flag()) == BUFFER)
-				    && (fabs(state_vars[0]) >= *(ElemNeigh->get_state_vars()))) //for levelset >=
+				   /* && (fabs(state_vars[0]) >= *(ElemNeigh->get_state_vars()))*/) //for levelset >=
 				    { //this element is next to a member of the old buffer layer
 					ifnextbuffer = 1; //which means this element is a member of the next outer boundary of the buffer layer
 					break;

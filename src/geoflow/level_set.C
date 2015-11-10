@@ -27,8 +27,8 @@
 typedef double (*Pt2Path)(void* path, double x, double y);
 typedef void (*Pt2Grad)(void* path, double x, double y, double* grad);
 
-extern "C" void dgesv_(int *n, int *nrhs, double *a, int *lda, int *ipiv, double *b, int *ldb,
-    int *info);
+//extern "C" void dgesv_(int *n, int *nrhs, double *a, int *lda, int *ipiv, double *b, int *ldb,
+//    int *info);
 
 class Edge {
 	// this  class holds information of an edge consisting of two elements
@@ -49,7 +49,8 @@ public:
 	;
 
 	bool operator<(const Edge& redge) const {
-		if (elem[0] < redge.elem[0] || (elem[0] == redge.elem[0] && elem[1] < redge.elem[1]))
+		if (elem[0] < redge.elem[0]
+				|| (elem[0] == redge.elem[0] && elem[1] < redge.elem[1]))
 			return true;
 
 		return false;
@@ -79,10 +80,12 @@ public:
 	;
 
 	bool operator<(const Quad& rrect) const {
-		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
-		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2])
-		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] == rrect.elem[2]
-		        && elem[3] < rrect.elem[3]))
+		if (elem[0] < rrect.elem[0]
+				|| (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
+				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1]
+						&& elem[2] < rrect.elem[2])
+				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1]
+						&& elem[2] == rrect.elem[2] && elem[3] < rrect.elem[3]))
 			return true;
 
 		return false;
@@ -110,8 +113,10 @@ public:
 	;
 
 	bool operator<(const Triangle& rrect) const {
-		if (elem[0] < rrect.elem[0] || (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
-		    || (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1] && elem[2] < rrect.elem[2]))
+		if (elem[0] < rrect.elem[0]
+				|| (elem[0] == rrect.elem[0] && elem[1] < rrect.elem[1])
+				|| (elem[0] == rrect.elem[0] && elem[1] == rrect.elem[1]
+						&& elem[2] < rrect.elem[2]))
 			return true;
 
 		return false;
@@ -127,10 +132,10 @@ typedef std::set<Triangle> TriangList;
 
 class Ellipse {
 public:
-	Ellipse(double x_center, double y_center, double x_radius, double y_radius, double cosrot,
-	    double sinrot) :
-			x_center(x_center), y_center(y_center), x_radius(x_radius), y_radius(y_radius), cosrot(
-			    cosrot), sinrot(sinrot) {
+	Ellipse(double x_center, double y_center, double x_radius, double y_radius,
+			double cosrot, double sinrot) :
+			x_center(x_center), y_center(y_center), x_radius(x_radius), y_radius(
+					y_radius), cosrot(cosrot), sinrot(sinrot) {
 	}
 
 	const double get_x_center() const {
@@ -180,9 +185,10 @@ double path_ellipse(void* path, double x, double y) {
 	const double sinrot = ellipse->get_sinrot();
 
 	return ((x - x_center) * cosrot + (y - y_center) * sinrot)
-	    * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-	    + ((x - x_center) * sinrot - (y - y_center) * cosrot)
-	        * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq - 1.;
+			* ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
+			+ ((x - x_center) * sinrot - (y - y_center) * cosrot)
+					* ((x - x_center) * sinrot - (y - y_center) * cosrot)
+					/ y_rad_sq - 1.;
 
 }
 
@@ -199,75 +205,69 @@ void grad_path_ellipse(void* path, double x, double y, double* grad) {
 	const double cosrot = ellipse->get_cosrot();
 	const double sinrot = ellipse->get_sinrot();
 
-	grad[0] = 2. * cosrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-	    + 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+	grad[0] = 2. * cosrot * ((x - x_center) * cosrot + (y - y_center) * sinrot)
+			/ x_rad_sq
+			+ 2. * sinrot * ((x - x_center) * sinrot - (y - y_center) * cosrot)
+					/ y_rad_sq;
 
-	grad[1] = 2. * sinrot * ((x - x_center) * cosrot + (y - y_center) * sinrot) / x_rad_sq
-	    - 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot) / y_rad_sq;
+	grad[1] = 2. * sinrot * ((x - x_center) * cosrot + (y - y_center) * sinrot)
+			/ x_rad_sq
+			- 2. * cosrot * ((x - x_center) * sinrot - (y - y_center) * cosrot)
+					/ y_rad_sq;
 
 }
 
-void bilinear_interp(Quad quad, double* bilinear_coef) {
-
-//  P=a0+a1*x+a2*y+a3*x*y
-//	Ab=x
-//	[1,x0,y0,x0y0][a0] [phi0]
-//	[1,x1,y1,x1y1][a1] [phi1]
-//	[1,x2,y2,x2y2][a2]=[phi2]
-//	[1,x3,y3,x3y3][a3] [phi3]
-
-	int dim = 4, one = 1, info, ipiv[dim];
-
-	double A[dim * dim], x[dim], y[dim];
-
-	for (int i = 0; i < dim; ++i) {
-		x[i] = *(quad.elem[i]->get_coord());
-		y[i] = *(quad.elem[i]->get_coord() + 1);
-		bilinear_coef[i] = *(quad.elem[i]->get_state_vars());
-		A[i] = 1;
-		A[i + 4] = x[i];
-		A[i + 8] = y[i];
-		A[i + 12] = x[i] * y[i];
-	}
-
-//	cout << "Matrix A and vector phi" << endl;
+//void bilinear_interp(Quad quad, double* bilinear_coef) {
+//
+////  P=a0+a1*x+a2*y+a3*x*y
+////	Ab=x
+////	[1,x0,y0,x0y0][a0] [phi0]
+////	[1,x1,y1,x1y1][a1] [phi1]
+////	[1,x2,y2,x2y2][a2]=[phi2]
+////	[1,x3,y3,x3y3][a3] [phi3]
+//
+//	int dim = 4, one = 1, info, ipiv[dim];
+//
+//	double A[dim * dim], x[dim], y[dim];
+//
 //	for (int i = 0; i < dim; ++i) {
-//		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
-//		cout << "[ " << phi[i] << " ]" << endl;
+//		x[i] = *(quad.elem[i]->get_coord());
+//		y[i] = *(quad.elem[i]->get_coord() + 1);
+//		bilinear_coef[i] = *(quad.elem[i]->get_state_vars());
+//		A[i] = 1;
+//		A[i + 4] = x[i];
+//		A[i + 8] = y[i];
+//		A[i + 12] = x[i] * y[i];
 //	}
-
-	dgesv_(&dim, &one, A, &dim, ipiv, bilinear_coef, &dim, &info);
-
-//	cout << "Solution" << endl;
-//	for (int i = 0; i < dim; ++i)
-//		cout << "[ " << phi[i] << " ]" << endl;
-
-}
+//
+////	cout << "Matrix A and vector phi" << endl;
+////	for (int i = 0; i < dim; ++i) {
+////		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
+////		cout << "[ " << phi[i] << " ]" << endl;
+////	}
+//
+//	dgesv_(&dim, &one, A, &dim, ipiv, bilinear_coef, &dim, &info);
+//
+////	cout << "Solution" << endl;
+////	for (int i = 0; i < dim; ++i)
+////		cout << "[ " << phi[i] << " ]" << endl;
+//
+//}
 
 struct ElLess {
 	bool operator()(Element* a, Element* b) {
-		if (*(a->get_coord()) < *(b->get_coord())
-		    || (*(a->get_coord()) == *(b->get_coord()) && *(a->get_coord() + 1) < *(b->get_coord() + 1)))
+		double xa = *(a->get_coord());
+		double xb = *(b->get_coord());
+		double ya = *(a->get_coord() + 1);
+		double yb = *(b->get_coord() + 1);
+		if ((xa < xb && dabs(xa - xb) > 1e-8)
+				|| dabs(xa - xb) < 1e-8 && ya < yb)
 			return true;
 		return false;
 	}
 };
 
-void bilinear_interp1(Quad quad, double* bilinear_coef) {
-
-	ElLess customLess;
-
-//	cout << "before sort: " << endl;
-//	for (int i = 0; i < 4; ++i)
-//		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
-//		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
-
-	sort(quad.elem, quad.elem + 4, customLess);
-
-//	cout << "after sort: " << endl;
-//	for (int i = 0; i < 4; ++i)
-//		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
-//		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
+void bilinear_interp(Quad quad, double* bilinear_coef) {
 
 	double x[2], y[2], phi[4];
 
@@ -281,12 +281,19 @@ void bilinear_interp1(Quad quad, double* bilinear_coef) {
 
 	// now we can easily compute the coefficients of bi-linear interpolation
 	//  P=a0+a1*x+a2*y+a3*x*y
+	int myid;
+	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 	double denum_inv = 1 / ((x[1] - x[0]) * (y[1] - y[0]));
+
 	assert(denum_inv > 0.);
+
 	bilinear_coef[0] = denum_inv
-	    * (phi[0] * x[1] * y[1] - phi[1] * x[1] * y[0] - phi[2] * x[0] * y[1] + phi[3] * x[0] * y[0]);
-	bilinear_coef[1] = denum_inv * (-phi[0] * y[1] + phi[1] * y[0] + phi[2] * y[1] - phi[3] * y[0]);
-	bilinear_coef[2] = denum_inv * (-phi[0] * x[1] + phi[1] * x[1] + phi[2] * x[0] - phi[3] * x[0]);
+			* (phi[0] * x[1] * y[1] - phi[1] * x[1] * y[0]
+					- phi[2] * x[0] * y[1] + phi[3] * x[0] * y[0]);
+	bilinear_coef[1] = denum_inv
+			* (-phi[0] * y[1] + phi[1] * y[0] + phi[2] * y[1] - phi[3] * y[0]);
+	bilinear_coef[2] = denum_inv
+			* (-phi[0] * x[1] + phi[1] * x[1] + phi[2] * x[0] - phi[3] * x[0]);
 	bilinear_coef[3] = denum_inv * (phi[0] - phi[1] - phi[2] + phi[3]);
 
 ////for a rectangle we first need to find min of x and min of y
@@ -379,7 +386,8 @@ double bilinear_surface(void* path, double x, double y) {
 
 	double* bilinear_coef = (double*) path;
 
-	return bilinear_coef[0] + bilinear_coef[1] * x + bilinear_coef[2] * y + bilinear_coef[3] * x * y;
+	return bilinear_coef[0] + bilinear_coef[1] * x + bilinear_coef[2] * y
+			+ bilinear_coef[3] * x * y;
 }
 
 void grad_bilinear_surface(void* path, double x, double y, double* grad) {
@@ -436,11 +444,15 @@ void make_surface(Triangle triangle, double* surface_coef) {
 	a[0] = *(triangle.elem[1]->get_coord()) - *(triangle.elem[0]->get_coord());
 	b[0] = *(triangle.elem[2]->get_coord()) - *(triangle.elem[0]->get_coord());
 
-	a[1] = *(triangle.elem[1]->get_coord() + 1) - *(triangle.elem[0]->get_coord() + 1);
-	b[1] = *(triangle.elem[2]->get_coord() + 1) - *(triangle.elem[0]->get_coord() + 1);
+	a[1] = *(triangle.elem[1]->get_coord() + 1)
+			- *(triangle.elem[0]->get_coord() + 1);
+	b[1] = *(triangle.elem[2]->get_coord() + 1)
+			- *(triangle.elem[0]->get_coord() + 1);
 
-	a[2] = *(triangle.elem[1]->get_state_vars()) - *(triangle.elem[0]->get_state_vars());
-	b[2] = *(triangle.elem[2]->get_state_vars()) - *(triangle.elem[0]->get_state_vars());
+	a[2] = *(triangle.elem[1]->get_state_vars())
+			- *(triangle.elem[0]->get_state_vars());
+	b[2] = *(triangle.elem[2]->get_state_vars())
+			- *(triangle.elem[0]->get_state_vars());
 
 	// finding the normal vector of the two vectors
 	normal[0] = a[1] * b[2] - b[1] * a[2];
@@ -451,9 +463,9 @@ void make_surface(Triangle triangle, double* surface_coef) {
 	if (normal[2] != 0) {
 		c = -1 / normal[2];
 		surface_coef[0] = -c
-		    * (normal[0] * *(triangle.elem[0]->get_coord())
-		        + normal[1] * *(triangle.elem[0]->get_coord() + 1))
-		    + *(triangle.elem[0]->get_state_vars());
+				* (normal[0] * *(triangle.elem[0]->get_coord())
+						+ normal[1] * *(triangle.elem[0]->get_coord() + 1))
+				+ *(triangle.elem[0]->get_state_vars());
 		surface_coef[1] = normal[0] * c;
 		surface_coef[2] = normal[1] * c;
 
@@ -484,16 +496,16 @@ void grad_surface(void* path, double x, double y, double* grad) {
 
 }
 
-void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_func, void* ctx,
-    double min_dx) {
+void initialize_distance(Element* elem, Pt2Path& p_value_func,
+		Pt2Grad& p_grad_func, void* ctx, double min_dx) {
 
 	// this part is from reinitialization proposed in Chopp's, SOME IMPROVEMENTS OF THE FAST MARCHING METHOD
 	// the difference is that instead of bicubic interpolation, we used bilinear interpolation to find the distance
 	// near the interface. For the first time step we have the initial shape of pile and we can compute the
 	// distance to the interface exactly, and we do not need to bilinear interpolation
 
-	double d1[2] = { 0., 0. }, d2[2] = { 0., 0. }, grad[2], pvalue, grad_dot, x_new, y_new, x_old,
-	    y_old, x_half, y_half, epslon = .01;
+	double d1[2] = { 0., 0. }, d2[2] = { 0., 0. }, grad[2], pvalue, grad_dot,
+			x_new, y_new, x_old, y_old, x_half, y_half, epslon = .01;
 
 // initializing the solution
 	x_new = x_old = *(elem->get_coord());
@@ -518,19 +530,23 @@ void initialize_distance(Element* elem, Pt2Path& p_value_func, Pt2Grad& p_grad_f
 		x_half = x_new + d1[0];
 		y_half = y_new + d1[1];
 
-		d2[0] = (x_old - x_new) - (x_old - x_new) * grad[0] / grad_dot * grad[0];
-		d2[1] = (y_old - y_new) - (y_old - y_new) * grad[1] / grad_dot * grad[1];
+		d2[0] = (x_old - x_new)
+				- (x_old - x_new) * grad[0] / grad_dot * grad[0];
+		d2[1] = (y_old - y_new)
+				- (y_old - y_new) * grad[1] / grad_dot * grad[1];
 
 		x_new = x_half + d2[0];
 		y_new = y_half + d2[1];
 
-	} while (sqrt(d1[0] * d1[0] + d1[1] * d1[1] + d2[0] * d2[0] + d2[1] * d2[1]) > treshold
-	    && iter < max_iter);
+	} while (sqrt(d1[0] * d1[0] + d1[1] * d1[1] + d2[0] * d2[0] + d2[1] * d2[1])
+			> treshold && iter < max_iter);
 
 	if (phi_old < 0.)
 		sgn = -1.;
 
-	double phi_new = sqrt((x_new - x_old) * (x_new - x_old) + (y_new - y_old) * (y_new - y_old));
+	double phi_new = sqrt(
+			(x_new - x_old) * (x_new - x_old)
+					+ (y_new - y_old) * (y_new - y_old));
 
 	// this is for the case that a point is computed twice, and we take the smaller value
 	if (phi_new < fabs(phi_old))
@@ -563,24 +579,30 @@ void adjacent_to_interface(HashTable* El_Table, EdgeList& accepted) {
 
 							unsigned* neigh_key = Curr_El->get_neighbors();
 
-							Element* ElemNeigh = (Element*) El_Table->lookup(neigh_key + ineigh * KEYLENGTH);
+							Element* ElemNeigh = (Element*) El_Table->lookup(
+									neigh_key + ineigh * KEYLENGTH);
 
 							double neighb_phi = *(ElemNeigh->get_state_vars());
 
 							if (neighb_phi * phi[0] < 0.) {
 
-								int yp, xm, ym, xp = Curr_El->get_positive_x_side();
+								int yp, xm, ym, xp =
+										Curr_El->get_positive_x_side();
 								yp = (xp + 1) % 4;
 								xm = (xp + 2) % 4;
 								ym = (xp + 3) % 4;
 
 								int orientation = abs(ineigh - xp);
 
-								if (orientation % 4 == 0 || orientation % 4 == 1)
-									accepted.insert(Edge(Curr_El, ElemNeigh, ineigh));
+								if (orientation % 4 == 0
+										|| orientation % 4 == 1)
+									accepted.insert(
+											Edge(Curr_El, ElemNeigh, ineigh));
 								else
 									accepted.insert(
-									    Edge(ElemNeigh, Curr_El, ElemNeigh->which_neighbor(Curr_El->pass_key())));
+											Edge(ElemNeigh, Curr_El,
+													ElemNeigh->which_neighbor(
+															Curr_El->pass_key())));
 							}
 
 						}
@@ -643,9 +665,10 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 			HashEntryPtr currentPtr = *(buck + i);
 			while (currentPtr) {
 				Element* Curr_El = (Element*) (currentPtr->value);
-				if (Curr_El->get_adapted_flag() > 0 && *(Curr_El->get_nbflag()) != 1
-				// I did note get good result from the following condition
-				    && fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
+				if (Curr_El->get_adapted_flag() > 0
+						&& *(Curr_El->get_nbflag()) != 1
+						// I did note get good result from the following condition
+						&& fabs(*(Curr_El->get_state_vars())) <= 10 * min_dx) {
 					// with the last condition we narrow the range of update
 					// to maximum of 10 cell-width far the the interface
 
@@ -673,15 +696,21 @@ void update_phi(HashTable* El_Table, double min_dx, double* norm, int* elem) {
 					d_m = min(phi_slope[3], 0.);
 
 					if (state_vars[4] > 0.)
-						flux_phi = sqrt(max(a_p * a_p, b_m * b_m) + max(c_p * c_p, d_m * d_m)) - 1;
+						flux_phi = sqrt(
+								max(a_p * a_p, b_m * b_m)
+										+ max(c_p * c_p, d_m * d_m)) - 1;
 					else if (state_vars[4] < 0.)
-						flux_phi = sqrt(max(a_m * a_m, b_p * b_p) + max(c_m * c_m, d_p * d_p)) - 1;
+						flux_phi = sqrt(
+								max(a_m * a_m, b_p * b_p)
+										+ max(c_m * c_m, d_p * d_p)) - 1;
 					else
 						flux_phi = 0.;
 
-					state_vars[0] = state_vars[0] - dt * sign(state_vars[4]) * flux_phi;
+					state_vars[0] = state_vars[0]
+							- dt * sign(state_vars[4]) * flux_phi;
 
-					*norm += (state_vars[0] - prev_state_vars[0]) * (state_vars[0] - prev_state_vars[0]);
+					*norm += (state_vars[0] - prev_state_vars[0])
+							* (state_vars[0] - prev_state_vars[0]);
 
 					// this is just to see which elements are updating
 					state_vars[5] = 1.;
@@ -703,22 +732,23 @@ void record_of_phi(HashTable* El_Table) {
 			while (currentPtr) {
 				Element* Curr_El = (Element*) (currentPtr->value);
 				if (Curr_El->get_adapted_flag() > 0)
-					*(Curr_El->get_state_vars() + 4) = *(Curr_El->get_state_vars());
+					*(Curr_El->get_state_vars() + 4) =
+							*(Curr_El->get_state_vars());
 
 				currentPtr = currentPtr->next;
 			}
 		}
 }
 
-void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadlist,
-    TriangList& trianglist) {
+void make_quad_trangle(HashTable* El_Table, EdgeList& accepted,
+		QuadList& quadlist, TriangList& trianglist, Box* box) {
 
 	Element* elem[4];
 	int neigh_num;
-	int debug = 0;
+	int debug = 0, plotstop = 0;
 
 	for (EdgeList::iterator it = accepted.begin(); it != accepted.end(); ++it) {
-		debug++;
+//		debug++;
 //		cout<<debug<<endl;
 
 		if (it->elem[0]->get_adapted_flag() > 0) {
@@ -728,7 +758,7 @@ void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadli
 		} else {
 			elem[0] = it->elem[1];
 			elem[1] = it->elem[0];
-			neigh_num = elem[0]->which_neighbor(elem[1]->pass_key());			//= (it->neigh_num + 2) % 8;
+			neigh_num = elem[0]->which_neighbor(elem[1]->pass_key());//= (it->neigh_num + 2) % 8;
 		}
 
 		// given the neighbor number, we can build 2 Quads, but we do not care.
@@ -736,26 +766,50 @@ void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadli
 		// from the bilinear map, and then computing the distance to the interface
 
 		unsigned* elem_key = elem[0]->get_neighbors();
-		elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num + 1) % 8) * KEYLENGTH);
+		elem[2] = (Element*) El_Table->lookup(
+				elem_key + ((neigh_num + 1) % 8) * KEYLENGTH);
 		unsigned* neigh_key;
 
 		if (elem[2] && elem[2]->get_adapted_flag() > 0) {
 			// first condition is to avoid the case that elem[2] is not available
 
 			neigh_key = elem[2]->get_neighbors();
-			elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+			elem[3] = (Element*) El_Table->lookup(
+					neigh_key + neigh_num * KEYLENGTH);
 		} else {
 			// this means that this proc has not access to this direction, so we have to change the direction
-			elem[2] = (Element*) El_Table->lookup(elem_key + ((neigh_num - 1 + 8) % 8) * KEYLENGTH);
+			elem[2] = (Element*) El_Table->lookup(
+					elem_key + ((neigh_num - 1 + 8) % 8) * KEYLENGTH);
 
 			if (elem[2]) {
 				// the condition is to avoid the case that elem[2] is not available
 				neigh_key = elem[2]->get_neighbors();
-				elem[3] = (Element*) El_Table->lookup(neigh_key + neigh_num * KEYLENGTH);
+				elem[3] = (Element*) El_Table->lookup(
+						neigh_key + neigh_num * KEYLENGTH);
 			}
 		}
 
 		if (elem[3]) {
+
+			ElLess customLess;
+
+			sort(elem, elem + 4, customLess);
+			double x[2], y[2], phi[4];
+
+			x[0] = *(elem[0]->get_coord());
+			x[1] = *(elem[2]->get_coord());
+			y[0] = *(elem[0]->get_coord() + 1);
+			y[1] = *(elem[1]->get_coord() + 1);
+
+			double denum_inv = 1 / ((x[1] - x[0]) * (y[1] - y[0]));
+			if (denum_inv <= 0.) {
+				cout << "this should not happen  " << endl;
+				for (int gg = 0; gg < 4; ++gg)
+					*(elem[gg]->get_state_vars()) = 10 * gg;
+				plotstop = 1;
+				box->flag = 1;
+			}
+
 			quadlist.insert(Quad(elem[0], elem[1], elem[2], elem[3]));
 		} else {
 			// this is for the case that the element is in the corner, and three of its sides are in
@@ -777,8 +831,8 @@ void make_quad_trangle(HashTable* El_Table, EdgeList& accepted, QuadList& quadli
 
 }
 
-void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* timeprops,
-    double min_dx, int nump, int rank) {
+void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable,
+		TimeProps* timeprops, double min_dx, int nump, int rank) {
 
 	const double threshold = .5 * min_dx * min_dx * min_dx;
 	double norm, total_norm, normalized_norm;
@@ -799,7 +853,8 @@ void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* 
 
 		// after updating this data have to be transmitted into others
 		move_data(nump, rank, El_Table, NodeTable, timeprops);
-		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		MPI_Allreduce(&norm, &total_norm, 1, MPI_DOUBLE, MPI_SUM,
+		MPI_COMM_WORLD);
 		MPI_Allreduce(&elem, &tot_elem, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		normalized_norm = sqrt(total_norm) / tot_elem;
 
@@ -807,12 +862,14 @@ void pde_reinitialization(HashTable* El_Table, HashTable* NodeTable, TimeProps* 
 	} while (normalized_norm > threshold && iter < 13);
 
 	if (rank == 0)
-		cout << "norm: " << normalized_norm << " threshold is: " << threshold << endl;
+		cout << "norm: " << normalized_norm << " threshold is: " << threshold
+				<< endl;
 
 }
 
-void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+void reinitialization(HashTable* NodeTable, HashTable* El_Table,
+		MatProps* matprops_ptr, TimeProps *timeprops, PileProps *pileprops_ptr,
+		int nump, int rank, Box* box) {
 
 	reset_nbflag(El_Table);
 
@@ -824,7 +881,15 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 
 // with each Edge we can build 2 rectangles, but this procedure can be repeated
 // for an edge, so make a new list of edges to prevent making these again
-	make_quad_trangle(El_Table, accepted, rectangles, trianglist);
+	make_quad_trangle(El_Table, accepted, rectangles, trianglist, box);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	int stop = 0;
+	MPI_Allreduce(&box->flag, &stop, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	if (stop) {
+		meshplotter(El_Table, box->node, box->mat, box->time, box->map, 0.);
+		exit(1);
+	}
 
 	double min_dx = 0.;
 	find_min_dx(El_Table, &min_dx);
@@ -834,13 +899,14 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 
 	double bilinear_coef[4];
 
-	for (QuadList::iterator it = rectangles.begin(); it != rectangles.end(); ++it) {
+	for (QuadList::iterator it = rectangles.begin(); it != rectangles.end();
+			++it) {
 
-		bilinear_interp1(*it, bilinear_coef);
 		bilinear_interp(*it, bilinear_coef);
 
 		for (int j = 0; j < 4; ++j) {
-			initialize_distance(it->elem[j], p2path, p2grad, (void*) bilinear_coef, min_dx);
+			initialize_distance(it->elem[j], p2path, p2grad,
+					(void*) bilinear_coef, min_dx);
 			*((it->elem[j])->get_nbflag()) = 1;
 		}
 	}
@@ -848,27 +914,34 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 	p2path = surface;
 	p2grad = grad_surface;
 
-	double surface_coef[4];
+	double surface_coef[3];
 
-	for (TriangList::iterator it = trianglist.begin(); it != trianglist.end(); ++it) {
+	for (TriangList::iterator it = trianglist.begin(); it != trianglist.end();
+			++it) {
 
 		make_surface(*it, bilinear_coef);
 
 		for (int j = 0; j < 3; ++j) {
-			initialize_distance(it->elem[j], p2path, p2grad, (void*) surface_coef, min_dx);
+			initialize_distance(it->elem[j], p2path, p2grad,
+					(void*) surface_coef, min_dx);
 			*((it->elem[j])->get_nbflag()) = 1;
 		}
 	}
 
+	// we have to update other processors about new distances
+	move_data(nump, rank, El_Table, NodeTable, timeprops);
+
 	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 }
 
-void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
-    TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank) {
+void initialization(HashTable* NodeTable, HashTable* El_Table,
+		MatProps* matprops_ptr, TimeProps *timeprops, PileProps *pileprops_ptr,
+		int nump, int rank) {
 
 // data in pileprops_ptr are scaled
-	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0], pileprops_ptr->majorrad[0],
-	    pileprops_ptr->minorrad[0], pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
+	Ellipse ellipse(pileprops_ptr->xCen[0], pileprops_ptr->yCen[0],
+			pileprops_ptr->majorrad[0], pileprops_ptr->minorrad[0],
+			pileprops_ptr->cosrot[0], pileprops_ptr->sinrot[0]);
 
 	reset_nbflag(El_Table);
 	EdgeList accepted;
@@ -882,10 +955,14 @@ void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprop
 
 	for (EdgeList::iterator it = accepted.begin(); it != accepted.end(); ++it)
 		for (int j = 0; j < 2; ++j)
-			if (it->elem[j]->get_adapted_flag() > 0) {		// we do not want to update ghost element
-				initialize_distance(it->elem[j], p2path, p2grad, (void*) &ellipse, min_dx);
+			if (it->elem[j]->get_adapted_flag() > 0) {// we do not want to update ghost element
+				initialize_distance(it->elem[j], p2path, p2grad,
+						(void*) &ellipse, min_dx);
 				*((it->elem[j])->get_nbflag()) = 1;
 			}
+
+	// we have to update other processors about new distances
+	move_data(nump, rank, El_Table, NodeTable, timeprops);
 
 	pde_reinitialization(El_Table, NodeTable, timeprops, min_dx, nump, rank);
 
