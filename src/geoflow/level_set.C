@@ -207,42 +207,42 @@ void grad_path_ellipse(void* path, double x, double y, double* grad) {
 
 }
 
-//void bilinear_interp(Quad quad, double* bilinear_coef) {
-//
-////  P=a0+a1*x+a2*y+a3*x*y
-////	Ab=x
-////	[1,x0,y0,x0y0][a0] [phi0]
-////	[1,x1,y1,x1y1][a1] [phi1]
-////	[1,x2,y2,x2y2][a2]=[phi2]
-////	[1,x3,y3,x3y3][a3] [phi3]
-//
-//	int dim = 4, one = 1, info, ipiv[dim];
-//
-//	double A[dim * dim], x[dim], y[dim];
-//
+void bilinear_interp(Quad quad, double* bilinear_coef) {
+
+//  P=a0+a1*x+a2*y+a3*x*y
+//	Ab=x
+//	[1,x0,y0,x0y0][a0] [phi0]
+//	[1,x1,y1,x1y1][a1] [phi1]
+//	[1,x2,y2,x2y2][a2]=[phi2]
+//	[1,x3,y3,x3y3][a3] [phi3]
+
+	int dim = 4, one = 1, info, ipiv[dim];
+
+	double A[dim * dim], x[dim], y[dim];
+
+	for (int i = 0; i < dim; ++i) {
+		x[i] = *(quad.elem[i]->get_coord());
+		y[i] = *(quad.elem[i]->get_coord() + 1);
+		bilinear_coef[i] = *(quad.elem[i]->get_state_vars());
+		A[i] = 1;
+		A[i + 4] = x[i];
+		A[i + 8] = y[i];
+		A[i + 12] = x[i] * y[i];
+	}
+
+//	cout << "Matrix A and vector phi" << endl;
 //	for (int i = 0; i < dim; ++i) {
-//		x[i] = *(quad.elem[i]->get_coord());
-//		y[i] = *(quad.elem[i]->get_coord() + 1);
-//		bilinear_coef[i] = *(quad.elem[i]->get_state_vars());
-//		A[i] = 1;
-//		A[i + 4] = x[i];
-//		A[i + 8] = y[i];
-//		A[i + 12] = x[i] * y[i];
+//		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
+//		cout << "[ " << phi[i] << " ]" << endl;
 //	}
-//
-////	cout << "Matrix A and vector phi" << endl;
-////	for (int i = 0; i < dim; ++i) {
-////		cout << "[ " << A[i] << " , " << A[i + 4] << " , " << A[i + 8] << " , " << A[i + 12] << " ]";
-////		cout << "[ " << phi[i] << " ]" << endl;
-////	}
-//
-//	dgesv_(&dim, &one, A, &dim, ipiv, bilinear_coef, &dim, &info);
-//
-////	cout << "Solution" << endl;
-////	for (int i = 0; i < dim; ++i)
-////		cout << "[ " << phi[i] << " ]" << endl;
-//
-//}
+
+	dgesv_(&dim, &one, A, &dim, ipiv, bilinear_coef, &dim, &info);
+
+//	cout << "Solution" << endl;
+//	for (int i = 0; i < dim; ++i)
+//		cout << "[ " << phi[i] << " ]" << endl;
+
+}
 
 struct ElLess {
 	bool operator()(Element* a, Element* b) {
@@ -253,41 +253,41 @@ struct ElLess {
 	}
 };
 
-void bilinear_interp(Quad quad, double* bilinear_coef) {
-
-	ElLess customLess;
-
-//	cout << "before sort: " << endl;
+//void bilinear_interp(Quad quad, double* bilinear_coef) {
+//
+//	ElLess customLess;
+//
+////	cout << "before sort: " << endl;
+////	for (int i = 0; i < 4; ++i)
+////		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
+////		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
+//
+//	sort(quad.elem, quad.elem + 4, customLess);
+//
+////	cout << "after sort: " << endl;
+////	for (int i = 0; i < 4; ++i)
+////		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
+////		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
+//
+//	double x[2], y[2], phi[4];
+//
+//	x[0] = *(quad.elem[0]->get_coord());
+//	x[1] = *(quad.elem[2]->get_coord());
+//	y[0] = *(quad.elem[0]->get_coord() + 1);
+//	y[1] = *(quad.elem[1]->get_coord() + 1);
+//
 //	for (int i = 0; i < 4; ++i)
-//		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
-//		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
-
-	sort(quad.elem, quad.elem + 4, customLess);
-
-//	cout << "after sort: " << endl;
-//	for (int i = 0; i < 4; ++i)
-//		cout << " x " << *(quad.elem[i]->get_coord()) << " y " << *(quad.elem[i]->get_coord() + 1)
-//		    << " phi " << *(quad.elem[i]->get_state_vars()) << endl;
-
-	double x[2], y[2], phi[4];
-
-	x[0] = *(quad.elem[0]->get_coord());
-	x[1] = *(quad.elem[2]->get_coord());
-	y[0] = *(quad.elem[0]->get_coord() + 1);
-	y[1] = *(quad.elem[1]->get_coord() + 1);
-
-	for (int i = 0; i < 4; ++i)
-		phi[i] = *(quad.elem[i]->get_state_vars());
-
-	// now we can easily compute the coefficients of bi-linear interpolation
-	//  P=a0+a1*x+a2*y+a3*x*y
-	double denum_inv = 1 / ((x[1] - x[0]) * (y[1] - y[0]));
-	assert(denum_inv > 0.);
-	bilinear_coef[0] = denum_inv
-	    * (phi[0] * x[1] * y[1] - phi[1] * x[1] * y[0] - phi[2] * x[0] * y[1] + phi[3] * x[0] * y[0]);
-	bilinear_coef[1] = denum_inv * (-phi[0] * y[1] + phi[1] * y[0] + phi[2] * y[1] - phi[3] * y[0]);
-	bilinear_coef[2] = denum_inv * (-phi[0] * x[1] + phi[1] * x[1] + phi[2] * x[0] - phi[3] * x[0]);
-	bilinear_coef[3] = denum_inv * (phi[0] - phi[1] - phi[2] + phi[3]);
+//		phi[i] = *(quad.elem[i]->get_state_vars());
+//
+//	// now we can easily compute the coefficients of bi-linear interpolation
+//	//  P=a0+a1*x+a2*y+a3*x*y
+//	double denum_inv = 1 / ((x[1] - x[0]) * (y[1] - y[0]));
+//	assert(denum_inv > 0.);
+//	bilinear_coef[0] = denum_inv
+//	    * (phi[0] * x[1] * y[1] - phi[1] * x[1] * y[0] - phi[2] * x[0] * y[1] + phi[3] * x[0] * y[0]);
+//	bilinear_coef[1] = denum_inv * (-phi[0] * y[1] + phi[1] * y[0] + phi[2] * y[1] - phi[3] * y[0]);
+//	bilinear_coef[2] = denum_inv * (-phi[0] * x[1] + phi[1] * x[1] + phi[2] * x[0] - phi[3] * x[0]);
+//	bilinear_coef[3] = denum_inv * (phi[0] - phi[1] - phi[2] + phi[3]);
 
 ////for a rectangle we first need to find min of x and min of y
 //	//we first check x of two first vertices to see their x are same otherwise their y must be same
@@ -371,7 +371,7 @@ void bilinear_interp(Quad quad, double* bilinear_coef) {
 //	bilinear_coef[2] = denum_inv * (-phi11 * x2 + phi12 * x2 + phi21 * x1 - phi22 * x1);
 //	bilinear_coef[3] = denum_inv * (phi11 - phi12 - phi21 + phi22);
 
-}
+//}
 
 double bilinear_surface(void* path, double x, double y) {
 
@@ -847,7 +847,7 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 	p2path = surface;
 	p2grad = grad_surface;
 
-	double surface_coef[4];
+	double surface_coef[3];
 
 	for (TriangList::iterator it = trianglist.begin(); it != trianglist.end(); ++it) {
 

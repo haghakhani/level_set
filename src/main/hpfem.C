@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 		printf("REFINE_LEVEL=%d\n", REFINE_LEVEL);
 	}
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 	initialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
 
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -217,8 +217,10 @@ int main(int argc, char *argv[]) {
 			update_topo(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &mapnames);
 		}
 
-		if (timeprops.iter)		// this is to avoid run for time step 0
+		if (timeprops.iter) {		// this is to avoid run for time step 0
+			move_data(numprocs, myid, BT_Elem_Ptr, BT_Node_Ptr, &timeprops);
 			reinitialization(BT_Node_Ptr, BT_Elem_Ptr, &matprops, &timeprops, &pileprops, numprocs, myid);
+		}
 
 		if ((adaptflag != 0) && (timeprops.iter % 5 == 4)) {
 			AssertMeshErrorFree(BT_Elem_Ptr, BT_Node_Ptr, numprocs, myid, -2.0);
@@ -359,7 +361,7 @@ int main(int argc, char *argv[]) {
 	//saverun(&BT_Node_Ptr, myid, numprocs, &BT_Elem_Ptr, &matprops, &timeprops, &mapnames,
 	//      adaptflag, order_flag, &statprops, &discharge, &outline, &savefileflag); Was not possible because the saverun function doesn't write the information for laplacian, moreover element constructor requires some modifications
 
-	MPI_Barrier(MPI_COMM_WORLD);
+//	MPI_Barrier(MPI_COMM_WORLD);
 
 	//output maximum flow depth a.k.a. flow outline
 	MPI_Reduce(*(outline.pileheight), *(outline2.pileheight), NxNyout,
