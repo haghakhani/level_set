@@ -165,6 +165,8 @@ void reinitialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matpr
 void initialization(HashTable* NodeTable, HashTable* El_Table, MatProps* matprops_ptr,
     TimeProps *timeprops, PileProps *pileprops_ptr, int nump, int rank);
 
+void wrtie_El_Table_ordered(HashTable* El_Table,HashTable* NodeTable, TimeProps* timeprops,int myid, char* place);
+
 /* fortran calls */
 #ifdef SUNOS 
 //! the actual calculation of k active passive is done by a fortran call this should be ripped out and rewritten as a C++ Element member function

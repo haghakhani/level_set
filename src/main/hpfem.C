@@ -248,6 +248,8 @@ int main(int argc, char *argv[]) {
 		step(BT_Elem_Ptr, BT_Node_Ptr, myid, numprocs, &matprops, &timeprops, &pileprops, &fluxprops,
 		    &statprops, &order_flag, &outline, &discharge, adaptflag);
 
+		wrtie_El_Table_ordered( BT_Elem_Ptr, BT_Node_Ptr,  &timeprops, myid,"STEP");
+
 		/*
 		 * output results to file
 		 */

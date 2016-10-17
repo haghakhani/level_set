@@ -911,3 +911,67 @@ int num_nonzero_elem(HashTable *El_Table) {
 
 	return (num);
 }
+
+class CustomComparitor {
+public:
+	int operator()(const pair<unsigned, unsigned>& lhs, const pair<unsigned, unsigned>& rhs) {
+		if (lhs.first < rhs.first || (lhs.first == rhs.first && lhs.second < rhs.second))
+			return true;
+
+		return false;
+	}
+};
+
+void wrtie_El_Table_ordered(HashTable* El_Table,HashTable* NodeTable, TimeProps* timeprops,int myid,char* place) {
+
+
+	int iter = timeprops->iter;
+	double dt = timeprops->dtime;
+
+	HashEntryPtr* buck = El_Table->getbucketptr();
+
+	char filename[20];
+
+	sprintf(filename, "%s_%d_%d.csv", place, timeprops->iter, myid);
+
+	FILE* file = fopen(filename, "wb");
+
+	set<pair<unsigned, unsigned>, CustomComparitor> ordered_key;
+
+	for (int i = 0; i < El_Table->get_no_of_buckets(); i++)
+		if (*(buck + i)) {
+			HashEntryPtr currentPtr = *(buck + i);
+			while (currentPtr) {
+				Element* Curr_El = (Element*) (currentPtr->value);
+
+				if (Curr_El->get_adapted_flag() > 0)
+					//save key in ordered way
+					ordered_key.insert(make_pair(Curr_El->pass_key()[0], Curr_El->pass_key()[1]));
+
+				currentPtr = currentPtr->next;
+			}
+		}
+
+	set<pair<unsigned, unsigned> >::iterator it;
+	for (it = ordered_key.begin(); it != ordered_key.end(); ++it) {
+		unsigned key[] = { it->first, it->second };
+		Element* elem = (Element*) El_Table->lookup(key);
+
+//		double flux[4][NUM_STATE_VARS];
+//		get_flux(El_Table, NodeTable, elem, flux);
+
+//		fprintf(file, "%u,%u,%.8e,%.8e,%.8e,%.8e,%.8e,%.8e,%.8e,%.8e,%.8e,,%.8e,%.8e,%.8e\n", it->first,
+//		    it->second, flux[0][0], flux[0][1], flux[0][2], flux[1][0], flux[1][1], flux[1][2],
+//		    flux[2][0], flux[2][1], flux[2][2], flux[3][0], flux[3][1], flux[3][2]);
+
+//		fprintf(file, "%u,%u,%.8e,%.8e,%.8e,%.8e,%.8e,%.8e\n", it->first, it->second,
+//		    elem->get_d_state_vars()[0], elem->get_d_state_vars()[1], elem->get_d_state_vars()[2],
+//		    elem->get_d_state_vars()[3], elem->get_d_state_vars()[4], elem->get_d_state_vars()[5]);
+//		fprintf(file, "%u,%u,%.8e,%.8e\n", it->first, it->second, elem->get_d_gravity()[0],
+//		    elem->get_d_gravity()[1]);
+
+		fprintf(file, "%u,%u,%.8e,%.8e,%.8e\n", it->first, it->second, elem->get_state_vars()[0],
+		    elem->get_state_vars()[1], elem->get_state_vars()[2]);
+//		fwrite(elem->get_state_vars(), sizeof(double), 3, file);
+	}
+}
